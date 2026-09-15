@@ -1,0 +1,39 @@
+name: ethos-intention-classifier
+
+services:
+  api:
+    build: ./apps/api
+    ports:
+      - "8000:8000"
+    models:
+      gemma4:
+        endpoint_var: MODEL_BASE_URL
+        model_var: MODEL_NAME
+    environment:
+      MODEL_PROVIDER: dmr
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  ui:
+    build: ./apps/ui
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+
+models:
+  gemma4:
+    model: ai/gemma4:E4B
+    context_size: 4096
+
+# Perfil alternativo para Ollama nativo
+x-ollama-profile: &ollama-profile
+  services:
+    api:
+      environment:
+        MODEL_PROVIDER: ollama
+        OLLAMA_BASE_URL: http://host.docker.internal:11434

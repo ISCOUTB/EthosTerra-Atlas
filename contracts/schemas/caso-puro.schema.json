@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Caso Puro",
+  "description": "Esquema para validar la respuesta del modelo en situaciones donde el contexto es coherente (Caso Puro) para el framework eBDI.",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "Título descriptivo y conciso que resume la situación nominal."
+    },
+    "explicacion": {
+      "type": "string",
+      "description": "Explicación detallada de la clasificación y la ausencia de contradicciones."
+    },
+    "intencion": {
+      "type": "string",
+      "enum": [
+        "actualizar_creencia",
+        "ejecutar_accion",
+        "consultar_estado",
+        "ignorar",
+        "unclear",
+        "other"
+      ],
+      "description": "Intención primaria detectada por el modelo (incluye 'unclear' y 'other' para no forzar clasificaciones)."
+    },
+    "ubicacion": {
+      "type": ["string", "null"],
+      "description": "Ubicación espacial o componente de sistema al que refiere el contexto. Nulo si no aplica."
+    },
+    "ruta_memoria": {
+      "type": ["string", "null"],
+      "description": "Ruta lógica o llave en la memoria del agente eBDI donde se debería persistir esta información. Nulo si es descartable."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Nivel de confianza probabilística del modelo en su inferencia."
+    },
+    "requires_human_review": {
+      "type": "boolean",
+      "description": "Bandera obligatoria (human-in-the-loop). True si, pese a ser caso puro, hay factores de riesgo que exigen confirmación."
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de advertencias sobre problemas menores de validación semántica o ambigüedades irrelevantes encontradas."
+    },
+    "trace_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identificador único de la solicitud para auditoría."
+    },
+    "model_name": {
+      "type": "string",
+      "description": "Identificador exacto del modelo utilizado (ej. gemma4-e4b)."
+    },
+    "model_digest": {
+      "type": "string",
+      "description": "Hash (SHA-256) del prompt enviado para garantizar reproducibilidad exacta."
+    },
+    "latency_ms": {
+      "type": "number",
+      "description": "Tiempo total en milisegundos que tardó la inferencia local."
+    }
+  },
+  "required": [
+    "titulo",
+    "explicacion",
+    "intencion",
+    "confidence",
+    "requires_human_review",
+    "warnings",
+    "trace_id",
+    "model_name",
+    "model_digest",
+    "latency_ms"
+  ],
+  "additionalProperties": false
+}

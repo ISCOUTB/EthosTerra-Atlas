@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-09-08T19:25:32.166725+00:00",
+  "model_name": "ai/gemma4:E4B",
+  "model_digest": "sha256:real",
+  "evaluation_mode": "real_model",
+  "evaluation_status": "success",
+  "total_cases": 20,
+  "attempted_cases": 20,
+  "completed_cases": 20,
+  "failed_requests": 0,
+  "inference_availability": 1.0,
+  "metrics": {
+    "case_type_accuracy": 0.5,
+    "conflict_recall": 0.5,
+    "false_conflict_rate": 0.0,
+    "hallucination_rate": 0.0,
+    "human_review_alignment": 0.65,
+    "avg_latency_ms": 32330.794,
+    "tokens_per_second": null
+  },
+  "failure_summary": {
+    "http_500": 0,
+    "connection_disconnected": 0
+  },
+  "failures": [
+    {
+      "case_id": "case-003-ambiguous",
+      "expected": "unclear",
+      "predicted": "conflict",
+      "error_type": "MISMATCH",
+      "trace_id": "8214bd5d-f143-4688-acbe-f907f20843cf"
+    },
+    {
+      "case_id": "case-005-conflict-leak",
+      "expected": "conflict",
+      "predicted": "pure",
+      "error_type": "MISMATCH",
+      "trace_id": "79c3dce8-baeb-4b43-9a05-bfa1001aaf62"
+    },
+    {
+      "case_id": "case-006-pure",
+      "expected": "pure",
+      "predicted": "unclear",
+      "error_type": "MISMATCH",
+      "trace_id": "2298c79d-26a4-4e72-b6c6-d1d6a6d9a26e"
+    },
+    {
+      "case_id": "case-013-ambiguous",
+      "expected": "unclear",
+      "predicted": "conflict",
+      "error_type": "MISMATCH",
+      "trace_id": "d338945e-4bb0-4d1d-ad78-d147f61b443f"
+    },
+    {
+      "case_id": "case-014-ambiguous",
+      "expected": "unclear",
+      "predicted": "pure",
+      "error_type": "MISMATCH",
+      "trace_id": "cd60686a-dd6c-4ba2-a169-11bd46eeb5e2"
+    },
+    {
+      "case_id": "case-016-hallucination",
+      "expected": "unclear",
+      "predicted": "pure",
+      "error_type": "MISMATCH",
+      "trace_id": "7ef56a19-1c92-4988-a797-ab623a1bc91a"
+    },
+    {
+      "case_id": "case-017-hallucination",
+      "expected": "unclear",
+      "predicted": "pure",
+      "error_type": "MISMATCH",
+      "trace_id": "65548bce-9efe-4c45-8176-4243b3caf7fe"
+    },
+    {
+      "case_id": "case-018-adversarial",
+      "expected": "conflict",
+      "predicted": "pure",
+      "error_type": "MISMATCH",
+      "trace_id": "b3fd4c81-7e89-4621-bf70-604fb594829e"
+    },
+    {
+      "case_id": "case-019-adversarial",
+      "expected": "conflict",
+      "predicted": "pure",
+      "error_type": "MISMATCH",
+      "trace_id": "8006629b-3b21-425f-8777-8fb287ba7cc8"
+    },
+    {
+      "case_id": "case-020-adversarial",
+      "expected": "conflict",
+      "predicted": "pure",
+      "error_type": "MISMATCH",
+      "trace_id": "664fd1fd-ae73-43f8-a97d-b5f50a6f7c58"
+    }
+  ],
+  "note": "Evaluaci\u00f3n completada."
+}

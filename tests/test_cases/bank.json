@@ -1,0 +1,102 @@
+[
+    {
+        "id": "CTX-001",
+        "description": "Temperatura de pozo estable, presión en rango normal.",
+        "expected_label_human": "puro"
+    },
+    {
+        "id": "CTX-002",
+        "description": "Sensor de vibración reporta fallo crítico, pero la bomba indica operación óptima.",
+        "expected_label_human": "conflicto"
+    },
+    {
+        "id": "CTX-003",
+        "description": "Flujo de crudo disminuyó 2% en la última hora, sin alarmas activas.",
+        "expected_label_human": "puro"
+    },
+    {
+        "id": "CTX-004",
+        "description": "Alerta de fuga en ducto principal, simultáneo con lectura de presión ascendente inconsistente.",
+        "expected_label_human": "conflicto"
+    },
+    {
+        "id": "CTX-005",
+        "description": "Reinicio preventivo programado completado exitosamente.",
+        "expected_label_human": "puro"
+    },
+    {
+        "id": "CTX-006",
+        "description": "Válvula de alivio bloqueada según sensor A, abierta según sensor B.",
+        "expected_label_human": "conflicto"
+    },
+    {
+        "id": "CTX-007",
+        "description": "Inyección de agua dentro de los parámetros esperados del EthosTerra.",
+        "expected_label_human": "puro"
+    },
+    {
+        "id": "CTX-008",
+        "description": "Inconsistencia de red: telemetría perdida en plataforma norte, telemetría presente en plataforma sur.",
+        "expected_label_human": "conflicto"
+    },
+    {
+        "id": "CTX-009",
+        "description": "Mantenimiento preventivo sugiere cambio de sellos en 30 días.",
+        "expected_label_human": "puro"
+    },
+    {
+        "id": "CTX-010",
+        "description": "Demanda eléctrica del taladro en picos anómalos pero RPM nominales.",
+        "expected_label_human": "conflicto"
+    },
+    {
+        "id": "CTX-011",
+        "description": "Lectura de gas sulfhídrico (H2S) en 0 ppm.",
+        "expected_label_human": "puro"
+    },
+    {
+        "id": "CTX-012",
+        "description": "Operador reporta ruido anómalo, sistema acústico no detecta nada.",
+        "expected_label_human": "conflicto"
+    },
+    {
+        "id": "CTX-013",
+        "description": "Nivel de tanque de almacenamiento al 85%, llenado normal.",
+        "expected_label_human": "puro"
+    },
+    {
+        "id": "CTX-014",
+        "description": "Cavitación detectada en bomba centrifuga, presión de succión nominal. Posible error de sensor.",
+        "expected_label_human": "conflicto"
+    },
+    {
+        "id": "CTX-015",
+        "description": "Actualización de software de RTU completada sin errores.",
+        "expected_label_human": "puro"
+    },
+    {
+        "id": "CTX-016",
+        "description": "Temperatura ambiental bajo cero causando lecturas erráticas en sensores expuestos.",
+        "expected_label_human": "conflicto"
+    },
+    {
+        "id": "CTX-017",
+        "description": "Producción diaria alcanzó meta operativa esperada.",
+        "expected_label_human": "puro"
+    },
+    {
+        "id": "CTX-018",
+        "description": "Comando de cierre de emergencia enviado, confirmación de estado no recibida tras 5 segundos.",
+        "expected_label_human": "conflicto"
+    },
+    {
+        "id": "CTX-019",
+        "description": "Calibración rutinaria de sensor de flujo completada.",
+        "expected_label_human": "puro"
+    },
+    {
+        "id": "CTX-020",
+        "description": "Sistema BESA reporta 'creencia' de fallo estructural, modelo ML indica 'normalidad'.",
+        "expected_label_human": "conflicto"
+    }
+]
