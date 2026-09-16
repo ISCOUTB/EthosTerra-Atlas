@@ -1,0 +1,29 @@
+{
+  "quality-gate": {
+    "description": "Garantía determinista de calidad: bloquea la finalización de la tarea si los tests unitarios, el linter o el escaneo de seguridad fallan con errores, secretos expuestos (Trivy) o hallazgos de severidad CRITICAL/HIGH. Permite el cierre si todo pasa o solo restan hallazgos MEDIUM/LOW documentados.",
+    "enabled": true,
+    "Stop": [
+      {
+        "type": "command",
+        "command": "bash .agents/scripts/stop-quality-gate.sh",
+        "timeout": 600
+      }
+    ]
+  },
+  "pre-commit-local": {
+    "description": "Verificación opcional pre-commit local: ejecuta un linter rápido (make lint) y escaneo de secretos con Trivy si están disponibles. Deshabilitado por defecto para control y ejecución manual del desarrollador.",
+    "enabled": false,
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/scripts/precommit-check.sh",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}
