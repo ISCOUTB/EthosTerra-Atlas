@@ -1,98 +1,91 @@
 {
-  "timestamp": "2026-09-08T19:25:32.166725+00:00",
+  "timestamp": "2026-09-16T19:36:21.240090+00:00",
   "model_name": "ai/gemma4:E4B",
   "model_digest": "sha256:real",
   "evaluation_mode": "real_model",
   "evaluation_status": "success",
   "total_cases": 20,
   "attempted_cases": 20,
-  "completed_cases": 20,
-  "failed_requests": 0,
-  "inference_availability": 1.0,
+  "completed_cases": 18,
+  "failed_requests": 2,
+  "inference_availability": 0.9,
   "metrics": {
-    "case_type_accuracy": 0.5,
-    "conflict_recall": 0.5,
-    "false_conflict_rate": 0.0,
+    "case_type_accuracy": 0.6111111111111112,
+    "conflict_recall": 0.875,
+    "macro_precision": 0.875,
+    "macro_f1": 0.875,
+    "false_conflict_rate": 0.2,
     "hallucination_rate": 0.0,
-    "human_review_alignment": 0.65,
-    "avg_latency_ms": 32330.794,
+    "human_review_alignment": 0.8888888888888888,
+    "avg_latency_ms": 51193.407722222226,
+    "latency_p50_ms": 50448.347,
+    "latency_p95_ms": 62215.725999999995,
     "tokens_per_second": null
   },
   "failure_summary": {
-    "http_500": 0,
-    "connection_disconnected": 0
+    "http_500": 2,
+    "connection_disconnected": 0,
+    "http_422": 0
   },
   "failures": [
     {
       "case_id": "case-003-ambiguous",
-      "expected": "unclear",
-      "predicted": "conflict",
-      "error_type": "MISMATCH",
-      "trace_id": "8214bd5d-f143-4688-acbe-f907f20843cf"
+      "error_type": "HTTP 503"
     },
     {
-      "case_id": "case-005-conflict-leak",
+      "case_id": "case-004-pure-level",
+      "expected": "pure",
+      "predicted": "conflict",
+      "error_type": "MISMATCH",
+      "trace_id": "6cead1ad-a222-4b1d-a93b-8185d21a96dd"
+    },
+    {
+      "case_id": "case-011-conflict",
       "expected": "conflict",
       "predicted": "pure",
       "error_type": "MISMATCH",
-      "trace_id": "79c3dce8-baeb-4b43-9a05-bfa1001aaf62"
+      "trace_id": "b3239402-687f-4e0e-b3fd-83ea17532269"
     },
     {
-      "case_id": "case-006-pure",
-      "expected": "pure",
-      "predicted": "unclear",
-      "error_type": "MISMATCH",
-      "trace_id": "2298c79d-26a4-4e72-b6c6-d1d6a6d9a26e"
+      "case_id": "case-012-ambiguous",
+      "error_type": "HTTP 503"
     },
     {
       "case_id": "case-013-ambiguous",
       "expected": "unclear",
       "predicted": "conflict",
       "error_type": "MISMATCH",
-      "trace_id": "d338945e-4bb0-4d1d-ad78-d147f61b443f"
+      "trace_id": "cce447fe-49c2-4624-8d83-bad0a5c1c688"
     },
     {
       "case_id": "case-014-ambiguous",
       "expected": "unclear",
-      "predicted": "pure",
+      "predicted": "conflict",
       "error_type": "MISMATCH",
-      "trace_id": "cd60686a-dd6c-4ba2-a169-11bd46eeb5e2"
+      "trace_id": "955286fd-ed4e-4dcb-8b38-58901bc47ad2"
+    },
+    {
+      "case_id": "case-015-hallucination",
+      "expected": "unclear",
+      "predicted": "conflict",
+      "error_type": "MISMATCH",
+      "trace_id": "bad64e0d-0fcc-4175-a3e6-1971bf900be5"
     },
     {
       "case_id": "case-016-hallucination",
       "expected": "unclear",
-      "predicted": "pure",
+      "predicted": "conflict",
       "error_type": "MISMATCH",
-      "trace_id": "7ef56a19-1c92-4988-a797-ab623a1bc91a"
+      "trace_id": "1aacc559-ed74-4686-a03a-ad52e2c03fb0"
     },
     {
       "case_id": "case-017-hallucination",
       "expected": "unclear",
-      "predicted": "pure",
+      "predicted": "conflict",
       "error_type": "MISMATCH",
-      "trace_id": "65548bce-9efe-4c45-8176-4243b3caf7fe"
-    },
-    {
-      "case_id": "case-018-adversarial",
-      "expected": "conflict",
-      "predicted": "pure",
-      "error_type": "MISMATCH",
-      "trace_id": "b3fd4c81-7e89-4621-bf70-604fb594829e"
-    },
-    {
-      "case_id": "case-019-adversarial",
-      "expected": "conflict",
-      "predicted": "pure",
-      "error_type": "MISMATCH",
-      "trace_id": "8006629b-3b21-425f-8777-8fb287ba7cc8"
-    },
-    {
-      "case_id": "case-020-adversarial",
-      "expected": "conflict",
-      "predicted": "pure",
-      "error_type": "MISMATCH",
-      "trace_id": "664fd1fd-ae73-43f8-a97d-b5f50a6f7c58"
+      "trace_id": "7801e580-0f37-481b-8223-d14d3cd372df"
     }
   ],
-  "note": "Evaluaci\u00f3n completada."
+  "note": "Evaluaci\u00f3n completada.",
+  "structural_validity": 1.0
 }

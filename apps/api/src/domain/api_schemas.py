@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Literal, Dict, Any, List
 from uuid import UUID
 from datetime import datetime
@@ -8,6 +8,7 @@ class ProposeInputSchema(BaseModel):
     Esquema de entrada para el endpoint /classifications:propose.
     Define estrictamente lo que el simulador BESA tiene permitido enviar.
     """
+    model_config = ConfigDict(extra="forbid")
     simulator_id: str = Field(..., description="ID del agente o nodo en el simulador EthosTerra")
     timestamp: datetime = Field(..., description="Marca de tiempo de la simulación (ISO 8601)")
     context_data: Dict[str, Any] = Field(
@@ -17,6 +18,7 @@ class ProposeInputSchema(BaseModel):
 
 class LLMMetadata(BaseModel):
     """Metadatos de auditoría para la inferencia del modelo."""
+    model_config = ConfigDict(extra="forbid", strict=True)
     model_name: str
     model_digest: str
     latency_ms: float
@@ -27,6 +29,7 @@ class ProposeOutputSchema(BaseModel):
     Esquema exacto de la respuesta que devolverá el API, 
     garantizando un contrato fuerte para el orquestador BESA.
     """
+    model_config = ConfigDict(extra="forbid", strict=True)
     trace_id: UUID
     status: Literal["propuesta", "validada", "requires_review", "rejected"]
     case_type: Literal["pure", "conflict", "unclear"]

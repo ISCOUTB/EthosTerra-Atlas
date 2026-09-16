@@ -11,6 +11,8 @@ services:
         model_var: MODEL_NAME
     environment:
       MODEL_PROVIDER: dmr
+      MODEL_BASE_URL: "http://host.docker.internal:11434"
+      MODEL_NAME: "ai/gemma4:E4B"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s

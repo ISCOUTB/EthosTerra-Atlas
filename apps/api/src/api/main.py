@@ -17,7 +17,7 @@ logger.setLevel(logging.DEBUG)
 app = FastAPI(title="Hybrid eBDI-LLM API", version="0.1.0")
 
 def get_model_gateway() -> ModelGateway:
-    model_url = os.environ.get("MODEL_BASE_URL", "http://localhost:11434/")
+    model_url = os.environ.get("MODEL_BASE_URL", "http://host.docker.internal:11434/")
     if not model_url.endswith('/'): model_url += '/'
     model_name = os.environ.get("MODEL_NAME", "ai/gemma4:E4B")
     return DMRGateway(model_name=model_name, base_url=model_url)
@@ -76,11 +76,14 @@ async def propose_classification(
     
     try:
         propuesta_cruda = await gateway.propose_classification(trace_id, payload.context_data)
-        case_type = getattr(propuesta_cruda.resultado, "tipo", "pure")
+        raw_type = getattr(propuesta_cruda.resultado, "tipo", "puro")
+        case_type_map = {"puro": "pure", "conflicto": "conflict", "ambiguo": "unclear"}
+        case_type = case_type_map.get(raw_type, "pure")
         
         logger.info(f"[{trace_id}] Clasificación exitosa: {case_type}")
+        from uuid import UUID
         return ProposeOutputSchema(
-            trace_id=trace_id,
+            trace_id=UUID(trace_id),
             status="requires_review" if case_type != "pure" else "propuesta",
             case_type=case_type,
             data={"clasificacion": getattr(propuesta_cruda.resultado, "clasificacion", "N/A")},

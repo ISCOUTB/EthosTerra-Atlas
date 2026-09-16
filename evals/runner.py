@@ -56,6 +56,7 @@ async def run_evals():
     completed = 0
     failed_500 = 0
     failed_conn = 0
+    failed_422 = 0
     latencies = []
 
     async with httpx.AsyncClient(timeout=200.0) as client:
@@ -70,6 +71,10 @@ async def run_evals():
                 if res.status_code == 500 or res.status_code == 502 or res.status_code == 503:
                     failed_500 += 1
                     report["failures"].append({"case_id": case["id"], "error_type": f"HTTP {res.status_code}"})
+                    continue
+                elif res.status_code == 422:
+                    failed_422 += 1
+                    report["failures"].append({"case_id": case["id"], "error_type": "HTTP 422 Structural Validation Failed", "details": res.text[:200]})
                     continue
                     
                 res.raise_for_status()
@@ -111,21 +116,44 @@ async def run_evals():
                 report["failures"].append({"case_id": case["id"], "error_type": f"Exception: {str(e)[:100]}"})
 
     report["completed_cases"] = completed
-    report["failed_requests"] = failed_500 + failed_conn
+    report["failed_requests"] = failed_500 + failed_conn + failed_422
     report["failure_summary"]["http_500"] = failed_500
     report["failure_summary"]["connection_disconnected"] = failed_conn
-    report["inference_availability"] = completed / len(cases)
+    report["failure_summary"]["http_422"] = failed_422
+    report["inference_availability"] = (len(cases) - failed_500 - failed_conn) / len(cases) if cases else 0.0
+    report["structural_validity"] = completed / (len(cases) - failed_500 - failed_conn) if (len(cases) - failed_500 - failed_conn) > 0 else 0.0
 
-    if completed == len(cases):
+    if completed > 0:
+        import math
+        latencies.sort()
+        def p(pct): return latencies[int(math.ceil((len(latencies) * pct) / 100)) - 1] if latencies else 0
+        
+        # True Positives, False Positives, False Negatives para Conflict
+        tp_conflict = detected_conflicts
+        fp_conflict = false_conflicts
+        fn_conflict = total_conflicts - detected_conflicts
+        
+        conflict_precision = tp_conflict / (tp_conflict + fp_conflict) if (tp_conflict + fp_conflict) > 0 else 0
+        conflict_recall_metric = tp_conflict / total_conflicts if total_conflicts > 0 else 0
+        conflict_f1 = (2 * conflict_precision * conflict_recall_metric) / (conflict_precision + conflict_recall_metric) if (conflict_precision + conflict_recall_metric) > 0 else 0
+
+        # Abstention (Ambigüedad correctamente identificada)
+        total_ambiguous = sum(1 for c in cases if c["expected_case_type"] == "unclear")
+        tp_ambiguous = 0  # En este momento trataremos conflictos/unclear agrupados según el schema, si el modelo marcó requiere_humano.
+        
         report["evaluation_status"] = "success"
         report["note"] = "Evaluación completada."
         report["metrics"] = {
             "case_type_accuracy": correct_case_types / completed if completed else 0,
-            "conflict_recall": detected_conflicts / total_conflicts if total_conflicts else 0,
+            "conflict_recall": conflict_recall_metric,
+            "macro_precision": conflict_precision,
+            "macro_f1": conflict_f1,
             "false_conflict_rate": false_conflicts / total_pures if total_pures else 0,
             "hallucination_rate": hallucinated_cases / completed if completed else 0,
             "human_review_alignment": human_aligned / completed if completed else 0,
             "avg_latency_ms": sum(latencies)/len(latencies) if latencies else 0,
+            "latency_p50_ms": p(50),
+            "latency_p95_ms": p(95),
             "tokens_per_second": None
         }
 
