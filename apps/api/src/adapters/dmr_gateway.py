@@ -7,8 +7,7 @@ import hashlib
 from typing import Dict, Any
 from uuid import UUID
 
-from src.domain.schemas import CasoPuro, CasoConflictivo, PropuestaClasificacion, Metadata
-
+from src.domain.schemas import CasoPuro, CasoConflictivo, CasoAmbiguo, PropuestaClasificacion, Metadata
 logger = logging.getLogger("dmr_gateway")
 
 class DMRGateway:
@@ -33,6 +32,37 @@ class DMRGateway:
             
             from src.application.hooks import validate_invariants
             has_conflict, hook_msg = validate_invariants(context_data)
+            
+            if has_conflict:
+                logger.info(f"[{trace_id}] Conflicto atrapado por hooks in-memory. Bypass LLM.")
+                
+                meta = Metadata(
+                    trace_id=UUID(trace_id),
+                    model=self.model_name + " (hook_bypass)",
+                    latency_ms=5.0,
+                    prompt_digest="deterministic_bypass"
+                )
+                
+                if "Ambigüedad" in hook_msg:
+                    resultado = CasoAmbiguo(
+                        tipo="ambiguo",
+                        conflicto_detectado=hook_msg,
+                        opciones_resolucion=["Verificar sensores físicamente", "Reiniciar telemetría"],
+                        requiere_humano=True
+                    )
+                else:
+                    resultado = CasoConflictivo(
+                        tipo="conflicto",
+                        conflicto_detectado=hook_msg,
+                        opciones_resolucion=["Aislamiento preventivo", "Revisión manual inmediata"],
+                        requiere_humano=True
+                    )
+                    
+                return PropuestaClasificacion(
+                    contexto_id=context_data.get("id", "unknown"),
+                    resultado=resultado,
+                    metadatos=meta
+                )
             
             # Enriquecemos el entorno (Environment -> Sensors)
             enriched_context = {

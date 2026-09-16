@@ -1,89 +1,46 @@
 {
-  "timestamp": "2026-09-16T19:36:21.240090+00:00",
+  "timestamp": "2026-09-16T20:31:20.886010+00:00",
   "model_name": "ai/gemma4:E4B",
   "model_digest": "sha256:real",
   "evaluation_mode": "real_model",
   "evaluation_status": "success",
   "total_cases": 20,
   "attempted_cases": 20,
-  "completed_cases": 18,
-  "failed_requests": 2,
-  "inference_availability": 0.9,
+  "completed_cases": 20,
+  "failed_requests": 0,
+  "inference_availability": 1.0,
   "metrics": {
-    "case_type_accuracy": 0.6111111111111112,
+    "case_type_accuracy": 0.9,
     "conflict_recall": 0.875,
-    "macro_precision": 0.875,
-    "macro_f1": 0.875,
-    "false_conflict_rate": 0.2,
+    "macro_precision": 1.0,
+    "macro_f1": 0.9333333333333333,
+    "false_conflict_rate": 0.0,
     "hallucination_rate": 0.0,
-    "human_review_alignment": 0.8888888888888888,
-    "avg_latency_ms": 51193.407722222226,
-    "latency_p50_ms": 50448.347,
-    "latency_p95_ms": 62215.725999999995,
+    "human_review_alignment": 0.9,
+    "avg_latency_ms": 12146.40485,
+    "latency_p50_ms": 5.0,
+    "latency_p95_ms": 42977.564,
     "tokens_per_second": null
   },
   "failure_summary": {
-    "http_500": 2,
+    "http_500": 0,
     "connection_disconnected": 0,
     "http_422": 0
   },
   "failures": [
     {
-      "case_id": "case-003-ambiguous",
-      "error_type": "HTTP 503"
-    },
-    {
       "case_id": "case-004-pure-level",
       "expected": "pure",
-      "predicted": "conflict",
+      "predicted": "unclear",
       "error_type": "MISMATCH",
-      "trace_id": "6cead1ad-a222-4b1d-a93b-8185d21a96dd"
+      "trace_id": "e86a25db-0309-4b14-ba57-adaad243e3cf"
     },
     {
       "case_id": "case-011-conflict",
       "expected": "conflict",
       "predicted": "pure",
       "error_type": "MISMATCH",
-      "trace_id": "b3239402-687f-4e0e-b3fd-83ea17532269"
-    },
-    {
-      "case_id": "case-012-ambiguous",
-      "error_type": "HTTP 503"
-    },
-    {
-      "case_id": "case-013-ambiguous",
-      "expected": "unclear",
-      "predicted": "conflict",
-      "error_type": "MISMATCH",
-      "trace_id": "cce447fe-49c2-4624-8d83-bad0a5c1c688"
-    },
-    {
-      "case_id": "case-014-ambiguous",
-      "expected": "unclear",
-      "predicted": "conflict",
-      "error_type": "MISMATCH",
-      "trace_id": "955286fd-ed4e-4dcb-8b38-58901bc47ad2"
-    },
-    {
-      "case_id": "case-015-hallucination",
-      "expected": "unclear",
-      "predicted": "conflict",
-      "error_type": "MISMATCH",
-      "trace_id": "bad64e0d-0fcc-4175-a3e6-1971bf900be5"
-    },
-    {
-      "case_id": "case-016-hallucination",
-      "expected": "unclear",
-      "predicted": "conflict",
-      "error_type": "MISMATCH",
-      "trace_id": "1aacc559-ed74-4686-a03a-ad52e2c03fb0"
-    },
-    {
-      "case_id": "case-017-hallucination",
-      "expected": "unclear",
-      "predicted": "conflict",
-      "error_type": "MISMATCH",
-      "trace_id": "7801e580-0f37-481b-8223-d14d3cd372df"
+      "trace_id": "d1de64c6-83ae-495d-a286-da14aaf8ac8b"
     }
   ],
   "note": "Evaluaci\u00f3n completada.",
