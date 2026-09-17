@@ -1,0 +1,19 @@
+# PlanSpec: prepare_land_plan_v1
+# Documento de Origen: doc_diario_001
+# Hash de Aprobación: 37acb57d47a491e5c4bbedc6dff70f94ef1ee3fe17fac3f4dd0186e11cd228f3
+
+id: prepare_land_plan_v1
+version: '1.0'
+description: Ejecutar labores de preparación del agroecosistema.
+steps:
+  - id: prepare_op
+    action: agro_ecosystem_operation
+    args:
+      operation: PREPARE
+  - id: record_episode
+    action: emit_episode
+    args:
+      text: He trabajado en la preparación del terreno para asegurar un suelo fértil
+        para la próxima siembra.
+on_timeout: []
+on_failure: []

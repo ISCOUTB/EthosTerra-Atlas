@@ -1,0 +1,83 @@
+{
+  "schema_version": "2.0.0",
+  "document_id": "doc_diario_001",
+  "source_type": "peasant_diary",
+  "document_hash": "c03e7415c72c0019706555bea0b9951a950047a58efd636f628e2bc53424d6c4",
+  "extracted_knowledge": {
+    "actor_alias": {
+      "status": "observed",
+      "value": "peasant_01",
+      "evidence_ref": "frag_01",
+      "rationale": null
+    },
+    "territory_context": {
+      "status": "not_stated",
+      "value": null,
+      "evidence_ref": null,
+      "rationale": "El texto no declara departamento, municipio ni coordenadas geográficas."
+    },
+    "beliefs": [],
+    "desires": [
+      {
+        "status": "inferred",
+        "value": "alistar el suelo para la siembra",
+        "evidence_ref": "frag_01",
+        "rationale": null
+      }
+    ],
+    "intentions": [
+      {
+        "status": "observed",
+        "value": "prepare_land",
+        "evidence_ref": "frag_01",
+        "rationale": null
+      }
+    ],
+    "requirements": [
+      {
+        "status": "required",
+        "value": {
+          "resource": "tools"
+        },
+        "evidence_ref": "frag_01",
+        "rationale": "El texto explicita que se requiere tener las herramientas disponibles."
+      }
+    ],
+    "detected_conflicts": [],
+    "emotions": {
+      "happiness": {
+        "status": "unknown",
+        "value": null,
+        "evidence_ref": null,
+        "rationale": null
+      },
+      "hopeful": {
+        "status": "unknown",
+        "value": null,
+        "evidence_ref": null,
+        "rationale": null
+      },
+      "secure": {
+        "status": "unknown",
+        "value": null,
+        "evidence_ref": null,
+        "rationale": null
+      }
+    },
+    "social_relations": []
+  },
+  "evidence_spans": [
+    {
+      "fragment_id": "frag_01",
+      "source_ref": "diario_campesino_preparacion.txt",
+      "start_char": 0,
+      "end_char": 219,
+      "text_quote": "El campesino peasant_01 indica que para la próxima temporada de siembra es indispensable preparar el terreno adecuadamente. Para llevar a cabo esta labor se requiere contar con las herramientas necesarias en la parcela."
+    }
+  ],
+  "extraction_metadata": {
+    "extractor_model": "ai/gemma4:E4B",
+    "extraction_mode": "controlled_vertical_slice",
+    "extracted_at": "2026-09-17T03:02:54.562898+00:00"
+  }
+}

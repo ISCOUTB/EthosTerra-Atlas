@@ -1,0 +1,40 @@
+{
+  "manifest_version": "2.0.0",
+  "experiment_id": "exp_vertical_001",
+  "document_id": "doc_diario_001",
+  "source_hash": "5f107f1c6f770c1e5656942a4fe2454531416e9e912a436c444d767a94992f1c",
+  "approved_json_hash": "cfc0225e848385f5410e5cb530de0811c7cc306379e2be7471f7d6a8b9144316",
+  "generated_yaml_hashes": {
+    "prepare_land.yaml": "e87839dc7ad902ba469b73dd3c0378ea97f8ca78d6034f9bc94c05dbe3343efc",
+    "prepare_land_plan_v1.yaml": "6754e24ddf01473a9405a0d51e213053bd1b85702bfc8e06006ed043c0a251cf"
+  },
+  "simulator_original_root_logical": "EthosTerra",
+  "simulator_original_root_local": "/Volumes/ADATA SD620/Programacion 7.0/universidad/proyecto de grado/EthosTerra",
+  "simulator_experiment_root": "/Volumes/ADATA SD620/Programacion 7.0/universidad/proyecto de grado/Prueba-llm-local/outputs/experiments/exp_vertical_001/EthosTerra_experiment",
+  "simulator_source_commit": "ef84c1bab95fc48a174b2ccf988ef877d77eb391",
+  "backup_file": "backups/backup_exp_vertical_001_20260916_234933.tar.gz",
+  "installed_files": [
+    "data/ebdi/goals/agro/prepare_land.yaml",
+    "data/ebdi/plans/agro/prepare_land_plan_v1.yaml"
+  ],
+  "installation_timestamp": "2026-09-16T23:49:37.511254+00:00",
+  "load_test_timestamp": "2026-09-16T23:49:37.511262+00:00",
+  "registry_ids_loaded": [
+    "prepare_land",
+    "prepare_land_plan_v1"
+  ],
+  "plan_refs_resolved": true,
+  "yaml_parseable": true,
+  "schema_valid": true,
+  "action_catalog_valid": true,
+  "goal_registry_loaded": true,
+  "plan_registry_loaded": true,
+  "runtime_compatible": "unknown",
+  "requires_simulation_test": true,
+  "simulation_execution_status": "not_executed",
+  "rollback_available": true,
+  "rollback_tested": true,
+  "original_instance_unchanged": true,
+  "warnings": [],
+  "errors": []
+}

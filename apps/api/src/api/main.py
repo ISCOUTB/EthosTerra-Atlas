@@ -6,15 +6,28 @@ import os
 import traceback
 import httpx
 
+from fastapi.middleware.cors import CORSMiddleware
+
 from src.domain.api_schemas import ProposeInputSchema, ProposeOutputSchema, LLMMetadata
 from src.adapters.dmr_gateway import DMRGateway
 from src.ports.model_gateway import ModelGateway
+from src.api.v2_routes import v2_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("api")
 logger.setLevel(logging.DEBUG)
 
-app = FastAPI(title="Hybrid eBDI-LLM API", version="0.1.0")
+app = FastAPI(title="Hybrid eBDI-LLM API", version="0.2.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(v2_router)
 
 def get_model_gateway() -> ModelGateway:
     model_url = os.environ.get("MODEL_BASE_URL", "http://host.docker.internal:11434/")

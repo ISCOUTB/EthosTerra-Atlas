@@ -30,6 +30,9 @@ Thumbs.db
 *.log
 output/
 reports/tmp/
+outputs/experiments/*/EthosTerra_experiment/
+outputs/experiments/*/backups/
+*.tar.gz
 
 # AGY local / ephemeral state
 .agents/local/

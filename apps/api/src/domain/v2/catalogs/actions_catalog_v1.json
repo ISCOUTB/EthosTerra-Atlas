@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "catalog_version": "1.0.0",
+  "extracted_at": "2026-09-16T18:30:00Z",
+  "provenance": {
+    "simulator_name": "EthosTerra",
+    "simulator_instance_id": "ethosterra_original_ref",
+    "source_root_logical": "EthosTerra",
+    "source_root_local": "/Volumes/ADATA SD620/Programacion 7.0/universidad/proyecto de grado/EthosTerra",
+    "git_commit": "ef84c1bab95fc48a174b2ccf988ef877d77eb391",
+    "sources": {
+      "action_registry": {
+        "rel_path": "besa-python/besa/bdi/declarative/action_registry.py",
+        "sha256": "aa93ce8a7e61a28acc7f05b347dfb8d11858a9439619eca89da90332cd55acf6"
+      },
+      "goal_spec_schema": {
+        "rel_path": "data/ebdi/schemas/GoalSpec.schema.json",
+        "sha256": "d6cce722a437febb83634743dc4eb2966cdf7fb85cc12bc75372a6389825816f"
+      },
+      "plan_spec_schema": {
+        "rel_path": "data/ebdi/schemas/PlanSpec.schema.json",
+        "sha256": "243fe6860dbe1fd26e6db6860c0994e4ce90472af8ab7eb3cb84a8356fa2c815"
+      },
+      "yaml_evaluator": {
+        "rel_path": "besa-python/besa/bdi/yaml_evaluator.py",
+        "sha256": "09d956a3fcaf4e6a1f98606a207095befa2098de53aae72e638df479847148a1"
+      }
+    }
+  },
+  "actions": {
+    "emit_episode": {
+      "class_name": "EmitEpisodeAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["text"],
+      "optional_args": ["tags"],
+      "arg_specs": {
+        "text": {
+          "type": "string",
+          "min_length": 1,
+          "max_length": 200,
+          "description": "Texto biográfico del campesino para registrar en task_log."
+        },
+        "tags": {
+          "type": "list_string",
+          "description": "Etiquetas de categorización para el episodio."
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/agro/prepare_land.yaml"
+    },
+    "update_belief": {
+      "class_name": "UpdateBeliefAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["key", "value"],
+      "optional_args": ["new_value"],
+      "arg_specs": {
+        "key": {
+          "type": "string",
+          "min_length": 1,
+          "description": "Nombre de la creencia a mutar en el agente."
+        },
+        "value": {
+          "type": "any",
+          "description": "Nuevo valor asignado a la creencia."
+        },
+        "new_value": {
+          "type": "any",
+          "description": "Alias alternativo para value."
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/survival/do_vitals.yaml"
+    },
+    "consume_resource": {
+      "class_name": "ConsumeResourceAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["key", "amount"],
+      "optional_args": [],
+      "arg_specs": {
+        "key": {
+          "type": "string",
+          "allowed_values": ["time_left_on_day", "money", "seeds", "water_available", "tools"],
+          "description": "Recurso finito consumido por la acción."
+        },
+        "amount": {
+          "type": "number",
+          "min_value": 0,
+          "description": "Cantidad consumida del recurso."
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/agro/plant_crop.yaml"
+    },
+    "send_event": {
+      "class_name": "SendEventAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["to", "type"],
+      "optional_args": ["payload"],
+      "arg_specs": {
+        "to": {
+          "type": "string",
+          "min_length": 1,
+          "description": "Alias del agente receptor."
+        },
+        "type": {
+          "type": "string",
+          "min_length": 1,
+          "description": "Tipo de evento de la guardia BESA."
+        },
+        "payload": {
+          "type": "dict",
+          "description": "Datos asociados al mensaje."
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/social/communicate.yaml"
+    },
+    "send_marketplace_event": {
+      "class_name": "SendMarketPlaceEventAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["message_type"],
+      "optional_args": ["quantity", "reset_resource_needed"],
+      "arg_specs": {
+        "message_type": {
+          "type": "string",
+          "allowed_values": [
+            "ASK_FOR_PRICE_LIST",
+            "BUY_SEEDS",
+            "BUY_WATER",
+            "BUY_PESTICIDES",
+            "BUY_TOOLS",
+            "BUY_SUPPLIES",
+            "BUY_LIVESTOCK"
+          ],
+          "description": "Tipo de mensaje transaccional hacia MarketPlace."
+        },
+        "quantity": {
+          "type": "integer",
+          "min_value": 1,
+          "default": 1
+        },
+        "reset_resource_needed": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/skills/obtain_seeds.yaml"
+    },
+    "send_civic_land_request": {
+      "class_name": "SendCivicAuthorityLandRequestAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": [],
+      "optional_args": [],
+      "arg_specs": {},
+      "allow_extra_args": true,
+      "evidence_in_yaml": "data/ebdi/plans/skills/obtain_a_land.yaml"
+    },
+    "emit_emotion": {
+      "class_name": "EmitEmotionAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["axis", "delta"],
+      "optional_args": [],
+      "arg_specs": {
+        "axis": {
+          "type": "string",
+          "allowed_values": ["happiness", "hopeful", "secure"],
+          "description": "Eje afectivo en el modelo emocional."
+        },
+        "delta": {
+          "type": "number",
+          "min_value": -1.0,
+          "max_value": 1.0,
+          "description": "Variación emocional inducida."
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/leisure/spend_family_time.yaml"
+    },
+    "increase_health": {
+      "class_name": "IncreaseHealthAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": [],
+      "optional_args": [],
+      "arg_specs": {},
+      "allow_extra_args": true,
+      "evidence_in_yaml": "data/ebdi/plans/survival/do_healthcare.yaml"
+    },
+    "sync_clock": {
+      "class_name": "SyncClockAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": [],
+      "optional_args": [],
+      "arg_specs": {},
+      "allow_extra_args": true,
+      "evidence_in_yaml": "action_registry.py:149"
+    },
+    "log_audit": {
+      "class_name": "LogAuditAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": [],
+      "optional_args": [],
+      "arg_specs": {},
+      "allow_extra_args": true,
+      "evidence_in_yaml": "action_registry.py:154"
+    },
+    "increment_belief": {
+      "class_name": "IncrementBeliefAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["key"],
+      "optional_args": ["amount"],
+      "arg_specs": {
+        "key": {
+          "type": "string",
+          "min_length": 1,
+          "description": "Atributo numérico de creencia a incrementar."
+        },
+        "amount": {
+          "type": "number",
+          "default": 1.0
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/obligation/pay_debts.yaml"
+    },
+    "wait_for_event": {
+      "class_name": "WaitForEventAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": [],
+      "optional_args": [],
+      "arg_specs": {},
+      "allow_extra_args": true,
+      "evidence_in_yaml": "action_registry.py:184"
+    },
+    "conditional": {
+      "class_name": "ConditionalAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["key", "threshold", "then"],
+      "optional_args": [],
+      "arg_specs": {
+        "key": {
+          "type": "string",
+          "min_length": 1
+        },
+        "threshold": {
+          "type": "integer"
+        },
+        "then": {
+          "type": "list_step",
+          "description": "Secuencia de pasos a ejecutar si la condición se cumple."
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/obligation/look_for_loan.yaml"
+    },
+    "send_society_collaboration": {
+      "class_name": "SendSocietyCollaborationAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["flag"],
+      "optional_args": ["amount", "guard"],
+      "arg_specs": {
+        "flag": {
+          "type": "string",
+          "min_length": 1
+        },
+        "amount": {
+          "type": "integer",
+          "default": 5
+        },
+        "guard": {
+          "type": "string",
+          "description": "Subcadena 'offer' para ayuda mutua o 'request' para jornaleros."
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/social/provide_collaboration.yaml"
+    },
+    "spend_friends_time": {
+      "class_name": "SpendFriendsTimeAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": [],
+      "optional_args": ["happiness_gain"],
+      "arg_specs": {
+        "happiness_gain": {
+          "type": "number",
+          "min_value": 0.0,
+          "default": 0.05
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/leisure/spend_friends_time.yaml"
+    },
+    "agro_ecosystem_operation": {
+      "class_name": "AgroEcosystemAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["operation"],
+      "optional_args": ["crop_type"],
+      "arg_specs": {
+        "operation": {
+          "type": "string",
+          "allowed_values": [
+            "PREPARE",
+            "PLANT",
+            "CHECK",
+            "IRRIGATE",
+            "PESTICIDE",
+            "HARVEST",
+            "DEFOREST",
+            "SELL"
+          ],
+          "description": "Operación agrícola formal sobre la parcela."
+        },
+        "crop_type": {
+          "type": "string",
+          "allowed_values": ["maiz", "frijol", "cafe", "platano", "arroz", "roots", "water", "seeds", "pesticides", "tools", "livestock", "supplies"],
+          "description": "Tipo de cultivo objetivo de la operación."
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/agro/prepare_land.yaml"
+    },
+    "set_land_crop_type": {
+      "class_name": "SetLandCropTypeAction",
+      "module": "besa.bdi.declarative.action_registry",
+      "required_args": ["crop_type"],
+      "optional_args": [],
+      "arg_specs": {
+        "crop_type": {
+          "type": "string",
+          "allowed_values": ["maiz", "frijol", "cafe", "platano", "arroz", "roots"],
+          "description": "Variedad vegetal a sembrar en la parcela."
+        }
+      },
+      "allow_extra_args": false,
+      "evidence_in_yaml": "data/ebdi/plans/agro/prepare_land.yaml"
+    }
+  }
+}

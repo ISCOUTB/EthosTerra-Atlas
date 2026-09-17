@@ -1,0 +1,28 @@
+{
+  "goal_validation": {
+    "artifact_id": "goal_prepare_land",
+    "artifact_type": "goal",
+    "file_path": "/Volumes/ADATA SD620/Programacion 7.0/universidad/proyecto de grado/Prueba-llm-local/outputs/experiments/exp_vertical_001/yaml/goals/prepare_land.yaml",
+    "yaml_parseable": true,
+    "schema_valid": true,
+    "action_catalog_valid": true,
+    "plan_ref_resolved": true,
+    "runtime_compatible": "unknown",
+    "requires_simulation_test": true,
+    "errors": [],
+    "warnings": []
+  },
+  "plan_validation": {
+    "artifact_id": "plan_prepare_land",
+    "artifact_type": "plan",
+    "file_path": "/Volumes/ADATA SD620/Programacion 7.0/universidad/proyecto de grado/Prueba-llm-local/outputs/experiments/exp_vertical_001/yaml/plans/prepare_land_plan_v1.yaml",
+    "yaml_parseable": true,
+    "schema_valid": true,
+    "action_catalog_valid": true,
+    "plan_ref_resolved": true,
+    "runtime_compatible": "unknown",
+    "requires_simulation_test": true,
+    "errors": [],
+    "warnings": []
+  }
+}

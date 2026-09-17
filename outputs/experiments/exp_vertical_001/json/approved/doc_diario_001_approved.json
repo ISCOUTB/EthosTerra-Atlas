@@ -1,0 +1,164 @@
+{
+  "schema_version": "2.0.0",
+  "experiment_id": "exp_vertical_001",
+  "document_id": "doc_diario_001",
+  "status": "Aprobado",
+  "review_status": "approved",
+  "requires_human_review": false,
+  "tipo_caso": "puro",
+  "source_refs": [
+    "diario_campesino_preparacion.txt"
+  ],
+  "evidence_spans": [
+    {
+      "fragment_id": "frag_01",
+      "source_ref": "diario_campesino_preparacion.txt",
+      "start_char": 0,
+      "end_char": 219,
+      "text_quote": "El campesino peasant_01 indica que para la próxima temporada de siembra es indispensable preparar el terreno adecuadamente. Para llevar a cabo esta labor se requiere contar con las herramientas necesarias en la parcela."
+    }
+  ],
+  "extracted_knowledge": {
+    "actor_alias": {
+      "status": "observed",
+      "value": "peasant_01",
+      "evidence_ref": "frag_01",
+      "rationale": null
+    },
+    "territory_context": {
+      "status": "not_stated",
+      "value": null,
+      "evidence_ref": null,
+      "rationale": "El texto no declara departamento, municipio ni coordenadas geográficas."
+    },
+    "beliefs": [],
+    "desires": [
+      {
+        "status": "inferred",
+        "value": "alistar el suelo para la siembra",
+        "evidence_ref": "frag_01",
+        "rationale": null
+      }
+    ],
+    "intentions": [
+      {
+        "status": "observed",
+        "value": "prepare_land",
+        "evidence_ref": "frag_01",
+        "rationale": null
+      }
+    ],
+    "requirements": [
+      {
+        "status": "required",
+        "value": {
+          "resource": "tools"
+        },
+        "evidence_ref": "frag_01",
+        "rationale": "El texto explicita que se requiere tener las herramientas disponibles."
+      }
+    ],
+    "detected_conflicts": [],
+    "emotions": {
+      "happiness": {
+        "status": "unknown",
+        "value": null,
+        "evidence_ref": null,
+        "rationale": null
+      },
+      "hopeful": {
+        "status": "unknown",
+        "value": null,
+        "evidence_ref": null,
+        "rationale": null
+      },
+      "secure": {
+        "status": "unknown",
+        "value": null,
+        "evidence_ref": null,
+        "rationale": null
+      }
+    },
+    "social_relations": []
+  },
+  "artifacts": [
+    {
+      "artifact_id": "goal_prepare_land",
+      "artifact_type": "goal",
+      "operation": "crear",
+      "target_rel_path": "data/ebdi/goals/agro/prepare_land.yaml",
+      "content": {
+        "id": "prepare_land",
+        "version": "1.0",
+        "display_name": "Preparar Terreno",
+        "description": "Preparar la tierra para el próximo ciclo agrícola.",
+        "pyramid_level": "ATTENTION_CYCLE",
+        "sub_level": "L3_PRODUCTIVE_DEVELOPMENT",
+        "activation_when": "state.hasLandWithSeason('NONE') || state.hasLandWithSeason('FALLOW')",
+        "contribution_rules": {
+          "fixed_value": 0.6,
+          "fuzzy_variable": null,
+          "fuzzy_rules": null
+        },
+        "plan_ref": "prepare_land_plan_v1",
+        "effects": null,
+        "normative_tags": [
+          "agro",
+          "land"
+        ]
+      },
+      "support_status": "supported",
+      "requires_simulator_extension": false
+    },
+    {
+      "artifact_id": "plan_prepare_land",
+      "artifact_type": "plan",
+      "operation": "crear",
+      "target_rel_path": "data/ebdi/plans/agro/prepare_land_plan_v1.yaml",
+      "content": {
+        "id": "prepare_land_plan_v1",
+        "version": "1.0",
+        "description": "Ejecutar labores de preparación del agroecosistema.",
+        "preconditions": [],
+        "steps": [
+          {
+            "id": "prepare_op",
+            "action": "agro_ecosystem_operation",
+            "args": {
+              "operation": "PREPARE"
+            },
+            "condition": null
+          },
+          {
+            "id": "record_episode",
+            "action": "emit_episode",
+            "args": {
+              "text": "He trabajado en la preparación del terreno para asegurar un suelo fértil para la próxima siembra."
+            },
+            "condition": null
+          }
+        ],
+        "on_timeout": [],
+        "on_failure": []
+      },
+      "support_status": "supported",
+      "requires_simulator_extension": false
+    }
+  ],
+  "selected_alternative": null,
+  "alternatives": [],
+  "validation_status": {
+    "has_blocking_errors": false,
+    "blocking_errors": [],
+    "warnings": [],
+    "syntax_valid": true,
+    "runtime_compatible": "unknown",
+    "requires_simulation_test": true
+  },
+  "approval_metadata": {
+    "approver_id": "investigador_principal",
+    "approved_at": "2026-09-17T03:02:54.567615Z",
+    "approved_json_hash": "37acb57d47a491e5c4bbedc6dff70f94ef1ee3fe17fac3f4dd0186e11cd228f3",
+    "notes": "Aprobado para generación experimental de YAML."
+  }
+}

@@ -1,0 +1,17 @@
+# GoalSpec: prepare_land
+# Documento de Origen: doc_diario_001
+# Hash de Aprobación: 37acb57d47a491e5c4bbedc6dff70f94ef1ee3fe17fac3f4dd0186e11cd228f3
+
+id: prepare_land
+version: '1.0'
+display_name: Preparar Terreno
+description: Preparar la tierra para el próximo ciclo agrícola.
+pyramid_level: ATTENTION_CYCLE
+sub_level: L3_PRODUCTIVE_DEVELOPMENT
+plan_ref: prepare_land_plan_v1
+activation_when: state.hasLandWithSeason('NONE') || state.hasLandWithSeason('FALLOW')
+contribution_rules:
+  fixed_value: 0.6
+normative_tags:
+  - agro
+  - land
