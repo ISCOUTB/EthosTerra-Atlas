@@ -662,11 +662,21 @@ export default function DocumentPipelineView() {
 
                   {generatedYamls && (
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
-                      <div className="font-semibold text-slate-700">Archivos Generados:</div>
+                      <div className="font-semibold text-slate-700 flex items-center justify-between">
+                        <span>Archivos Generados (YAML):</span>
+                        <span className="text-[10px] text-slate-400 font-mono">outputs/experiments/{experimentId}/yaml/</span>
+                      </div>
                       {Object.entries(generatedYamls.generated_files || {}).map(([key, path]: any) => (
-                        <div key={key} className="flex items-center justify-between font-mono text-slate-800">
-                          <span>{key}</span>
-                          <span className="text-slate-400 text-[10px]">{path.split('/').pop()}</span>
+                        <div key={key} className="p-2 bg-white border border-slate-200 rounded flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-blue-700 font-mono text-[11px]">{key}</span>
+                            <span className="font-mono text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold">
+                              {path.split('/').pop()}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-mono truncate">
+                            {path}
+                          </div>
                         </div>
                       ))}
                     </div>

@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Clasificador from './components/Clasificador'
 import DocumentPipelineView from './components/DocumentPipelineView'
-import { FileCode, Layers, ShieldCheck } from 'lucide-react'
+import ManualIntentsView from './components/ManualIntentsView'
+import { FileCode, Layers, ShieldCheck, BookmarkCheck } from 'lucide-react'
 
 const queryClient = new QueryClient()
 
 function App() {
-  const [activeModule, setActiveModule] = useState<'pipeline' | 'legacy'>('pipeline')
+  const [activeModule, setActiveModule] = useState<'pipeline' | 'intents' | 'legacy'>('intents')
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -22,11 +23,22 @@ function App() {
                 <h1 className="text-base font-bold text-slate-900 leading-tight">
                   EthosTerra Knowledge Studio
                 </h1>
-                <p className="text-[11px] text-slate-500 font-mono">Semana 6 — Arquitectura Multiagente</p>
+                <p className="text-[11px] text-slate-500 font-mono">Semana 8 — CRUD Manual B5</p>
               </div>
             </div>
 
             <nav className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+              <button
+                onClick={() => setActiveModule('intents')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-all ${
+                  activeModule === 'intents'
+                    ? 'bg-white text-blue-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <BookmarkCheck className="w-3.5 h-3.5" />
+                Intenciones Manuales (B5)
+              </button>
               <button
                 onClick={() => setActiveModule('pipeline')}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-all ${
@@ -60,11 +72,18 @@ function App() {
         </header>
 
         <main className="flex-1 max-w-7xl w-full mx-auto p-6">
-          {activeModule === 'pipeline' ? <DocumentPipelineView /> : <Clasificador />}
+          {activeModule === 'intents' ? (
+            <ManualIntentsView />
+          ) : activeModule === 'pipeline' ? (
+            <DocumentPipelineView />
+          ) : (
+            <Clasificador />
+          )}
         </main>
       </div>
     </QueryClientProvider>
   )
 }
+
 
 export default App
