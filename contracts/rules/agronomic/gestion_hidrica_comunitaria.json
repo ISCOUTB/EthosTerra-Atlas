@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "rule_id": "acuerdo_comunitario_cuenca_hidrica",
+  "titulo": "Protocolo de Gestión Hídrica en Sequía Crítica",
+  "fuente": "Comité de Cuenca y Asociación de Regantes",
+  "articulo": "Cláusula de Veda Absoluta",
+  "texto": "Ante niveles freáticos inferiores al 20%, entra en vigor la veda hídrica comunitaria obligatoria, suspendiendo riegos mecánicos intensivos.",
+  "invariante": "veda_hidrica == True -> riego_intensivo == False",
+  "version": "1.0.0"
+}

@@ -43,10 +43,20 @@ from src.application.metrics_service import (
     compute_document_pipeline_metrics,
     generate_comparison_week5_week6,
 )
+from src.api.intents_routes import intents_router
 
 v2_router = APIRouter(prefix="/v2", tags=["Document Pipeline eBDI V2"])
+v2_router.include_router(intents_router)
 
-PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
+def _find_project_root() -> Path:
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (parent / "evals").exists() or (parent / "contracts").exists() or (parent / ".git").exists():
+            return parent
+    return Path("/app") if Path("/app").exists() else current.parents[min(2, len(current.parents) - 1)]
+
+PROJECT_ROOT = _find_project_root()
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 ORIGINAL_ETHOS_ROOT = Path("/Volumes/ADATA SD620/Programacion 7.0/universidad/proyecto de grado/EthosTerra").resolve()
 

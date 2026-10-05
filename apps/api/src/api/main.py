@@ -6,18 +6,34 @@ import os
 import traceback
 import httpx
 
+from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.domain.api_schemas import ProposeInputSchema, ProposeOutputSchema, LLMMetadata
 from src.adapters.dmr_gateway import DMRGateway
 from src.ports.model_gateway import ModelGateway
 from src.api.v2_routes import v2_router
+from src.api.intents_routes import intents_router, get_intent_service
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("api")
 logger.setLevel(logging.DEBUG)
 
-app = FastAPI(title="Hybrid eBDI-LLM API", version="0.2.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Purga automática de la papelera de 30 días al arrancar el servicio
+    try:
+        service = get_intent_service()
+        purge_res = service.purge_trash(purged_by="system_startup")
+        if purge_res.purged_count > 0:
+            logger.info(f"Purga al inicio: {purge_res.purged_count} intenciones expiradas eliminadas.")
+    except Exception as exc:
+        logger.warning(f"Aviso: no se pudo completar la purga de inicio: {exc}")
+    yield
+
+
+app = FastAPI(title="Hybrid eBDI-LLM API", version="0.2.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,6 +44,8 @@ app.add_middleware(
 )
 
 app.include_router(v2_router)
+app.include_router(intents_router)
+
 
 def get_model_gateway() -> ModelGateway:
     model_url = os.environ.get("MODEL_BASE_URL", "http://host.docker.internal:11434/")
@@ -95,11 +113,16 @@ async def propose_classification(
         
         logger.info(f"[{trace_id}] Clasificación exitosa: {case_type}")
         from uuid import UUID
+        output_data = (
+            propuesta_cruda.resultado.model_dump()
+            if hasattr(propuesta_cruda.resultado, "model_dump")
+            else {"clasificacion": getattr(propuesta_cruda.resultado, "clasificacion", "N/A")}
+        )
         return ProposeOutputSchema(
             trace_id=UUID(trace_id),
             status="requires_review" if case_type != "pure" else "propuesta",
             case_type=case_type,
-            data={"clasificacion": getattr(propuesta_cruda.resultado, "clasificacion", "N/A")},
+            data=output_data,
             validation_errors=[],
             requires_human_review=getattr(propuesta_cruda.resultado, "requiere_humano", False),
             metadata=LLMMetadata(

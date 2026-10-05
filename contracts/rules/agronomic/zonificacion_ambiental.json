@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "rule_id": "zonificacion_ambiental_protegida",
+  "titulo": "Régimen de Preservación y Zonificación Forestal",
+  "fuente": "Decreto 144 / Plan de Ordenamiento Territorial",
+  "articulo": "Art. 18: Amortiguamiento y Protección Estricta de Suelo",
+  "texto": "Prohibida toda alteración de cobertura vegetal nativa en zonas clasificadas como de protección ambiental o amortiguamiento biológico.",
+  "invariante": "zona_protegida == True -> deforestar_area == False",
+  "version": "1.0.0"
+}

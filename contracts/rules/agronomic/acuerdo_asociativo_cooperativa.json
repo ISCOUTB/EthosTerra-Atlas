@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "rule_id": "estatuto_cooperativo_campesino",
+  "titulo": "Estatuto Social de Comercialización Asociativa",
+  "fuente": "Asociación Campesina de Productores",
+  "articulo": "Art. 12: Comercialización Unificada",
+  "texto": "Los miembros asociados se comprometen a comercializar el 100% de la cosecha mediante el canal asociativo; las ventas paralelas constituyen falta grave y disolución de cuota.",
+  "invariante": "acuerdo_cooperativo == True -> venta_intermediario == False",
+  "version": "1.0.0"
+}

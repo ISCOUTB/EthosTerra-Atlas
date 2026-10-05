@@ -1,8 +1,14 @@
-.PHONY: help doctor pull-model build start stop restart logs health model-check canary test test-verbose clean
+.PHONY: help doctor pull-model build start stop restart logs health model-check canary test test-verbose test-unit test-b5 dev dev-api dev-ui purge-trash clean
 
 help:
 	@echo "Opciones disponibles:"
 	@echo "  help           - Muestra este mensaje"
+	@echo "  dev            - Inicia Backend (8000) y Frontend (5173) en simultáneo (local con recarga)"
+	@echo "  dev-api        - Inicia FastAPI localmente con recarga en caliente (puerto 8000)"
+	@echo "  dev-ui         - Inicia la interfaz React Vite localmente (puerto 5173)"
+	@echo "  test-unit      - Ejecuta suite unitaria completa (79 tests con pytest)"
+	@echo "  test-b5        - Ejecuta suite de pruebas de intenciones B5 (26 tests)"
+	@echo "  purge-trash    - Purga intenciones expiradas en papelera de 30 días"
 	@echo "  doctor         - Revisa dependencias (Docker, Compose, Python, DMR)"
 	@echo "  pull-model     - Descarga ai/gemma4:E4B"
 	@echo "  build          - Construye los contenedores sin caché"
@@ -18,6 +24,7 @@ help:
 	@echo "  clean          - Limpia caché y reportes (no borra imágenes/volúmenes)"
 
 PYTHON_CMD := $(shell command -v uv >/dev/null && echo "uv run python" || echo "python3")
+
 
 doctor:
 	@echo "=== Revisando Dependencias ==="
@@ -70,7 +77,35 @@ test: canary
 
 test-verbose: canary
 	$(PYTHON_CMD) evals/runner.py --verbose
+dev:
+	@if docker compose ps -q 2>/dev/null | grep -q . ; then \
+		echo "Aviso: Contenedores Docker activos detectados. Deteniendo para liberar puertos 8000 y 5173..."; \
+		docker compose stop; \
+	fi
+	@echo "Iniciando Backend (http://localhost:8000) y Frontend (http://localhost:5173)..."
+	@echo "Presiona Ctrl+C para detener ambos servicios limpiamente."
+	@trap 'kill 0' EXIT INT TERM; \
+	PYTHONPATH=apps/api uv run --project apps/api --with uvicorn python -m uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000 & \
+	pnpm --dir apps/ui dev & \
+	wait
+
+dev-api:
+	PYTHONPATH=apps/api uv run --project apps/api --with uvicorn python -m uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+
+dev-ui:
+	pnpm --dir apps/ui dev
+
+test-unit:
+	PYTHONPATH=apps/api uv run --project apps/api --with pytest --with pydantic --with jsonschema --with pyyaml --with fastapi --with httpx pytest tests/unit -v
+
+test-b5:
+	PYTHONPATH=apps/api uv run --project apps/api --with pytest --with pydantic --with jsonschema --with pyyaml --with fastapi --with httpx pytest tests/unit/test_manual_intents.py -v
+
+purge-trash:
+	curl -s -X POST http://localhost:8000/v2/intents/trash/purge -H "Content-Type: application/json" -d '{"purged_by":"make_cli"}'
+	@echo ""
 
 clean:
 	rm -rf .pytest_cache evals/report.json
 	find . -type d -name __pycache__ -exec rm -rf {} +
+

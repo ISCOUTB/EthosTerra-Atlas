@@ -8,7 +8,14 @@ from typing import Any
 from datetime import datetime, timezone
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[4]
+def _find_project_root() -> Path:
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (parent / "evals").exists() or (parent / "contracts").exists() or (parent / ".git").exists():
+            return parent
+    return Path("/app") if Path("/app").exists() else current.parents[min(2, len(current.parents) - 1)]
+
+PROJECT_ROOT = _find_project_root()
 EVALS_DIR = PROJECT_ROOT / "evals"
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 
