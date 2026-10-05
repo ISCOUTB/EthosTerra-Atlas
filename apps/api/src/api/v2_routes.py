@@ -4,6 +4,7 @@ import os
 import json
 import hashlib
 import shutil
+import logging
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Any, Literal
@@ -44,6 +45,10 @@ from src.application.metrics_service import (
     generate_comparison_week5_week6,
 )
 from src.api.intents_routes import intents_router
+from src.application.epistemic_extractor import extract_epistemology
+from src.application.operational_structurer import structure_operational_document
+
+logger = logging.getLogger("v2_routes")
 
 v2_router = APIRouter(prefix="/v2", tags=["Document Pipeline eBDI V2"])
 v2_router.include_router(intents_router)
@@ -147,62 +152,25 @@ async def extract_document(doc_id: str):
     session = _DOCUMENT_STORE[doc_id]
     text = session["text"]
 
-    # Extracción epistemológica fundamentada estrictamente en el texto
-    knowledge = ExtractedKnowledge(
-        actor_alias=EpistemicItem(status="observed", value="peasant_01", evidence_ref="frag_01"),
-        territory_context=EpistemicItem(
-            status="not_stated",
-            value=None,
-            rationale="El texto no declara departamento, municipio ni coordenadas geográficas."
-        ),
-        beliefs=[],
-        desires=[
-            EpistemicItem(status="inferred", value="alistar el suelo para la siembra", evidence_ref="frag_01")
-        ],
-        intentions=[
-            EpistemicItem(status="observed", value="prepare_land", evidence_ref="frag_01")
-        ],
-        requirements=[
-            EpistemicItem(
-                status="required",
-                value={"resource": "tools"},
-                evidence_ref="frag_01",
-                rationale="El texto explicita que se requiere tener las herramientas disponibles."
-            )
-        ],
-        detected_conflicts=[],
-        emotions={
-            "happiness": EpistemicItem(status="unknown", value=None),
-            "hopeful": EpistemicItem(status="unknown", value=None),
-            "secure": EpistemicItem(status="unknown", value=None)
-        },
-        social_relations=[]
-    )
+    model_gateway = None
+    try:
+        from src.adapters.dmr_gateway import DMRGateway
+        model_url = os.environ.get("MODEL_BASE_URL", "http://host.docker.internal:11434/")
+        model_name = os.environ.get("MODEL_NAME", "ai/gemma4:E4B")
+        model_gateway = DMRGateway(model_name=model_name, base_url=model_url)
+    except Exception as exc:
+        logger.warning(f"No se pudo inicializar DMRGateway: {exc}")
 
-    evidence = EvidenceSpan(
-        fragment_id="frag_01",
-        source_ref=session["filename"],
-        start_char=0,
-        end_char=len(text),
-        text_quote=text
-    )
-
-    analysis_doc = DocumentAnalysisSchema(
-        schema_version="2.0.0",
+    analysis_doc = await extract_epistemology(
+        text=text,
         document_id=doc_id,
-        source_type=session["source_type"],
-        document_hash=session["hash"],
-        extracted_knowledge=knowledge,
-        evidence_spans=[evidence],
-        extraction_metadata={
-            "extractor_model": "ai/gemma4:E4B",
-            "extraction_mode": "controlled_vertical_slice",
-            "extracted_at": datetime.now(timezone.utc).isoformat()
-        }
+        source_hash=session["hash"],
+        source_ref=session["filename"],
+        model_gateway=model_gateway,
     )
 
-    session["extracted_knowledge"] = knowledge
-    session["evidence_spans"] = [evidence]
+    session["extracted_knowledge"] = analysis_doc.extracted_knowledge
+    session["evidence_spans"] = analysis_doc.evidence_spans
     session["status"] = "Analizado"
 
     # Persistir JSON de análisis
@@ -223,88 +191,26 @@ async def structure_document(doc_id: str, req: StructureDocumentRequest):
     if not session.get("extracted_knowledge"):
         raise HTTPException(status_code=400, detail="Debe ejecutar /extract antes de estructurar el documento.")
 
-    goal_art = GoalSpecArtifact(
-        id="prepare_land",
-        version="1.0",
-        display_name="Preparar Terreno",
-        description="Preparar la tierra para el próximo ciclo agrícola.",
-        pyramid_level="ATTENTION_CYCLE",
-        sub_level="L3_PRODUCTIVE_DEVELOPMENT",
-        activation_when="state.hasLandWithSeason('NONE') || state.hasLandWithSeason('FALLOW')",
-        contribution_rules=ContributionRulesSchema(fixed_value=0.6),
-        plan_ref="prepare_land_plan_v1",
-        effects=None,
-        normative_tags=["agro", "land"]
-    )
-
-    plan_art = PlanSpecArtifact(
-        id="prepare_land_plan_v1",
-        version="1.0",
-        description="Ejecutar labores de preparación del agroecosistema.",
-        preconditions=[],
-        steps=[
-            StepSpecSchema(
-                id="prepare_op",
-                action="agro_ecosystem_operation",
-                args={"operation": "PREPARE"}
-            ),
-            StepSpecSchema(
-                id="record_episode",
-                action="emit_episode",
-                args={"text": "He trabajado en la preparación del terreno para asegurar un suelo fértil para la próxima siembra."}
-            )
-        ],
-        on_timeout=[],
-        on_failure=[]
-    )
-
-    artifacts = [
-        ArtifactSpecSchema(
-            artifact_id="goal_prepare_land",
-            artifact_type="goal",
-            operation="crear",
-            target_rel_path="data/ebdi/goals/agro/prepare_land.yaml",
-            content=goal_art,
-            support_status="supported",
-            requires_simulator_extension=False
-        ),
-        ArtifactSpecSchema(
-            artifact_id="plan_prepare_land",
-            artifact_type="plan",
-            operation="crear",
-            target_rel_path="data/ebdi/plans/agro/prepare_land_plan_v1.yaml",
-            content=plan_art,
-            support_status="supported",
-            requires_simulator_extension=False
-        )
-    ]
-
-    oper_doc = OperationalDocumentSchema(
-        schema_version="2.0.0",
+    oper_doc = structure_operational_document(
+        doc_id=doc_id,
         experiment_id=session["experiment_id"],
-        document_id=doc_id,
-        status="Analizado",
-        review_status="not_required" if req.tipo_caso == "puro" else "pending",
-        requires_human_review=req.tipo_caso == "conflicto",
         tipo_caso=req.tipo_caso,
-        source_refs=[session["filename"]],
+        source_filename=session["filename"],
+        source_hash=session["hash"],
         evidence_spans=session["evidence_spans"],
         extracted_knowledge=session["extracted_knowledge"],
-        artifacts=artifacts,
-        selected_alternative=None,
-        alternatives=[],
-        validation_status=ValidationSummary(
-            has_blocking_errors=False,
-            blocking_errors=[],
-            warnings=[],
-            syntax_valid=True,
-            runtime_compatible="unknown",
-            requires_simulation_test=True
-        ),
-        approval_metadata=None
+        actor_alias_override=req.actor_alias if req.actor_alias != "peasant_01" else None,
     )
 
     session["operational_doc"] = oper_doc
+    session["status"] = oper_doc.status
+
+    # Persistir JSON preliminar estructurado
+    exp_dir = OUTPUTS_DIR / "experiments" / session["experiment_id"]
+    analysis_dir = exp_dir / "json" / "analysis"
+    analysis_dir.mkdir(parents=True, exist_ok=True)
+    (analysis_dir / f"{doc_id}_operational.json").write_text(oper_doc.model_dump_json(indent=2), encoding="utf-8")
+
     return oper_doc
 
 

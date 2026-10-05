@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
-  FileText,
-  CheckCircle2,
-  AlertTriangle,
+  Check,
   Lock,
-  Unlock,
   ShieldCheck,
   FolderSync,
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
 import { EpistemicBadge } from './EpistemicBadge';
+import { Badge } from './ui/Badge';
+import { Button } from './ui/Button';
+import { Card } from './ui/Card';
+import { Field, Input, Textarea } from './ui/Field';
+import { Mono } from './ui/Mono';
+import { StatePanel } from './ui/StatePanel';
 import { cn } from '../lib/utils';
 
 const API_BASE = 'http://localhost:8000/v2';
@@ -22,7 +25,6 @@ export default function DocumentPipelineView() {
   const [experimentId] = useState('exp_vertical_001');
   const [docId] = useState('doc_diario_001');
   const [sourceText, setSourceText] = useState(SAMPLE_DIARY);
-  const [activeTab, setActiveTab] = useState<'flow' | 'yamls' | 'metrics' | 'manifest'>('flow');
 
   // Step Statuses
   const [ingestData, setIngestData] = useState<any>(null);
@@ -31,8 +33,6 @@ export default function DocumentPipelineView() {
   const [approvedData, setApprovedData] = useState<any>(null);
   const [generatedYamls, setGeneratedYamls] = useState<any>(null);
   const [installationData, setInstallationData] = useState<any>(null);
-  const [metricsData, setMetricsData] = useState<any>(null);
-  const [manifestData, setManifestData] = useState<any>(null);
 
   // Approval Inputs
   const [approverId, setApproverId] = useState('investigador_principal');
@@ -99,13 +99,22 @@ export default function DocumentPipelineView() {
     clearMessages();
     setLoadingStep('structure');
     try {
+      const extractedActor = analysisData?.extracted_knowledge?.actor_alias?.value;
+      const hasConflicts = (analysisData?.extracted_knowledge?.detected_conflicts?.length ?? 0) > 0;
+      const isUnknownIntention = analysisData?.extracted_knowledge?.intentions?.[0]?.status === 'unknown';
+      const derivedTipoCaso: 'puro' | 'conflicto' = (hasConflicts || isUnknownIntention) ? 'conflicto' : 'puro';
+
+      const payload: { tipo_caso: 'puro' | 'conflicto'; actor_alias?: string } = {
+        tipo_caso: derivedTipoCaso,
+      };
+      if (extractedActor) {
+        payload.actor_alias = extractedActor;
+      }
+
       const res = await fetch(`${API_BASE}/documents/${docId}/structure`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tipo_caso: 'puro',
-          actor_alias: 'peasant_01',
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
@@ -205,657 +214,652 @@ export default function DocumentPipelineView() {
     }
   };
 
-  // Load Metrics
-  const handleLoadMetrics = async () => {
-    setLoadingStep('metrics');
-    try {
-      const res = await fetch(`${API_BASE}/experiments/${experimentId}/metrics`);
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      setMetricsData(data);
-    } catch (err: any) {
-      setErrorMessage(`Error cargando métricas: ${err.message}`);
-    } finally {
-      setLoadingStep(null);
-    }
-  };
-
-  // Load Manifest
-  const handleLoadManifest = async () => {
-    setLoadingStep('manifest');
-    try {
-      const res = await fetch(`${API_BASE}/experiments/${experimentId}/manifest`);
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      setManifestData(data);
-    } catch (err: any) {
-      setErrorMessage(`Error cargando manifiesto: ${err.message}`);
-    } finally {
-      setLoadingStep(null);
-    }
-  };
-
   const isApproved = operationalData?.status === 'Aprobado' && operationalData?.review_status === 'approved';
 
-  return (
-    <div className="space-y-6">
-      {/* Top Banner & Sandbox Safeguard Status */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-              Semana 6 — Document Pipeline
-            </span>
-            <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> EthosTerra_original: SOLO LECTURA
-            </span>
-          </div>
-          <h2 className="text-xl font-bold text-slate-800 mt-1">
-            Traductor Documental a Especificaciones eBDI
-          </h2>
-          <p className="text-sm text-slate-500">
-            Extracción epistemológica, puerta de aprobación humana inmutable y sandbox en{' '}
-            <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">outputs/experiments/{experimentId}/EthosTerra_experiment</code>
-          </p>
-        </div>
+  // Presentación del stepper: el estado de cada paso se deriva de los datos existentes.
+  const stepDone = [
+    Boolean(ingestData),
+    Boolean(analysisData),
+    Boolean(operationalData),
+    isApproved,
+    Boolean(generatedYamls),
+    Boolean(installationData),
+  ];
+  const firstOpen = stepDone.indexOf(false);
+  const statusOf = (i: number): StepStatus => {
+    if (stepDone[i]) return 'completed';
+    if (i === firstOpen) return 'active';
+    if (i === 4 && !isApproved) return 'blocked';
+    return 'pending';
+  };
+  const primaryFor = (i: number) => (statusOf(i) === 'active' ? 'primary' : 'secondary') as 'primary' | 'secondary';
 
-        {/* View Switcher Tabs */}
-        <div className="flex bg-slate-100 p-1 rounded-lg text-sm self-stretch md:self-auto">
-          <button
-            onClick={() => setActiveTab('flow')}
-            className={cn(
-              'px-3 py-1.5 rounded-md font-medium transition-all',
-              activeTab === 'flow' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            )}
-          >
-            Flujo de Pipeline
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('metrics');
-              if (!metricsData) handleLoadMetrics();
-            }}
-            className={cn(
-              'px-3 py-1.5 rounded-md font-medium transition-all',
-              activeTab === 'metrics' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            )}
-          >
-            Métricas Reproducibles
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('manifest');
-              if (!manifestData) handleLoadManifest();
-            }}
-            className={cn(
-              'px-3 py-1.5 rounded-md font-medium transition-all',
-              activeTab === 'manifest' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            )}
-          >
-            Manifiesto
-          </button>
+  const approval = approvedData?.approval_metadata ?? operationalData?.approval_metadata;
+  const yamlCount = Object.keys(generatedYamls?.generated_files || {}).length;
+  const analysis = analysisData?.extracted_knowledge;
+  const goalArtifact = operationalData?.artifacts?.find((a: any) => a.artifact_type === 'goal');
+  const planArtifact = operationalData?.artifacts?.find((a: any) => a.artifact_type === 'plan');
+  const goalSpec = goalArtifact?.content;
+  const planSpec = planArtifact?.content;
+  const planSteps = planSpec?.steps || [];
+
+  return (
+    <div className="mx-auto w-full max-w-[1100px] space-y-8">
+      <div className="border-b border-hairline pb-6">
+        <div className="space-y-2">
+          <Badge tone="puro" className="gap-1.5">
+            <ShieldCheck className="size-3.5" aria-hidden="true" />
+            EthosTerra_original: solo lectura
+          </Badge>
+          <h2 className="text-[21px] leading-tight font-semibold tracking-tight">
+            Traductor documental a especificaciones eBDI
+          </h2>
+          <p className="max-w-2xl text-ink-subtle">
+            Extracción epistemológica, aprobación humana inmutable y sandbox en{' '}
+            <Mono className="text-ink-subtle">outputs/experiments/{experimentId}/EthosTerra_experiment</Mono>
+          </p>
         </div>
       </div>
 
-      {/* Notifications */}
-      {errorMessage && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-          <div className="flex-1 font-medium">{errorMessage}</div>
-        </div>
-      )}
-      {successMessage && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-          <div className="flex-1 font-medium">{successMessage}</div>
-        </div>
-      )}
+      {errorMessage && <StatePanel state="error" title={errorMessage} className="p-4" />}
+      {successMessage && <StatePanel state="success" title={successMessage} className="p-4" />}
 
-      {/* TAB: FLOW */}
-      {activeTab === 'flow' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: Documentary Ingest & Epistemic Analysis */}
-          <div className="lg:col-span-6 space-y-6">
-            {/* Step 1: Ingest */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 font-semibold text-slate-800">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">
-                    1
-                  </span>
-                  Fuente Documental y Normalización
-                </div>
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+        <ol>
+          {/* 1. Ingesta */}
+          <StepItem
+            n={1}
+            title="Fuente documental y normalización"
+            description="Normaliza el texto fuente y registra un hash SHA-256 inmutable del documento."
+            status={statusOf(0)}
+            summary={
+              ingestData && (
+                <>
+                  SHA-256 <Mono>{ingestData.sha256_hash.slice(0, 16)}…</Mono> · {ingestData.char_count} caracteres
+                </>
+              )
+            }
+          >
+            <div className="space-y-4">
+              <Field id="source-text" label="Texto fuente">
+                {(control) => (
+                  <Textarea
+                    {...control}
+                    value={sourceText}
+                    onChange={(e) => setSourceText(e.target.value)}
+                    rows={4}
+                    placeholder="Pegue aquí el extracto de diario, entrevista o documento..."
+                  />
+                )}
+              </Field>
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={() => setSourceText(SAMPLE_DIARY)}
-                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                  className="flex min-h-8 items-center gap-1.5 text-primary hover:underline"
                 >
-                  <Sparkles className="w-3.5 h-3.5" /> Cargar muestra de campesino
+                  <Sparkles className="size-4" aria-hidden="true" /> Cargar muestra de campesino
                 </button>
-              </div>
-
-              <textarea
-                value={sourceText}
-                onChange={(e) => setSourceText(e.target.value)}
-                rows={4}
-                className="w-full text-sm p-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans"
-                placeholder="Pegue aquí el extracto de diario, entrevista o documento..."
-              />
-
-              <div className="mt-3 flex items-center justify-between">
-                <div className="text-xs text-slate-500 font-mono">
-                  {ingestData ? (
-                    <span className="text-emerald-600 font-medium">
-                      SHA-256: {ingestData.sha256_hash.slice(0, 16)}... ({ingestData.char_count} chars)
-                    </span>
-                  ) : (
-                    <span>No ingerido aún</span>
-                  )}
-                </div>
-                <button
+                <Button
+                  variant={primaryFor(0)}
+                  size={statusOf(0) === 'active' ? 'md' : 'sm'}
                   onClick={handleIngest}
-                  disabled={loadingStep === 'ingest'}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-sm font-medium transition flex items-center gap-2"
+                  loading={loadingStep === 'ingest'}
                 >
-                  {loadingStep === 'ingest' ? 'Procesando...' : '1. Ingerir y Normalizar'}
-                </button>
+                  {loadingStep === 'ingest' ? 'Procesando...' : 'Ingerir y normalizar'}
+                </Button>
               </div>
             </div>
+          </StepItem>
 
-            {/* Step 2: Epistemic Breakdown */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 font-semibold text-slate-800">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">
-                    2
-                  </span>
-                  Extracción Epistemológica y Trazabilidad
-                </div>
-                <button
-                  onClick={handleExtract}
-                  disabled={!ingestData || loadingStep === 'extract'}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5',
-                    !ingestData
-                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  )}
-                >
-                  {loadingStep === 'extract' ? 'Extrayendo...' : '2. Extraer Epistemología'}
-                </button>
-              </div>
-
-              {analysisData ? (
-                <div className="space-y-4">
-                  {/* Interactive Evidence Quote */}
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs">
-                    <div className="font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5" /> Evidencia Textual (Fragmento frag_01):
-                    </div>
-                    <p className="text-slate-800 italic bg-amber-50 p-2 rounded border border-amber-200">
+          {/* 2. Extracción epistemológica */}
+          <StepItem
+            n={2}
+            title="Extracción epistemológica y trazabilidad"
+            description="Extrae intención, deseos y requerimientos, cada uno con su evidencia textual."
+            status={statusOf(1)}
+            summary={
+              analysis &&
+              `${analysisData.evidence_spans?.length ?? 0} evidencias · ${analysis.intentions?.length ?? 0} intenciones · ${analysis.desires?.length ?? 0} deseos · ${analysis.requirements?.length ?? 0} requerimientos`
+            }
+          >
+            <div className="space-y-4">
+              {analysisData && (
+                <>
+                  <figure className="border-l-2 border-hairline pl-4">
+                    <figcaption className="text-xs text-ink-subtle">
+                      Evidencia textual (fragmento <Mono>frag_01</Mono>)
+                    </figcaption>
+                    <blockquote className="mt-1 italic">
                       "{analysisData.evidence_spans?.[0]?.text_quote}"
-                    </p>
-                  </div>
+                    </blockquote>
+                  </figure>
 
-                  {/* Epistemic Fields Table */}
-                  <div className="divide-y divide-slate-100 text-sm">
-                    <div className="py-2 flex items-center justify-between">
-                      <span className="text-slate-600 text-xs font-mono">Actor Alias:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-slate-800">
-                          {analysisData.extracted_knowledge.actor_alias.value}
-                        </span>
-                        <EpistemicBadge
-                          status={analysisData.extracted_knowledge.actor_alias.status}
-                          evidenceRef={analysisData.extracted_knowledge.actor_alias.evidence_ref}
-                        />
+                  <dl className="divide-y divide-hairline">
+                    <EpistemicRow label="Actor alias">
+                      {analysis.actor_alias?.value ? (
+                        <Mono>{analysis.actor_alias.value}</Mono>
+                      ) : (
+                        <span className="text-ink-subtle italic">No declarado</span>
+                      )}
+                      <EpistemicBadge
+                        status={analysis.actor_alias?.status}
+                        evidenceRef={analysis.actor_alias?.evidence_ref}
+                      />
+                    </EpistemicRow>
+                    <EpistemicRow label="Intención central">
+                      <span className="font-semibold">{analysis.intentions?.[0]?.value || 'No identificada'}</span>
+                      <EpistemicBadge
+                        status={analysis.intentions?.[0]?.status}
+                        evidenceRef={analysis.intentions?.[0]?.evidence_ref}
+                      />
+                    </EpistemicRow>
+                    <EpistemicRow label="Deseo subyacente">
+                      <span>{analysis.desires?.[0]?.value || 'No inferido'}</span>
+                      <EpistemicBadge
+                        status={analysis.desires?.[0]?.status}
+                        evidenceRef={analysis.desires?.[0]?.evidence_ref}
+                      />
+                    </EpistemicRow>
+                    <EpistemicRow label="Requerimientos operativos">
+                      <div className="flex flex-col items-end gap-1.5">
+                        {analysis.requirements?.length > 0 ? (
+                          analysis.requirements.map((req: any, idx: number) => (
+                            <div key={idx} className="flex flex-wrap items-center justify-end gap-2">
+                              <Mono>{typeof req.value === 'object' ? JSON.stringify(req.value) : req.value}</Mono>
+                              <EpistemicBadge status={req.status} rationale={req.rationale} />
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-ink-subtle italic">Ninguno declarado</span>
+                        )}
                       </div>
-                    </div>
-
-                    <div className="py-2 flex items-center justify-between">
-                      <span className="text-slate-600 text-xs font-mono">Intención Central:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-slate-800">
-                          {analysisData.extracted_knowledge.intentions?.[0]?.value}
-                        </span>
-                        <EpistemicBadge
-                          status={analysisData.extracted_knowledge.intentions?.[0]?.status}
-                          evidenceRef={analysisData.extracted_knowledge.intentions?.[0]?.evidence_ref}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="py-2 flex items-center justify-between">
-                      <span className="text-slate-600 text-xs font-mono">Deseo Subyacente:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-700 text-xs">
-                          {analysisData.extracted_knowledge.desires?.[0]?.value}
-                        </span>
-                        <EpistemicBadge
-                          status={analysisData.extracted_knowledge.desires?.[0]?.status}
-                          evidenceRef={analysisData.extracted_knowledge.desires?.[0]?.evidence_ref}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="py-2 flex items-center justify-between">
-                      <span className="text-slate-600 text-xs font-mono">Requerimiento Operativo:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-700 text-xs font-mono">
-                          {JSON.stringify(analysisData.extracted_knowledge.requirements?.[0]?.value)}
-                        </span>
-                        <EpistemicBadge
-                          status={analysisData.extracted_knowledge.requirements?.[0]?.status}
-                          rationale={analysisData.extracted_knowledge.requirements?.[0]?.rationale}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="py-2 flex items-center justify-between">
-                      <span className="text-slate-600 text-xs font-mono">Contexto Territorial:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-400 text-xs italic">No especificado</span>
-                        <EpistemicBadge
-                          status={analysisData.extracted_knowledge.territory_context.status}
-                          rationale={analysisData.extracted_knowledge.territory_context.rationale}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="py-2 flex items-center justify-between">
-                      <span className="text-slate-600 text-xs font-mono">Estado Afectivo (Felicidad):</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-400 text-xs italic">Desconocido</span>
-                        <EpistemicBadge status="unknown" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-6 text-slate-400 text-xs">
-                  Complete el paso 1 y extraiga el conocimiento epistemológico.
-                </div>
+                    </EpistemicRow>
+                    {analysis.detected_conflicts?.length > 0 && (
+                      <EpistemicRow label="Conflictos / Inyecciones">
+                        <div className="flex flex-col items-end gap-1 text-xs text-status-conflictivo-fg">
+                          {analysis.detected_conflicts.map((c: any, idx: number) => (
+                            <span key={idx}>
+                              {c.value}: {c.rationale}
+                            </span>
+                          ))}
+                        </div>
+                      </EpistemicRow>
+                    )}
+                    <EpistemicRow label="Contexto territorial">
+                      <span className="text-ink-subtle italic">No especificado</span>
+                      <EpistemicBadge
+                        status={analysis.territory_context?.status}
+                        rationale={analysis.territory_context?.rationale}
+                      />
+                    </EpistemicRow>
+                    <EpistemicRow label="Estado afectivo (felicidad)">
+                      <span className="text-ink-subtle italic">Desconocido</span>
+                      <EpistemicBadge status="unknown" />
+                    </EpistemicRow>
+                  </dl>
+                </>
               )}
+              <Button
+                variant={primaryFor(1)}
+                size={statusOf(1) === 'active' ? 'md' : 'sm'}
+                onClick={handleExtract}
+                disabled={!ingestData}
+                loading={loadingStep === 'extract'}
+              >
+                {loadingStep === 'extract' ? 'Extrayendo...' : 'Extraer epistemología'}
+              </Button>
             </div>
-          </div>
+          </StepItem>
 
-          {/* Right Column: Operational Structuring, Approval Gate & Deployment */}
-          <div className="lg:col-span-6 space-y-6">
-            {/* Step 3: Structuring & Catalog Validation */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 font-semibold text-slate-800">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">
-                    3
-                  </span>
-                  Estructuración Operativa (GoalSpec & PlanSpec)
-                </div>
-                <button
-                  onClick={handleStructure}
-                  disabled={!analysisData || loadingStep === 'structure'}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5',
-                    !analysisData
-                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                      : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+          {/* 3. Estructuración */}
+          <StepItem
+            n={3}
+            title="Estructuración operativa (GoalSpec y PlanSpec)"
+            description="Produce el GoalSpec y el PlanSpec validados contra el catálogo de acciones."
+            status={statusOf(2)}
+            summary={
+              operationalData && (
+                <>
+                  {operationalData.artifacts?.length ?? 0} artefactos
+                  {goalSpec?.id && (
+                    <>
+                      {' '}· <Mono>{goalSpec.id}</Mono>
+                    </>
                   )}
-                >
-                  {loadingStep === 'structure' ? 'Estructurando...' : '3. Estructurar Objetivos'}
-                </button>
-              </div>
-
-              {operationalData ? (
-                <div className="space-y-3">
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-700">Artefactos Propuestos:</span>
-                      <span className="text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        2 artefactos conformes
-                      </span>
-                    </div>
-                    <ul className="list-disc pl-4 space-y-1 text-slate-600">
+                  {planSpec?.id && (
+                    <>
+                      {' '}· <Mono>{planSpec.id}</Mono>
+                    </>
+                  )}
+                  {planSteps.length > 0 && ` · ${planSteps.length} acciones válidas`}
+                </>
+              )
+            }
+          >
+            <div className="space-y-4">
+              {operationalData && (
+                <div className="space-y-2">
+                  {operationalData.requires_human_review && (
+                    <p className="text-xs text-status-conflictivo-fg">
+                      Este documento requiere revisión humana (
+                      {operationalData.validation_status?.blocking_errors?.join(', ') || 'conflicto o ambigüedad'}).
+                    </p>
+                  )}
+                  {(operationalData.artifacts?.length ?? 0) > 0 ? (
+                    <ul className="list-disc space-y-1 pl-5 text-ink-muted">
+                      {goalSpec && (
+                        <li>
+                          <Mono>GoalSpec</Mono>: <Mono>{goalSpec.id}</Mono> ({goalSpec.display_name}) · plan_ref:{' '}
+                          <Mono>{goalSpec.plan_ref}</Mono>
+                        </li>
+                      )}
+                      {planSpec && (
+                        <li>
+                          <Mono>PlanSpec</Mono>: <Mono>{planSpec.id}</Mono> ({planSteps.length} pasos:{' '}
+                          {planSteps.map((s: any, idx: number) => (
+                            <span key={s.id || idx}>
+                              {idx > 0 && ', '}
+                              <Mono>{s.action}</Mono>
+                            </span>
+                          ))}
+                          )
+                        </li>
+                      )}
                       <li>
-                        <strong className="font-mono text-slate-800">GoalSpec:</strong> prepare_land (plan_ref: prepare_land_plan_v1)
-                      </li>
-                      <li>
-                        <strong className="font-mono text-slate-800">PlanSpec:</strong> prepare_land_plan_v1 (2 pasos: agro_ecosystem_operation, emit_episode)
+                        {operationalData.validation_status?.has_blocking_errors
+                          ? 'Errores de validación detectados'
+                          : `${planSteps.length}/${planSteps.length} acciones validadas contra el catálogo, existentes y tipadas`}
                       </li>
                     </ul>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs">
-                    <span className="font-semibold text-slate-700">Acciones validadas contra Catálogo:</span>
-                    <span className="text-blue-700 font-mono font-medium">
-                      2/2 acciones existentes y tipadas
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-6 text-slate-400 text-xs">
-                  Complete el paso 2 para estructurar los artefactos de simulación.
-                </div>
-              )}
-            </div>
-
-            {/* Step 4: Strict Human Approval Gate */}
-            <div
-              className={cn(
-                'border rounded-xl p-5 shadow-xs transition-all',
-                isApproved
-                  ? 'bg-emerald-50/50 border-emerald-200'
-                  : 'bg-amber-50/50 border-amber-200'
-              )}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 font-semibold text-slate-800">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">
-                    4
-                  </span>
-                  Puerta de Aprobación Humana (Approval Gate)
-                </div>
-                {isApproved ? (
-                  <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-600 text-white flex items-center gap-1">
-                    <Unlock className="w-3.5 h-3.5" /> Aprobado
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-600 text-white flex items-center gap-1">
-                    <Lock className="w-3.5 h-3.5" /> Pendiente de Aprobación
-                  </span>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="block text-slate-600 font-medium mb-1">Investigador:</label>
-                    <input
-                      type="text"
-                      value={approverId}
-                      onChange={(e) => setApproverId(e.target.value)}
-                      disabled={isApproved}
-                      className="w-full p-2 border border-slate-200 rounded bg-white font-mono text-slate-800"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-600 font-medium mb-1">Notas de Revisión:</label>
-                    <input
-                      type="text"
-                      value={approvalNotes}
-                      onChange={(e) => setApprovalNotes(e.target.value)}
-                      disabled={isApproved}
-                      className="w-full p-2 border border-slate-200 rounded bg-white text-slate-800"
-                    />
-                  </div>
-                </div>
-
-                {isApproved && (
-                  <div className="p-2.5 bg-emerald-100/60 border border-emerald-300 rounded text-xs font-mono text-emerald-900 break-all">
-                    <strong>Hash Aprobado:</strong> {approvedData?.approval_metadata?.approved_json_hash}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-xs text-slate-500">
-                    {isApproved
-                      ? 'Firma inmutable registrada.'
-                      : 'La generación YAML permanece estrictamente bloqueada.'}
-                  </span>
-                  {!isApproved && (
-                    <button
-                      onClick={handleApprove}
-                      disabled={!operationalData || loadingStep === 'approve'}
-                      className={cn(
-                        'px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2',
-                        !operationalData
-                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                          : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      )}
-                    >
-                      {loadingStep === 'approve' ? 'Aprobando...' : 'Aprobar Documento e Inmutar Hash'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Step 5: Locked / Unlocked YAML Generation */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 font-semibold text-slate-800">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">
-                    5
-                  </span>
-                  Generación Determinista de Archivos YAML
-                </div>
-              </div>
-
-              {!isApproved ? (
-                <div className="p-4 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-3">
-                  <Lock className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-xs font-bold text-rose-800">Generación bloqueada</div>
-                    <div className="text-xs text-rose-700 mt-0.5">
-                      Se requiere un JSON aprobado cuyo hash coincida con la versión actual para generar YAMLs.
-                    </div>
-                    <button
-                      disabled
-                      className="mt-3 px-4 py-2 bg-slate-200 text-slate-400 rounded-lg text-xs font-medium cursor-not-allowed flex items-center gap-2"
-                    >
-                      <Lock className="w-3.5 h-3.5" /> Generar Archivos YAML (Bloqueado)
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-600">
-                      Puerta desbloqueada para documento aprobado.
-                    </span>
-                    <button
-                      onClick={handleGenerateYaml}
-                      disabled={loadingStep === 'generate'}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-2"
-                    >
-                      {loadingStep === 'generate' ? 'Generando...' : 'Generar Archivos YAML'}
-                    </button>
-                  </div>
-
-                  {generatedYamls && (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
-                      <div className="font-semibold text-slate-700 flex items-center justify-between">
-                        <span>Archivos Generados (YAML):</span>
-                        <span className="text-[10px] text-slate-400 font-mono">outputs/experiments/{experimentId}/yaml/</span>
-                      </div>
-                      {Object.entries(generatedYamls.generated_files || {}).map(([key, path]: any) => (
-                        <div key={key} className="p-2 bg-white border border-slate-200 rounded flex flex-col gap-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-blue-700 font-mono text-[11px]">{key}</span>
-                            <span className="font-mono text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold">
-                              {path.split('/').pop()}
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-slate-400 font-mono truncate">
-                            {path}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  ) : (
+                    <p className="text-sm italic text-ink-subtle">
+                      No se generaron artefactos automáticos debido a revisión requerida.
+                    </p>
                   )}
                 </div>
               )}
+              <Button
+                variant={primaryFor(2)}
+                size={statusOf(2) === 'active' ? 'md' : 'sm'}
+                onClick={handleStructure}
+                disabled={!analysisData}
+                loading={loadingStep === 'structure'}
+              >
+                {loadingStep === 'structure' ? 'Estructurando...' : 'Estructurar objetivos'}
+              </Button>
             </div>
+          </StepItem>
 
-            {/* Step 6: Controlled Sandbox Deployment & Rollback */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 font-semibold text-slate-800">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">
-                    6
-                  </span>
-                  Instalación en Sandbox Experimental y Rollback
+          {/* 4. Punto de control: aprobación humana */}
+          <StepItem
+            n={4}
+            gate
+            title="Aprobación humana"
+            description="Registra aprobador, fecha y hash canónico. Sin esta firma no se generan archivos."
+            status={statusOf(3)}
+          >
+            {isApproved ? (
+              <dl className="space-y-3">
+                <div>
+                  <dt className="text-xs text-ink-subtle">Hash canónico</dt>
+                  <dd>
+                    <Mono>{approval?.approved_json_hash}</Mono>
+                  </dd>
                 </div>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="p-2.5 bg-slate-50 rounded border border-slate-200 font-mono text-slate-700">
-                  <strong>Destino Sandbox:</strong> outputs/experiments/{experimentId}/EthosTerra_experiment
+                <div className="flex flex-wrap gap-x-8 gap-y-3">
+                  <div>
+                    <dt className="text-xs text-ink-subtle">Aprobador</dt>
+                    <dd>
+                      <Mono>{approval?.approver_id ?? approverId}</Mono>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-ink-subtle">Fecha</dt>
+                    <dd>{formatDate(approval?.approved_at) ?? 'No registrada'}</dd>
+                  </div>
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={handleInstall}
-                    disabled={!generatedYamls || loadingStep === 'install'}
-                    className={cn(
-                      'px-4 py-2 rounded-lg font-bold transition flex items-center gap-2',
-                      !generatedYamls
-                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                        : 'bg-purple-600 hover:bg-purple-700 text-white'
+                <p className="flex items-center gap-1.5 text-ink-muted">
+                  <Check className="size-4" aria-hidden="true" /> Firma inmutable registrada.
+                </p>
+              </dl>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field id="approver-id" label="Investigador">
+                    {(control) => (
+                      <Input
+                        {...control}
+                        type="text"
+                        className="font-mono"
+                        value={approverId}
+                        onChange={(e) => setApproverId(e.target.value)}
+                      />
                     )}
-                  >
-                    <FolderSync className="w-4 h-4" />
-                    {loadingStep === 'install' ? 'Instalando...' : 'Instalar en Sandbox'}
-                  </button>
-
-                  <button
-                    onClick={handleRollback}
-                    disabled={loadingStep === 'rollback'}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition flex items-center gap-1.5"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    {loadingStep === 'rollback' ? 'Revirtiendo...' : 'Rollback Sandbox'}
-                  </button>
+                  </Field>
+                  <Field id="approval-notes" label="Notas de revisión">
+                    {(control) => (
+                      <Input
+                        {...control}
+                        type="text"
+                        value={approvalNotes}
+                        onChange={(e) => setApprovalNotes(e.target.value)}
+                      />
+                    )}
+                  </Field>
                 </div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="flex items-center gap-1.5 text-status-conflictivo-fg">
+                    <Lock className="size-4 shrink-0" aria-hidden="true" />
+                    La generación de YAML permanece bloqueada hasta aprobar.
+                  </p>
+                  <Button
+                    variant="primary"
+                    onClick={handleApprove}
+                    disabled={!operationalData}
+                    loading={loadingStep === 'approve'}
+                  >
+                    {loadingStep === 'approve' ? 'Aprobando...' : 'Aprobar y fijar hash'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </StepItem>
 
-                {installationData && (
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-emerald-800 space-y-1">
-                    <div className="font-semibold flex items-center gap-1">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Instalación Exitosa en Sandbox
-                    </div>
-                    <div>Backup creado: <span className="font-mono">{installationData.backup_file}</span></div>
-                    <div>Archivos instalados: {installationData.installed_files?.length}</div>
-                  </div>
+          {/* 5. Generación de YAML */}
+          <StepItem
+            n={5}
+            title="Generación determinista de archivos YAML"
+            description="Genera los archivos YAML de forma determinista a partir del JSON aprobado."
+            status={statusOf(4)}
+            blockedNote="Bloqueado hasta que el paso 4 registre la aprobación. Requiere un JSON aprobado cuyo hash coincida con la versión actual."
+            summary={
+              generatedYamls && (
+                <>
+                  {yamlCount} archivos YAML · <Mono>outputs/experiments/{experimentId}/yaml/</Mono>
+                </>
+              )
+            }
+          >
+            <div className="space-y-4">
+              {generatedYamls && (
+                <ul className="space-y-2">
+                  {Object.entries(generatedYamls.generated_files || {}).map(([key, path]) => (
+                    <li key={key} className="rounded-lg border border-hairline bg-canvas px-3 py-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <Mono>{key}</Mono>
+                        <Mono>{String(path).split('/').pop()}</Mono>
+                      </div>
+                      <Mono className="block truncate text-ink-subtle">{String(path)}</Mono>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Button
+                variant={primaryFor(4)}
+                size={statusOf(4) === 'active' ? 'md' : 'sm'}
+                onClick={handleGenerateYaml}
+                loading={loadingStep === 'generate'}
+              >
+                {loadingStep === 'generate' ? 'Generando...' : 'Generar archivos YAML'}
+              </Button>
+            </div>
+          </StepItem>
+
+          {/* 6. Instalación y rollback */}
+          <StepItem
+            n={6}
+            isLast
+            title="Instalación en sandbox experimental y rollback"
+            description="Copia los YAML a la sandbox experimental con respaldo previo y rollback."
+            status={statusOf(5)}
+            pendingAction={
+              <Button variant="secondary" size="sm" onClick={handleRollback} loading={loadingStep === 'rollback'}>
+                <RotateCcw className="size-4" aria-hidden="true" />
+                {loadingStep === 'rollback' ? 'Revirtiendo...' : 'Rollback de sandbox'}
+              </Button>
+            }
+            summary={
+              installationData && (
+                <>
+                  {installationData.installed_files?.length} archivos instalados · respaldo{' '}
+                  <Mono>{installationData.backup_file}</Mono>
+                </>
+              )
+            }
+          >
+            <div className="space-y-4">
+              <p className="text-ink-muted">
+                Destino: <Mono>outputs/experiments/{experimentId}/EthosTerra_experiment</Mono>
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  variant={primaryFor(5)}
+                  size={statusOf(5) === 'active' ? 'md' : 'sm'}
+                  onClick={handleInstall}
+                  disabled={!generatedYamls}
+                  loading={loadingStep === 'install'}
+                >
+                  <FolderSync className="size-4" aria-hidden="true" />
+                  {loadingStep === 'install' ? 'Instalando...' : 'Instalar en sandbox'}
+                </Button>
+                <Button variant="secondary" size="sm" onClick={handleRollback} loading={loadingStep === 'rollback'}>
+                  <RotateCcw className="size-4" aria-hidden="true" />
+                  {loadingStep === 'rollback' ? 'Revirtiendo...' : 'Rollback de sandbox'}
+                </Button>
+              </div>
+              {installationData && (
+                <p className="text-ink-muted">
+                  Respaldo creado: <Mono>{installationData.backup_file}</Mono> · Archivos instalados:{' '}
+                  {installationData.installed_files?.length}
+                </p>
+              )}
+            </div>
+          </StepItem>
+        </ol>
+
+        <aside aria-label="Resumen del documento actual" className="order-first lg:sticky lg:top-28 lg:order-last">
+          <Card className="p-5">
+            <h3 className="text-[17px] font-semibold">Documento actual</h3>
+            <p className="mt-0.5">
+              <Mono className="text-ink-subtle">{docId}</Mono>
+            </p>
+            <dl className="mt-4 space-y-4">
+              <SummaryRow label="SHA-256">
+                {ingestData ? <Mono>{ingestData.sha256_hash}</Mono> : dash}
+              </SummaryRow>
+              <SummaryRow label="Fragmentos de evidencia">
+                {analysisData ? analysisData.evidence_spans?.length ?? 0 : dash}
+              </SummaryRow>
+              <SummaryRow label="Aprobación">
+                {isApproved ? (
+                  <Badge tone="puro">Aprobado</Badge>
+                ) : operationalData ? (
+                  <Badge tone="conflictivo">Pendiente de aprobación</Badge>
+                ) : (
+                  dash
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB: METRICS */}
-      {activeTab === 'metrics' && (
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-slate-800">
-              Métricas Reproducibles — Separación Estricta de Dimensiones
-            </h3>
-            <button
-              onClick={handleLoadMetrics}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium flex items-center gap-1"
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> Actualizar Datos
-            </button>
-          </div>
-
-          {metricsData ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Dimensión 1: Legacy Regression */}
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <div className="font-bold text-slate-800 flex items-center justify-between">
-                  <span>Dimensión 1: Regresión Legacy (20 Casos)</span>
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Benchmark</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2 bg-white rounded border">
-                    <span className="text-slate-500">Exactitud (Accuracy):</span>
-                    <div className="text-lg font-bold text-slate-800">
-                      {Math.round(metricsData.legacy_benchmark.accuracy * 100)}%
-                    </div>
-                  </div>
-                  <div className="p-2 bg-white rounded border">
-                    <span className="text-slate-500">Macro-F1:</span>
-                    <div className="text-lg font-bold text-slate-800">
-                      {metricsData.legacy_benchmark.macro_f1.toFixed(3)}
-                    </div>
-                  </div>
-                  <div className="p-2 bg-white rounded border">
-                    <span className="text-slate-500">Conflict Recall:</span>
-                    <div className="text-lg font-bold text-slate-800">
-                      {Math.round(metricsData.legacy_benchmark.conflict_recall * 100)}%
-                    </div>
-                  </div>
-                  <div className="p-2 bg-white rounded border">
-                    <span className="text-slate-500">Alucinación Observada:</span>
-                    <div className="text-lg font-bold text-emerald-600">0.0%</div>
-                  </div>
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  Latencia mediana p50: {metricsData.legacy_benchmark.latency_statistics.median_p50_ms} ms |
-                  Bypass hooks: {metricsData.legacy_benchmark.execution_distribution.hooks_resolved_count}/20
-                </div>
-              </div>
-
-              {/* Dimensión 2: Document Pipeline */}
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <div className="font-bold text-slate-800 flex items-center justify-between">
-                  <span>Dimensión 2: Pipeline Documental ({experimentId})</span>
-                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded">Prueba Vertical</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2 bg-white rounded border">
-                    <span className="text-slate-500">Unit Tests Aprobados:</span>
-                    <div className="text-lg font-bold text-emerald-600">
-                      {metricsData.document_pipeline.unit_test_suite.passed}/
-                      {metricsData.document_pipeline.unit_test_suite.total}
-                    </div>
-                  </div>
-                  <div className="p-2 bg-white rounded border">
-                    <span className="text-slate-500">Evasión Approval Gate:</span>
-                    <div className="text-lg font-bold text-emerald-600">0%</div>
-                  </div>
-                  <div className="p-2 bg-white rounded border">
-                    <span className="text-slate-500">YAMLs Parseables:</span>
-                    <div className="text-lg font-bold text-slate-800">100% (2/2)</div>
-                  </div>
-                  <div className="p-2 bg-white rounded border">
-                    <span className="text-slate-500">Simulación BDI:</span>
-                    <div className="text-xs font-semibold text-amber-600 mt-1">Pendiente / No Evaluada</div>
-                  </div>
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  Inmutabilidad EthosTerra_original: 0 modificaciones | Sandbox aislado verificado.
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-slate-400">Cargando métricas...</div>
-          )}
-        </div>
-      )}
-
-      {/* TAB: MANIFEST */}
-      {activeTab === 'manifest' && (
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-slate-800">
-              Manifiesto de Reproducibilidad ({experimentId})
-            </h3>
-            <button
-              onClick={handleLoadManifest}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium flex items-center gap-1"
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> Recargar
-            </button>
-          </div>
-
-          {manifestData ? (
-            <pre className="p-4 bg-slate-900 text-slate-100 rounded-lg text-xs font-mono overflow-auto max-h-96">
-              {JSON.stringify(manifestData, null, 2)}
-            </pre>
-          ) : (
-            <div className="text-center py-8 text-slate-400">Cargando manifiesto...</div>
-          )}
-        </div>
-      )}
+              </SummaryRow>
+              <SummaryRow label="Ruta de sandbox">
+                {installationData ? <Mono>outputs/experiments/{experimentId}/EthosTerra_experiment</Mono> : dash}
+              </SummaryRow>
+            </dl>
+          </Card>
+        </aside>
+      </div>
     </div>
+  );
+}
+
+type StepStatus = 'pending' | 'active' | 'completed' | 'blocked';
+
+const statusLabel: Record<StepStatus, string> = {
+  pending: 'Pendiente',
+  active: 'Activo',
+  completed: 'Completado',
+  blocked: 'Bloqueado',
+};
+
+const dateFormat = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'long' });
+
+function formatDate(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : dateFormat.format(date);
+}
+
+const dash = <span className="text-ink-subtle">—</span>;
+
+function SummaryRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <dt className="text-xs text-ink-subtle">{label}</dt>
+      <dd className="mt-0.5">{children}</dd>
+    </div>
+  );
+}
+
+function EpistemicRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2">
+      <dt className="text-ink-subtle">{label}</dt>
+      <dd className="flex flex-wrap items-center justify-end gap-2">{children}</dd>
+    </div>
+  );
+}
+
+function StepMarker({ n, status, gate }: { n: number; status: StepStatus; gate: boolean }) {
+  const base = 'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold';
+  const icon = 'size-4';
+
+  if (gate) {
+    return status === 'completed' ? (
+      <span className={cn(base, 'bg-status-puro-fg text-white')}>
+        <ShieldCheck className={icon} aria-hidden="true" />
+      </span>
+    ) : (
+      <span className={cn(base, 'bg-status-conflictivo-fg text-white')}>
+        <Lock className={icon} aria-hidden="true" />
+      </span>
+    );
+  }
+  if (status === 'completed') {
+    return (
+      <span className={cn(base, 'bg-ink text-white')}>
+        <Check className={icon} aria-hidden="true" />
+      </span>
+    );
+  }
+  if (status === 'active') return <span className={cn(base, 'bg-primary text-white')}>{n}</span>;
+  if (status === 'blocked') {
+    return (
+      <span className={cn(base, 'border border-hairline bg-parchment text-ink-subtle')}>
+        <Lock className={icon} aria-hidden="true" />
+      </span>
+    );
+  }
+  return <span className={cn(base, 'border border-hairline bg-canvas text-ink-subtle')}>{n}</span>;
+}
+
+interface StepItemProps {
+  n: number;
+  title: string;
+  description: string;
+  status: StepStatus;
+  /** Resultado en una línea, visible cuando el paso está colapsado. */
+  summary?: ReactNode;
+  /** Motivo normal de bloqueo (gris, con candado); no es un error. */
+  blockedNote?: string;
+  /** Acción que sigue disponible aunque el paso aún esté pendiente. */
+  pendingAction?: ReactNode;
+  /** Punto de control con tratamiento propio (Approval Gate). */
+  gate?: boolean;
+  isLast?: boolean;
+  children?: ReactNode;
+}
+
+function StepItem({
+  n,
+  title,
+  description,
+  status,
+  summary,
+  blockedNote,
+  pendingAction,
+  gate = false,
+  isLast = false,
+  children,
+}: StepItemProps) {
+  const muted = status === 'pending' || status === 'blocked';
+  const approved = status === 'completed';
+
+  return (
+    <li aria-current={status === 'active' ? 'step' : undefined} className="flex gap-4">
+      <div className="flex flex-col items-center">
+        <StepMarker n={n} status={status} gate={gate} />
+        {!isLast && <span aria-hidden="true" className="my-2 w-px flex-1 bg-hairline" />}
+      </div>
+
+      <div className={cn('min-w-0 flex-1', !isLast && 'pb-8')}>
+        {gate ? (
+          <div
+            className={cn(
+              'rounded-xl border p-5',
+              approved
+                ? 'border-status-puro-fg/30 bg-status-puro-bg/60'
+                : 'border-status-conflictivo-fg/30 bg-status-conflictivo-bg/60',
+            )}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-xs text-ink-subtle">Punto de control</p>
+                <h3 className="text-[17px] font-semibold">
+                  <span className="sr-only">Paso {n}: </span>
+                  {title}
+                </h3>
+              </div>
+              <Badge tone={approved ? 'puro' : 'conflictivo'}>
+                {approved ? 'Aprobado' : 'Pendiente de aprobación'}
+              </Badge>
+            </div>
+            <p className="mt-1 text-ink-muted">{description}</p>
+            {(status === 'active' || approved) && <div className="mt-4">{children}</div>}
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+              <h3 className={cn('text-[17px] font-semibold', muted ? 'text-ink-subtle' : 'text-ink')}>
+                <span className="sr-only">Paso {n}: </span>
+                {title}
+              </h3>
+              <span className={cn('text-xs', status === 'active' ? 'font-semibold text-primary' : 'text-ink-subtle')}>
+                {statusLabel[status]}
+              </span>
+            </div>
+            <p className="mt-0.5 text-ink-subtle">{description}</p>
+
+            {status === 'blocked' && blockedNote && (
+              <p className="mt-2 flex items-start gap-1.5 text-ink-subtle">
+                <Lock className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                {blockedNote}
+              </p>
+            )}
+            {status === 'pending' && pendingAction && <div className="mt-2">{pendingAction}</div>}
+            {status === 'active' && <div className="mt-4">{children}</div>}
+            {status === 'completed' && (
+              <>
+                {summary && <p className="mt-2">{summary}</p>}
+                {children && (
+                  <details className="mt-2">
+                    <summary className="w-fit cursor-pointer text-primary hover:underline">Ver detalle</summary>
+                    <div className="mt-3">{children}</div>
+                  </details>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </li>
   );
 }
