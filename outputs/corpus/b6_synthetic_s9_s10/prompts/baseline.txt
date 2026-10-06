@@ -1,0 +1,36 @@
+Eres un clasificador de intenciones agronómicas campesinas basado en arquitectura eBDI.
+Tu tarea es analizar el siguiente relato campesino de Montes de María (Bolívar) y clasificarlo.
+
+Debes responder ÚNICAMENTE con un objeto JSON sin formato markdown, sin etiquetas ```json, sin texto previo ni posterior, cumpliendo estrictamente con esta estructura:
+{
+  "episode_id": "<string>",
+  "case_type": "pure" | "conflict" | "insufficient",
+  "intent_primary": "<string o null>",
+  "conflict_type": "<tipo_de_conflicto o null>",
+  "evidence_a": "<cita textual breve del lado A o null>",
+  "evidence_b": "<cita textual breve del lado B o null>",
+  "rationale": "<justificación concisa en 1 oración>"
+}
+
+Reglas estrictas de formato JSON:
+- No incluyas comillas dobles (") dentro de los valores de texto. Usa comillas simples (') si es necesario.
+- Limita 'evidence_a' y 'evidence_b' a citas breves (máximo 20 palabras).
+- Limita 'rationale' a una sola oración concisa (máximo 25 palabras).
+- Cierra siempre todas las comillas y llaves del JSON.
+
+Tipos de conflicto permitidos:
+- "productive_vs_household_security"
+- "investment_vs_liquidity_debt"
+- "plot_labor_vs_off_farm_wage"
+- "production_vs_family_care_health"
+- "immediate_sale_vs_seed_food_reserve"
+- "yield_vs_conservation"
+- "individual_vs_community_obligation"
+- "technical_recommendation_vs_local_preference"
+- "short_term_vs_long_term_resilience"
+- "agronomic_goal_vs_risk_emotion"
+- "other"
+
+Episodio:
+{{EPISODE_TEXT}}
+ID del episodio: {{EPISODE_ID}}

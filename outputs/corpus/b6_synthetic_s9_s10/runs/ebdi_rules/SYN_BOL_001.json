@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_001",
+  "variant": "ebdi_rules",
+  "prompt_hash": "a97977776574592111d3187504fb5bbaaadbd6a3ae5b5d8c1dfa82c5f2b0e5ce",
+  "latency_ms": 105267.74,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "pure",
+  "expected_case_type": "pure",
+  "predicted_conflict_type": null,
+  "expected_conflict_type": null,
+  "evidence_a": "voy a limpiar el rastrojo y preparar la tierra con machete y azadón.",
+  "evidence_b": "tengo la plata guardada y mañana mismo bajo a comprarlas para arrancar a tiempo.",
+  "rationale": "El campesino tiene una intención clara de preparar la tierra y resuelve su única restricción de herramientas.",
+  "is_match": true
+}

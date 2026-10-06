@@ -1,0 +1,103 @@
+{
+  "additionalProperties": false,
+  "description": "Asignación reproducible de fuentes completas a particiones (sin fuga de participante).",
+  "properties": {
+    "assignments": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "propertyNames": {
+        "enum": [
+          "train",
+          "validation",
+          "test",
+          "adversarial",
+          "hard_cases"
+        ]
+      },
+      "title": "Assignments",
+      "type": "object"
+    },
+    "corpus_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Corpus Version",
+      "type": "string"
+    },
+    "listing_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Listing Sha256",
+      "type": "string"
+    },
+    "participant_assignments": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "propertyNames": {
+        "enum": [
+          "train",
+          "validation",
+          "test",
+          "adversarial",
+          "hard_cases"
+        ]
+      },
+      "title": "Participant Assignments",
+      "type": "object"
+    },
+    "pinned": {
+      "additionalProperties": {
+        "enum": [
+          "train",
+          "validation",
+          "test",
+          "adversarial",
+          "hard_cases"
+        ],
+        "type": "string"
+      },
+      "title": "Pinned",
+      "type": "object"
+    },
+    "ratios": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Ratios",
+      "type": "object"
+    },
+    "seed": {
+      "title": "Seed",
+      "type": "integer"
+    },
+    "split_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Split Version",
+      "type": "string"
+    },
+    "strategy": {
+      "default": "by_participant_code",
+      "enum": [
+        "by_source_id",
+        "by_participant_code"
+      ],
+      "title": "Strategy",
+      "type": "string"
+    }
+  },
+  "required": [
+    "split_version",
+    "corpus_version",
+    "seed",
+    "ratios",
+    "assignments",
+    "listing_sha256"
+  ],
+  "title": "SplitManifest",
+  "type": "object"
+}

@@ -1,0 +1,68 @@
+{
+  "additionalProperties": false,
+  "description": "Paso de normalización aplicado a una fuente (registro append-only).",
+  "properties": {
+    "changed": {
+      "title": "Changed",
+      "type": "boolean"
+    },
+    "description": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Description",
+      "type": "string"
+    },
+    "input_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Input Sha256",
+      "type": "string"
+    },
+    "output_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Output Sha256",
+      "type": "string"
+    },
+    "source_id": {
+      "pattern": "^(field|synth)_\\d{4}$",
+      "title": "Source Id",
+      "type": "string"
+    },
+    "step": {
+      "enum": [
+        "decode_utf8",
+        "strip_bom",
+        "unicode_nfc",
+        "newline_lf",
+        "whitespace_chars_to_space",
+        "collapse_inline_spaces",
+        "strip_trailing_line_spaces",
+        "collapse_blank_lines",
+        "strip_document_edges"
+      ],
+      "title": "Step",
+      "type": "string"
+    },
+    "timestamp_utc": {
+      "format": "date-time",
+      "title": "Timestamp Utc",
+      "type": "string"
+    },
+    "tool_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Tool Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_id",
+    "step",
+    "description",
+    "changed",
+    "input_sha256",
+    "output_sha256",
+    "tool_version",
+    "timestamp_utc"
+  ],
+  "title": "TransformationRecord",
+  "type": "object"
+}

@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_002",
+  "variant": "strict_abstention",
+  "prompt_hash": "6e4d66cfa6c6e567a89b604f43cbd970032d70c29417eeac45f5941558bcb48f",
+  "latency_ms": 127791.52,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "conflict",
+  "expected_case_type": "conflict",
+  "predicted_conflict_type": "short_term_vs_long_term_resilience",
+  "expected_conflict_type": "short_term_vs_long_term_resilience",
+  "evidence_a": "quiero tirar la semilla de una vez en los montículos listos",
+  "evidence_b": "si siembro ahora con este suelo seco arriesgo a perder toda la semilla",
+  "rationale": "El productor enfrenta un conflicto entre cumplir el ciclo de siembra y el riesgo de pérdida por sequía.",
+  "is_match": true
+}

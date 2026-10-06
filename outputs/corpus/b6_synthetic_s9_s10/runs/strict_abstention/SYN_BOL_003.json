@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_003",
+  "variant": "strict_abstention",
+  "prompt_hash": "6e4d66cfa6c6e567a89b604f43cbd970032d70c29417eeac45f5941558bcb48f",
+  "latency_ms": 99990.03,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "conflict",
+  "expected_case_type": "conflict",
+  "predicted_conflict_type": "immediate_sale_vs_seed_food_reserve",
+  "expected_conflict_type": "productive_vs_household_security",
+  "evidence_a": "Necesito comprar dos bultos de semilla certificada de frijol para no quedarme sin sembrar la parcela",
+  "evidence_b": "tengo la obligación urgente de comprar el mercado de la casa porque no hay arroz ni manteca",
+  "rationale": "El productor debe elegir entre invertir en la producción futura o cubrir las necesidades alimentarias inmediatas de la familia.",
+  "is_match": true
+}

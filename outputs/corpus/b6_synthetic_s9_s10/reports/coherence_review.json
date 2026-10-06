@@ -1,0 +1,112 @@
+[
+  {
+    "scenario_id": "SYN_BOL_001",
+    "agronomic_coherence": {
+      "climate_condition_supported": true,
+      "resource_constraint_supported": true,
+      "action_plausible": true,
+      "conflict_or_pure_label_justified": true,
+      "requires_human_review": false,
+      "notes": "Caso coherente con agronomía de El Carmen de Bolívar en cultivo maíz criollo. La falta de filo es una restricción técnica soluble, no una colisión entre metas incompatibles."
+    }
+  },
+  {
+    "scenario_id": "SYN_BOL_002",
+    "agronomic_coherence": {
+      "climate_condition_supported": true,
+      "resource_constraint_supported": true,
+      "action_plausible": true,
+      "conflict_or_pure_label_justified": true,
+      "requires_human_review": true,
+      "notes": "Caso coherente con agronomía de San Juan Nepomuceno en cultivo ñame espino. El ñame requiere humedad inicial constante; sembrar en seco sin riego es pérdida casi total del germoplasma."
+    }
+  },
+  {
+    "scenario_id": "SYN_BOL_003",
+    "agronomic_coherence": {
+      "climate_condition_supported": true,
+      "resource_constraint_supported": true,
+      "action_plausible": true,
+      "conflict_or_pure_label_justified": true,
+      "requires_human_review": true,
+      "notes": "Caso coherente con agronomía de San Jacinto en cultivo frijol cuarentano. Pequeños productores descapitalizados enfrentan el consumo del capital operativo ante emergencias domésticas."
+    }
+  },
+  {
+    "scenario_id": "SYN_BOL_004",
+    "agronomic_coherence": {
+      "climate_condition_supported": true,
+      "resource_constraint_supported": true,
+      "action_plausible": true,
+      "conflict_or_pure_label_justified": true,
+      "requires_human_review": false,
+      "notes": "Caso coherente con agronomía de Córdoba Tetón en cultivo yuca industrial. El convite campesino es una institución tradicional de optimización laboral sin conflicto en Montes de María."
+    }
+  },
+  {
+    "scenario_id": "SYN_BOL_005",
+    "agronomic_coherence": {
+      "climate_condition_supported": true,
+      "resource_constraint_supported": true,
+      "action_plausible": true,
+      "conflict_or_pure_label_justified": true,
+      "requires_human_review": true,
+      "notes": "Caso coherente con agronomía de El Carmen de Bolívar en cultivo aguacate criollo y maíz. La venta en flor o en árbol es un mecanismo de extracción asimétrico frecuente en crisis de liquidez."
+    }
+  },
+  {
+    "scenario_id": "SYN_BOL_006",
+    "agronomic_coherence": {
+      "climate_condition_supported": true,
+      "resource_constraint_supported": true,
+      "action_plausible": true,
+      "conflict_or_pure_label_justified": true,
+      "requires_human_review": true,
+      "notes": "Caso coherente con agronomía de María La Baja en cultivo arroz secano. El arroz secano no tolera baches de más de 8 días sin lluvia en germinación; reducir área es la respuesta agronómica prudente."
+    }
+  },
+  {
+    "scenario_id": "SYN_BOL_007",
+    "agronomic_coherence": {
+      "climate_condition_supported": true,
+      "resource_constraint_supported": true,
+      "action_plausible": true,
+      "conflict_or_pure_label_justified": true,
+      "requires_human_review": false,
+      "notes": "Caso coherente con agronomía de San Juan Nepomuceno en cultivo yuca dulce. El trueque de aperos entre minifundistas amortiza costos fijos y viabiliza labores agronómicas."
+    }
+  },
+  {
+    "scenario_id": "SYN_BOL_008",
+    "agronomic_coherence": {
+      "climate_condition_supported": true,
+      "resource_constraint_supported": true,
+      "action_plausible": true,
+      "conflict_or_pure_label_justified": true,
+      "requires_human_review": true,
+      "notes": "Caso coherente con agronomía de San Jacinto en cultivo tabaco y ajonjolí. Un clasificador riguroso debe abstenerse ante comentarios ambientales sin agencia decisional del productor."
+    }
+  },
+  {
+    "scenario_id": "SYN_BOL_009",
+    "agronomic_coherence": {
+      "climate_condition_supported": true,
+      "resource_constraint_supported": true,
+      "action_plausible": true,
+      "conflict_or_pure_label_justified": true,
+      "requires_human_review": true,
+      "notes": "Caso coherente con agronomía de El Carmen de Bolívar en cultivo ñame diamante. La antracnosis en ñame diamante puede devastar el 80% del rendimiento; los intereses del 10% mensual son insostenibles."
+    }
+  },
+  {
+    "scenario_id": "SYN_BOL_010",
+    "agronomic_coherence": {
+      "climate_condition_supported": true,
+      "resource_constraint_supported": true,
+      "action_plausible": true,
+      "conflict_or_pure_label_justified": true,
+      "requires_human_review": true,
+      "notes": "Caso coherente con agronomía de San Juan Nepomuceno en cultivo maíz vs ajonjolí. El maíz aborta espiga con estrés térmico e hídrico; el ajonjolí es xerófilo pero expone al productor a la volatilidad de precios sin autoconsumo."
+    }
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_008",
+  "variant": "baseline",
+  "prompt_hash": "64eb1f2cf66c6101bfa4a341d7e0720f42feab260def9b51c7fa10e87b20fcff",
+  "latency_ms": 121046.57,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "insufficient",
+  "expected_case_type": "insufficient",
+  "predicted_conflict_type": null,
+  "expected_conflict_type": null,
+  "evidence_a": "Unos compadres decían que tal vez valga la pena ensayar con ajonjolí",
+  "evidence_b": "Otros que no vale la pena sembrar nada todavía",
+  "rationale": "El protagonista solo está escuchando consejos externos y aún no ha tomado ninguna decisión sobre la parcela.",
+  "is_match": true
+}

@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_010",
+  "variant": "strict_abstention",
+  "prompt_hash": "6e4d66cfa6c6e567a89b604f43cbd970032d70c29417eeac45f5941558bcb48f",
+  "latency_ms": 82922.08,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "conflict",
+  "expected_case_type": "conflict",
+  "predicted_conflict_type": "short_term_vs_long_term_resilience",
+  "expected_conflict_type": "productive_vs_household_security",
+  "evidence_a": "quiero insistir con mi maíz tradicional",
+  "evidence_b": "el técnico del comité insiste en que cambie toda la parcela a ajonjolí",
+  "rationale": "El productor debe elegir entre su maíz tradicional y la recomendación técnica de ajonjolí para enfrentar la sequía.",
+  "is_match": true
+}

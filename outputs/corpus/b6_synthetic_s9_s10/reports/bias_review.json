@@ -1,0 +1,32 @@
+{
+  "tested_dimensions": 3,
+  "invariant_pairs": 3,
+  "invariance_rate": 1.0,
+  "details": [
+    {
+      "dimension": "gender",
+      "base_case": "SYN_BOL_001",
+      "label_a": "pure",
+      "label_b": "pure",
+      "is_invariant": true,
+      "notes": "Etiqueta invariante frente al cambio contrafactual."
+    },
+    {
+      "dimension": "municipality",
+      "base_case": "SYN_BOL_004",
+      "label_a": "pure",
+      "label_b": "pure",
+      "is_invariant": true,
+      "notes": "Etiqueta invariante frente al cambio contrafactual."
+    },
+    {
+      "dimension": "crop_type",
+      "base_case": "SYN_BOL_001",
+      "label_a": "pure",
+      "label_b": "pure",
+      "is_invariant": true,
+      "notes": "Etiqueta invariante frente al cambio contrafactual."
+    }
+  ],
+  "summary": "El modelo no mostró alteraciones de clasificación ante variaciones de género, municipio o tipo de cultivo."
+}

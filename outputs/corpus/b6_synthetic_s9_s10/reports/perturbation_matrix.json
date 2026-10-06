@@ -1,0 +1,82 @@
+[
+  {
+    "scenario_id": "SYN_BOL_001",
+    "episode_id": "SYN_BOL_001",
+    "base_condition": "Herramientas disponibles con recursos para mantenimiento",
+    "perturbation": "Limas costosas o almacén cerrado",
+    "expected_change": "Pospone la afilada un día pero mantiene la intención única de preparar el terreno sin meta rival",
+    "agronomic_rationale": "La falta de filo es una restricción técnica soluble, no una colisión entre metas incompatibles."
+  },
+  {
+    "scenario_id": "SYN_BOL_002",
+    "episode_id": "SYN_BOL_002",
+    "base_condition": "Lluvia regular permite siembra sin riesgo de desecación",
+    "perturbation": "Retraso severo de lluvias y agotamiento de fuente hídrica",
+    "expected_change": "Transforma la labor rutinaria de siembra en un conflicto crítico de supervivencia agronómica",
+    "agronomic_rationale": "El ñame requiere humedad inicial constante; sembrar en seco sin riego es pérdida casi total del germoplasma."
+  },
+  {
+    "scenario_id": "SYN_BOL_003",
+    "episode_id": "SYN_BOL_003",
+    "base_condition": "Ingreso suficiente o ahorro disponible para insumos y canasta básica",
+    "perturbation": "Caída drástica de liquidez y agotamiento de reservas de comida",
+    "expected_change": "Fuerza colisión directa entre supervivencia biológica del hogar e inversión productiva",
+    "agronomic_rationale": "Pequeños productores descapitalizados enfrentan el consumo del capital operativo ante emergencias domésticas."
+  },
+  {
+    "scenario_id": "SYN_BOL_004",
+    "episode_id": "SYN_BOL_004",
+    "base_condition": "Trabajo individual con altos costos de jornal",
+    "perturbation": "Activación de red comunitaria de apoyo mutuo (convite tradicional)",
+    "expected_change": "Sustituye la restricción monetaria por reciprocidad social comunitaria sin generar conflicto de metas",
+    "agronomic_rationale": "El convite campesino es una institución tradicional de optimización laboral sin conflicto en Montes de María."
+  },
+  {
+    "scenario_id": "SYN_BOL_005",
+    "episode_id": "SYN_BOL_005",
+    "base_condition": "Comercialización estándar en plaza mayorista",
+    "perturbation": "Oferta abusiva de intermediario ante emergencia de salud familiar",
+    "expected_change": "Introduce tensión entre liquidez inmediata forzada y soberanía comercial del productor",
+    "agronomic_rationale": "La venta en flor o en árbol es un mecanismo de extracción asimétrico frecuente en crisis de liquidez."
+  },
+  {
+    "scenario_id": "SYN_BOL_006",
+    "episode_id": "SYN_BOL_006",
+    "base_condition": "Régimen pluviométrico estable acorde al calendario de siembra",
+    "perturbation": "Precipitación fragmentada y tardía con crédito formal activo",
+    "expected_change": "Provoca colisión entre solvencia financiera y mitigación de desastre agronómico",
+    "agronomic_rationale": "El arroz secano no tolera baches de más de 8 días sin lluvia en germinación; reducir área es la respuesta agronómica prudente."
+  },
+  {
+    "scenario_id": "SYN_BOL_007",
+    "episode_id": "SYN_BOL_007",
+    "base_condition": "Carencia de apero específico para desenterrar tubérculos",
+    "perturbation": "Intercambio solidario vecinal de apero agrícola",
+    "expected_change": "Resuelve la restricción técnica mediante acuerdo comunal sin crear metas antagónicas",
+    "agronomic_rationale": "El trueque de aperos entre minifundistas amortiza costos fijos y viabiliza labores agronómicas."
+  },
+  {
+    "scenario_id": "SYN_BOL_008",
+    "episode_id": "SYN_BOL_008",
+    "base_condition": "Información incompleta y rumores sin decisión del productor",
+    "perturbation": "Ausencia explícita de intención o dilema individual formulado",
+    "expected_change": "Impide clasificar como pure o conflict por falta de una intención o colisión concreta declarada",
+    "agronomic_rationale": "Un clasificador riguroso debe abstenerse ante comentarios ambientales sin agencia decisional del productor."
+  },
+  {
+    "scenario_id": "SYN_BOL_009",
+    "episode_id": "SYN_BOL_009",
+    "base_condition": "Cultivo sano en desarrollo normal",
+    "perturbation": "Brote agresivo de antracnosis con acceso únicamente a crédito informal usurero",
+    "expected_change": "Provoca disyuntiva trágica entre pérdida inmediata de cultivo o asfixia financiera de largo plazo",
+    "agronomic_rationale": "La antracnosis en ñame diamante puede devastar el 80% del rendimiento; los intereses del 10% mensual son insostenibles."
+  },
+  {
+    "scenario_id": "SYN_BOL_010",
+    "episode_id": "SYN_BOL_010",
+    "base_condition": "Clima benigno que favorece siembra tradicional de maíz",
+    "perturbation": "Alerta climática de El Niño y recomendación técnica de reconversión",
+    "expected_change": "Genera conflicto entre cultura alimentaria identitaria y adaptación climática extrema",
+    "agronomic_rationale": "El maíz aborta espiga con estrés térmico e hídrico; el ajonjolí es xerófilo pero expone al productor a la volatilidad de precios sin autoconsumo."
+  }
+]

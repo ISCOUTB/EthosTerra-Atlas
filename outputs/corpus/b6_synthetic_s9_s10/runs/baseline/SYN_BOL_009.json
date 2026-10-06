@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_009",
+  "variant": "baseline",
+  "prompt_hash": "64eb1f2cf66c6101bfa4a341d7e0720f42feab260def9b51c7fa10e87b20fcff",
+  "latency_ms": 105707.62,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "conflict",
+  "expected_case_type": "conflict",
+  "predicted_conflict_type": "investment_vs_liquidity_debt",
+  "expected_conflict_type": "investment_vs_liquidity_debt",
+  "evidence_a": "necesito aplicar fungicida de inmediato para no perder la inversión.",
+  "evidence_b": "no tengo liquidez y el prestamista del pueblo me cobra el diez por ciento mensual de interés.",
+  "rationale": "El campesino debe decidir entre salvar su cosecha (inversión) o caer en una deuda usurera (liquidez).",
+  "is_match": true
+}

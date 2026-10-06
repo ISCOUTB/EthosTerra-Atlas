@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_004",
+  "variant": "ebdi_rules",
+  "prompt_hash": "a97977776574592111d3187504fb5bbaaadbd6a3ae5b5d8c1dfa82c5f2b0e5ce",
+  "latency_ms": 91601.46,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "pure",
+  "expected_case_type": "pure",
+  "predicted_conflict_type": null,
+  "expected_conflict_type": null,
+  "evidence_a": "Para sacar adelante la media hectárea de yuca acordamos con cuatro compadres hacer un convite este sábado.",
+  "evidence_b": null,
+  "rationale": "El campesino tiene una única intención clara de preparar la tierra mediante un convite de ayuda mutua.",
+  "is_match": true
+}

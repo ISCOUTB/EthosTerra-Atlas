@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_001",
+  "variant": "baseline",
+  "prompt_hash": "64eb1f2cf66c6101bfa4a341d7e0720f42feab260def9b51c7fa10e87b20fcff",
+  "latency_ms": 102972.87,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "pure",
+  "expected_case_type": "pure",
+  "predicted_conflict_type": null,
+  "expected_conflict_type": null,
+  "evidence_a": "Voy a limpiar el rastrojo y preparar la tierra con machete y azadón.",
+  "evidence_b": "Me hace falta afilar las herramientas y comprar dos limas nuevas en el pueblo.",
+  "rationale": "El campesino está planificando la acción necesaria y dispone de los recursos para iniciar la preparación de la tierra a tiempo.",
+  "is_match": true
+}

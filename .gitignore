@@ -39,3 +39,11 @@ outputs/experiments/*/backups/
 .agents/cache/
 .agents/state/
 .agents/*.local.json
+.agents/
+DESIGN.md
+README_LATEX.md
+.agent/
+
+# Corpus raw sources (raw interviews, diaries, PII audio/text)
+outputs/corpus/*/sources/
+outputs/corpus/**/sources/

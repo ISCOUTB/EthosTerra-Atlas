@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_007",
+  "variant": "strict_abstention",
+  "prompt_hash": "6e4d66cfa6c6e567a89b604f43cbd970032d70c29417eeac45f5941558bcb48f",
+  "latency_ms": 94994.54,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "pure",
+  "expected_case_type": "pure",
+  "predicted_conflict_type": null,
+  "expected_conflict_type": null,
+  "evidence_a": "Para arrancar la yuca gruesa necesito la barra pesada que no tengo en mi finca.",
+  "evidence_b": "El vecino Manuel me la presta con gusto a cambio de que yo le preste mi bomba de espalda.",
+  "rationale": "La restricción de la herramienta se resuelve mediante un trueque de palabra y apoyo mutuo.",
+  "is_match": true
+}

@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_010",
+  "variant": "baseline",
+  "prompt_hash": "64eb1f2cf66c6101bfa4a341d7e0720f42feab260def9b51c7fa10e87b20fcff",
+  "latency_ms": 110053.21,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "conflict",
+  "expected_case_type": "conflict",
+  "predicted_conflict_type": "agronomic_goal_vs_risk_emotion",
+  "expected_conflict_type": "productive_vs_household_security",
+  "evidence_a": "quiero insistir con mi maíz tradicional, pero... es la comida segura de la familia",
+  "evidence_b": "el técnico del comité insiste en que cambie toda la parcela a ajonjolí porque resiste sequía profunda",
+  "rationale": "El campesino debe elegir entre la seguridad alimentaria tradicional y la recomendación técnica de resistencia a la sequía.",
+  "is_match": true
+}

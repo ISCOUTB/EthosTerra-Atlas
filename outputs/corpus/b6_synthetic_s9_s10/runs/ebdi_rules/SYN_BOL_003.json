@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_003",
+  "variant": "ebdi_rules",
+  "prompt_hash": "a97977776574592111d3187504fb5bbaaadbd6a3ae5b5d8c1dfa82c5f2b0e5ce",
+  "latency_ms": 91426.11,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "conflict",
+  "expected_case_type": "conflict",
+  "predicted_conflict_type": "short_term_vs_long_term_resilience",
+  "expected_conflict_type": "productive_vs_household_security",
+  "evidence_a": "Necesito comprar dos bultos de semilla certificada de frijol para no quedarme sin sembrar la parcela.",
+  "evidence_b": "tengo la obligación urgente de comprar el mercado de la casa porque no hay arroz ni manteca.",
+  "rationale": "El campesino debe elegir entre invertir en producción agrícola o asegurar la subsistencia inmediata de la familia.",
+  "is_match": true
+}

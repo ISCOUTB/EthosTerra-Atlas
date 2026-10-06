@@ -1,0 +1,337 @@
+{
+  "$defs": {
+    "ConflictRecord": {
+      "additionalProperties": false,
+      "description": "Colisión entre dos intenciones ante un detonante común. Nunca se resuelve automáticamente.",
+      "properties": {
+        "common_trigger": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Common Trigger",
+          "type": "string"
+        },
+        "conflict_type": {
+          "default": "other",
+          "description": "Taxonomía de conflicto según el informe de campo eBDI en Bolívar.",
+          "enum": [
+            "productive_vs_household_security",
+            "investment_vs_liquidity_debt",
+            "plot_labor_vs_off_farm_wage",
+            "production_vs_family_care_health",
+            "immediate_sale_vs_seed_food_reserve",
+            "yield_vs_conservation",
+            "individual_vs_community_obligation",
+            "technical_recommendation_vs_local_preference",
+            "short_term_vs_long_term_resilience",
+            "agronomic_goal_vs_risk_emotion",
+            "other"
+          ],
+          "title": "Conflict Type",
+          "type": "string"
+        },
+        "evidence_a": {
+          "description": "Citas textuales del lado A del conflicto.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence A",
+          "type": "array"
+        },
+        "evidence_b": {
+          "description": "Citas textuales del lado B del conflicto.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence B",
+          "type": "array"
+        },
+        "incompatibility_reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Incompatibility Reason",
+          "type": "string"
+        },
+        "intent_a": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Intent A",
+          "type": "string"
+        },
+        "intent_b": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Intent B",
+          "type": "string"
+        },
+        "requires_human_review": {
+          "const": true,
+          "default": true,
+          "title": "Requires Human Review",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "common_trigger",
+        "intent_a",
+        "intent_b",
+        "evidence_a",
+        "evidence_b",
+        "incompatibility_reason"
+      ],
+      "title": "ConflictRecord",
+      "type": "object"
+    },
+    "CorpusEvidenceSpan": {
+      "additionalProperties": false,
+      "description": "Cita textual exacta que sustenta una anotación.",
+      "properties": {
+        "char_end": {
+          "exclusiveMinimum": 0,
+          "title": "Char End",
+          "type": "integer"
+        },
+        "char_start": {
+          "minimum": 0,
+          "title": "Char Start",
+          "type": "integer"
+        },
+        "evidence_type": {
+          "enum": [
+            "observed",
+            "inferred"
+          ],
+          "title": "Evidence Type",
+          "type": "string"
+        },
+        "inference_warning": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inference Warning"
+        },
+        "quote": {
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        }
+      },
+      "required": [
+        "quote",
+        "char_start",
+        "char_end",
+        "evidence_type"
+      ],
+      "title": "CorpusEvidenceSpan",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Anotación humana (o pre-anotación propuesta) de un segmento.",
+  "properties": {
+    "annotation_status": {
+      "enum": [
+        "draft",
+        "primary_done",
+        "second_read",
+        "adjudicated",
+        "disputed"
+      ],
+      "title": "Annotation Status",
+      "type": "string"
+    },
+    "annotation_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Annotation Version",
+      "type": "string"
+    },
+    "annotator_id": {
+      "pattern": "^[a-z0-9_]{1,64}$",
+      "title": "Annotator Id",
+      "type": "string"
+    },
+    "case_type": {
+      "enum": [
+        "pure",
+        "conflict",
+        "insufficient",
+        "unclear",
+        "not_stated",
+        "out_of_scope"
+      ],
+      "title": "Case Type",
+      "type": "string"
+    },
+    "char_end": {
+      "exclusiveMinimum": 0,
+      "title": "Char End",
+      "type": "integer"
+    },
+    "char_start": {
+      "minimum": 0,
+      "title": "Char Start",
+      "type": "integer"
+    },
+    "conflict": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ConflictRecord"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "conflict_trigger": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Conflict Trigger"
+    },
+    "conflict_type": {
+      "anyOf": [
+        {
+          "enum": [
+            "productive_vs_household_security",
+            "investment_vs_liquidity_debt",
+            "plot_labor_vs_off_farm_wage",
+            "production_vs_family_care_health",
+            "immediate_sale_vs_seed_food_reserve",
+            "yield_vs_conservation",
+            "individual_vs_community_obligation",
+            "technical_recommendation_vs_local_preference",
+            "short_term_vs_long_term_resilience",
+            "agronomic_goal_vs_risk_emotion",
+            "other"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Tipo de conflicto categorizado según la taxonomía.",
+      "title": "Conflict Type"
+    },
+    "conflicting_intents": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Conflicting Intents",
+      "type": "array"
+    },
+    "epistemic_status": {
+      "enum": [
+        "observed",
+        "inferred",
+        "proposed",
+        "required",
+        "unknown",
+        "not_stated"
+      ],
+      "title": "Epistemic Status",
+      "type": "string"
+    },
+    "evidence_spans": {
+      "items": {
+        "$ref": "#/$defs/CorpusEvidenceSpan"
+      },
+      "title": "Evidence Spans",
+      "type": "array"
+    },
+    "injection_suspected": {
+      "default": false,
+      "title": "Injection Suspected",
+      "type": "boolean"
+    },
+    "intent_candidate": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Intent Candidate"
+    },
+    "notes": {
+      "default": "",
+      "maxLength": 2000,
+      "title": "Notes",
+      "type": "string"
+    },
+    "requires_human_review": {
+      "title": "Requires Human Review",
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "segment_id": {
+      "pattern": "^(field|synth)_\\d{4}_seg_\\d{4}$",
+      "title": "Segment Id",
+      "type": "string"
+    },
+    "source_id": {
+      "pattern": "^(field|synth)_\\d{4}$",
+      "title": "Source Id",
+      "type": "string"
+    },
+    "text": {
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "trigger": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trigger"
+    }
+  },
+  "required": [
+    "segment_id",
+    "source_id",
+    "text",
+    "char_start",
+    "char_end",
+    "case_type",
+    "epistemic_status",
+    "requires_human_review",
+    "annotation_status",
+    "annotator_id",
+    "annotation_version"
+  ],
+  "title": "AnnotatedSegment",
+  "type": "object"
+}

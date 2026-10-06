@@ -1,0 +1,33 @@
+{
+  "dataset_id": "b6_synthetic_s9_s10_v1",
+  "status": "synthetic_calibration_only",
+  "source_type": "synthetic",
+  "real_field_evidence": false,
+  "training_authorized": false,
+  "gold_eligible": false,
+  "cases": 10,
+  "prompt_variants": 3,
+  "expected_runs": 30,
+  "executed_runs": 30,
+  "json_format_target": 1.0,
+  "false_positive_collision_target": 0.1,
+  "territorial_scope": [
+    "Bolívar",
+    "Montes de María"
+  ],
+  "model_name": "ai/gemma4:E4B",
+  "model_digest": "sha256:533eb3ccab62c3c296657d0f5bd92d63a4858e9fe131fd20c153872c7c3e557a",
+  "prompt_hashes": {
+    "baseline": "64eb1f2cf66c6101bfa4a341d7e0720f42feab260def9b51c7fa10e87b20fcff",
+    "ebdi_rules": "a97977776574592111d3187504fb5bbaaadbd6a3ae5b5d8c1dfa82c5f2b0e5ce",
+    "strict_abstention": "6e4d66cfa6c6e567a89b604f43cbd970032d70c29417eeac45f5941558bcb48f"
+  },
+  "timestamp_utc": "2026-10-06T22:07:59.739105+00:00",
+  "limitations": [
+    "No sustituye entrevistas reales",
+    "No demuestra validez ecológica",
+    "No puede cerrar por sí solo B6",
+    "No puede entrar al corpus oro",
+    "No puede entrar en entrenamiento autorizado"
+  ]
+}

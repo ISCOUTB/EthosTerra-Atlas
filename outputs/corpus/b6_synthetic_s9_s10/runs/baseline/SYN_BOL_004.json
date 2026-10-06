@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_004",
+  "variant": "baseline",
+  "prompt_hash": "64eb1f2cf66c6101bfa4a341d7e0720f42feab260def9b51c7fa10e87b20fcff",
+  "latency_ms": 85360.34,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "pure",
+  "expected_case_type": "pure",
+  "predicted_conflict_type": null,
+  "expected_conflict_type": null,
+  "evidence_a": null,
+  "evidence_b": null,
+  "rationale": "El relato describe un convite de ayuda mutua para arar la loma y preparar la media hectárea de yuca.",
+  "is_match": true
+}

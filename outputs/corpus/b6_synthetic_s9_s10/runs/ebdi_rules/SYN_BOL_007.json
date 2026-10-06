@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_007",
+  "variant": "ebdi_rules",
+  "prompt_hash": "a97977776574592111d3187504fb5bbaaadbd6a3ae5b5d8c1dfa82c5f2b0e5ce",
+  "latency_ms": 108699.87,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "pure",
+  "expected_case_type": "pure",
+  "predicted_conflict_type": null,
+  "expected_conflict_type": null,
+  "evidence_a": "Para arrancar la yuca gruesa necesito la barra pesada que no tengo en mi finca.",
+  "evidence_b": "voy a aprovechar hoy mismo para cosechar los primeros bultos.",
+  "rationale": "El campesino tiene un plan claro y comprometido para iniciar la producción y cosechar inmediatamente.",
+  "is_match": true
+}

@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_007",
+  "variant": "baseline",
+  "prompt_hash": "64eb1f2cf66c6101bfa4a341d7e0720f42feab260def9b51c7fa10e87b20fcff",
+  "latency_ms": 84817.62,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "pure",
+  "expected_case_type": "pure",
+  "predicted_conflict_type": null,
+  "expected_conflict_type": null,
+  "evidence_a": "Para arrancar la yuca gruesa necesito la barra pesada que no tengo en mi finca.",
+  "evidence_b": "El vecino Manuel me la presta con gusto a cambio de que yo le preste mi bomba de espalda.",
+  "rationale": "El campesino realiza un trueque de herramientas para asegurar los recursos necesarios y comenzar la siembra de yuca.",
+  "is_match": true
+}

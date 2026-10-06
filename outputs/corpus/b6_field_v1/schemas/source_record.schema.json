@@ -1,0 +1,222 @@
+{
+  "additionalProperties": false,
+  "description": "Registro de procedencia de una fuente. Los campos desconocidos se declaran, no se completan.",
+  "properties": {
+    "allowed_for_training": {
+      "default": false,
+      "description": "Autorización explícita para entrenamiento. False por defecto e independiente de consent_scope.",
+      "title": "Allowed For Training",
+      "type": "boolean"
+    },
+    "collection_date": {
+      "description": "Fecha ISO (YYYY-MM-DD), 'unknown' o 'not_stated'.",
+      "title": "Collection Date",
+      "type": "string"
+    },
+    "collector_id": {
+      "pattern": "^[a-z0-9_]{1,64}$",
+      "title": "Collector Id",
+      "type": "string"
+    },
+    "consent_scope": {
+      "description": "Lista de alcances autorizados por el participante (ej. ['research', 'annotation', 'local_model_evaluation']).",
+      "items": {
+        "type": "string"
+      },
+      "title": "Consent Scope",
+      "type": "array"
+    },
+    "consent_status": {
+      "enum": [
+        "pending",
+        "granted",
+        "restricted",
+        "withdrawn",
+        "not_applicable"
+      ],
+      "title": "Consent Status",
+      "type": "string"
+    },
+    "duplicate_of": {
+      "anyOf": [
+        {
+          "pattern": "^(field|synth)_\\d{4}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duplicate Of"
+    },
+    "language": {
+      "pattern": "^[a-z]{2}$",
+      "title": "Language",
+      "type": "string"
+    },
+    "location": {
+      "description": "Granularidad máxima regional, 'redacted', 'unknown' o 'not_stated'.",
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Location",
+      "type": "string"
+    },
+    "normalized_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Normalized Path"
+    },
+    "normalized_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Normalized Sha256"
+    },
+    "notes": {
+      "default": "",
+      "maxLength": 2000,
+      "title": "Notes",
+      "type": "string"
+    },
+    "participant_code": {
+      "default": "unknown",
+      "description": "Código pseudonimizado del participante o 'unknown'/'not_stated'.",
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Participant Code",
+      "type": "string"
+    },
+    "pii_status": {
+      "default": "not_scanned",
+      "enum": [
+        "not_scanned",
+        "flagged",
+        "pseudonymized",
+        "clean_verified"
+      ],
+      "title": "Pii Status",
+      "type": "string"
+    },
+    "provenance_class": {
+      "enum": [
+        "field",
+        "synthetic",
+        "derived"
+      ],
+      "title": "Provenance Class",
+      "type": "string"
+    },
+    "raw_path": {
+      "title": "Raw Path",
+      "type": "string"
+    },
+    "raw_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Raw Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_id": {
+      "pattern": "^(field|synth)_\\d{4}$",
+      "title": "Source Id",
+      "type": "string"
+    },
+    "source_type": {
+      "enum": [
+        "field_real_episode",
+        "elicited_vignette",
+        "synthetic",
+        "document_context",
+        "interview",
+        "field_diary",
+        "peasant_story",
+        "technical_assistance_observation",
+        "productive_decision",
+        "agronomic_conflict",
+        "context_document"
+      ],
+      "title": "Source Type",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "normalized",
+        "segmented",
+        "annotated",
+        "reviewed",
+        "frozen",
+        "excluded"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "usage_state": {
+      "default": "context_only",
+      "description": "Estado de gobernanza operativa del dato: context_only | evaluation_authorized | training_authorized.",
+      "enum": [
+        "context_only",
+        "evaluation_authorized",
+        "training_authorized"
+      ],
+      "title": "Usage State",
+      "type": "string"
+    },
+    "vereda_code": {
+      "default": "unknown",
+      "description": "Código pseudonimizado de vereda o 'unknown'/'not_stated'/'redacted'.",
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Vereda Code",
+      "type": "string"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_id",
+    "source_type",
+    "provenance_class",
+    "title",
+    "language",
+    "collection_date",
+    "location",
+    "collector_id",
+    "consent_status",
+    "raw_path",
+    "raw_sha256",
+    "version",
+    "status"
+  ],
+  "title": "SourceRecord",
+  "type": "object"
+}

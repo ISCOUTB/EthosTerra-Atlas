@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_004",
+  "variant": "strict_abstention",
+  "prompt_hash": "6e4d66cfa6c6e567a89b604f43cbd970032d70c29417eeac45f5941558bcb48f",
+  "latency_ms": 70770.5,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "pure",
+  "expected_case_type": "pure",
+  "predicted_conflict_type": null,
+  "expected_conflict_type": null,
+  "evidence_a": "Para sacar adelante la media hectárea de yuca acordamos con cuatro compadres",
+  "evidence_b": null,
+  "rationale": "La acción es una ayuda mutua para arar la loma, resolviendo una restricción de labor mediante cooperación.",
+  "is_match": true
+}

@@ -1,0 +1,53 @@
+{
+  "additionalProperties": false,
+  "description": "Unidad de evidencia producida por segmentación. No contiene interpretación.",
+  "properties": {
+    "char_end": {
+      "exclusiveMinimum": 0,
+      "title": "Char End",
+      "type": "integer"
+    },
+    "char_start": {
+      "minimum": 0,
+      "title": "Char Start",
+      "type": "integer"
+    },
+    "segment_id": {
+      "pattern": "^(field|synth)_\\d{4}_seg_\\d{4}$",
+      "title": "Segment Id",
+      "type": "string"
+    },
+    "segmentation_method": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Segmentation Method",
+      "type": "string"
+    },
+    "segmentation_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Segmentation Version",
+      "type": "string"
+    },
+    "source_id": {
+      "pattern": "^(field|synth)_\\d{4}$",
+      "title": "Source Id",
+      "type": "string"
+    },
+    "text": {
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "segment_id",
+    "source_id",
+    "text",
+    "char_start",
+    "char_end",
+    "segmentation_method",
+    "segmentation_version"
+  ],
+  "title": "SegmentRecord",
+  "type": "object"
+}

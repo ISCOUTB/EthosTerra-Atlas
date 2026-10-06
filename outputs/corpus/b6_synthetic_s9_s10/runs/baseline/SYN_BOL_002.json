@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_002",
+  "variant": "baseline",
+  "prompt_hash": "64eb1f2cf66c6101bfa4a341d7e0720f42feab260def9b51c7fa10e87b20fcff",
+  "latency_ms": 109637.72,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "conflict",
+  "expected_case_type": "conflict",
+  "predicted_conflict_type": "agronomic_goal_vs_risk_emotion",
+  "expected_conflict_type": "short_term_vs_long_term_resilience",
+  "evidence_a": "quiero tirar la semilla de una vez en los montículos listos",
+  "evidence_b": "el arroyo está seco y los viejos dicen que viene una canícula brava",
+  "rationale": "El agricultor debe decidir entre sembrar inmediatamente para cumplir el ciclo o esperar por el riesgo de sequía.",
+  "is_match": true
+}

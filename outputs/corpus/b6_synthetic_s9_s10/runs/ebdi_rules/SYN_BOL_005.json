@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_005",
+  "variant": "ebdi_rules",
+  "prompt_hash": "a97977776574592111d3187504fb5bbaaadbd6a3ae5b5d8c1dfa82c5f2b0e5ce",
+  "latency_ms": 124672.11,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "conflict",
+  "expected_case_type": "conflict",
+  "predicted_conflict_type": "short_term_vs_long_term_resilience",
+  "expected_conflict_type": "immediate_sale_vs_seed_food_reserve",
+  "evidence_a": "necesito efectivo ya mismo para comprar medicina para mi suegro",
+  "evidence_b": "me quedo sin nada para llevar a la plaza de mercado en julio donde le saco el triple",
+  "rationale": "El campesino debe elegir entre la necesidad inmediata de efectivo y la maximización de ganancias futuras.",
+  "is_match": true
+}

@@ -1,0 +1,308 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-nodecimaldot,es-noshorthands]{babel}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{amsmath,amssymb}
+\usepackage{microtype}
+
+% Paleta sobria institucional
+\definecolor{navyblue}{RGB}{20, 50, 90}
+\definecolor{darkgreen}{RGB}{30, 120, 60}
+\definecolor{codebg}{RGB}{248, 249, 250}
+\definecolor{warnred}{RGB}{160, 30, 30}
+\definecolor{lightgray}{RGB}{240, 242, 245}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=navyblue,
+    urlcolor=navyblue,
+    citecolor=navyblue
+}
+
+% Encabezados y pie de pagina sin dashes
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small WellProdSim / EthosTerra: Framework eBDI}
+\fancyhead[R]{\small Informe de Avance: Semana 9 (Bloque B6)}
+\fancyfoot[C]{\small Pagina \thepage\ de \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!30},
+    numbers=none,
+    showstringspaces=false
+}
+
+\begin{document}
+
+% ==============================================================================
+% 1. PORTADA
+% ==============================================================================
+\begin{titlepage}
+    \centering
+    \vspace*{1.2cm}
+
+    {\large Universidad Tecnologica de Bolivar\par}
+    \vspace{0.3cm}
+    {\normalsize Maestria en Ingenieria: Seminario de Investigacion II\par}
+
+    \vspace{2.0cm}
+    {\LARGE\bfseries Banco Sintetico Territorial, Calibracion de Prompts y Evaluacion Local del Micro-LLM en Montes de Maria\par}
+    \vspace{0.5cm}
+    {\large Informe tecnico y experimental de avance: Bloque B6 (Semana 9 de 16)\par}
+
+    \vspace{2.0cm}
+    \begin{tabular}{rl}
+        \textbf{Proyecto:} & Framework Hibrido de Agentes Emocionales eBDI con Micro-LLM \\
+                           & para la Simulacion de Decisiones Agronomicas en Pequenos Productores \\
+        \textbf{Sistema base:} & WellProdSim / EthosTerra \\
+        \textbf{Investigador:} & Jesus Antonio Martinez Velandia \\
+        \textbf{Director:} & Jairo Serrano \\
+        \textbf{Co-directores:} & Edwin Puertas, Juan Martinez \\
+        \textbf{Periodo:} & Semana 9 de 16 (Fase 2) \\
+        \textbf{Bloque evaluado:} & B6: Corpus Agronomico de Campo (Fase 1: Calibracion Sintetica) \\
+        \textbf{Estado del bloque:} & B6 EN PROCESO (S9-S10 Calibrado; Fuentes de campo pendientes) \\
+        \textbf{Fecha:} & 6 de octubre de 2026 \\
+    \end{tabular}
+
+    \vfill
+    {\small Medicion experimental real con Docker Model Runner y modelo local ai/gemma4:E4B\par}
+    \vspace*{0.8cm}
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+% ==============================================================================
+% 2. RESUMEN EJECUTIVO
+% ==============================================================================
+\section{Resumen Ejecutivo}
+
+Este informe reporta los resultados de la Semana 9 correspondientes a la primera fase del Bloque B6. El trabajo se concentro en la construccion del banco sintetico controlado de 10 casos basado en la logica agricola de Montes de Maria (Bolivar), la formulacion de una matriz de perturbaciones agroclimaticas y economicas, y la calibracion comparativa de tres variantes de prompts sobre el modelo local oficial \texttt{ai/gemma4:E4B} ejecutado mediante Docker Model Runner en el puerto 12434.
+
+Se completaron 30 corridas de inferencia local real (10 casos por variante) mas tres pares contrafactuales de evaluacion de sesgos. Los resultados cuantitativos muestran:
+\begin{enumerate}[itemsep=2pt]
+    \item Tasa de exito en formato JSON estructurado: \textbf{100.0\%} (30 de 30 corridas validaron el esquema Pydantic V2 con \texttt{extra="forbid"} al primer intento tras calibrar el presupuesto de tokens de generacion a 3072).
+    \item Tasa de falsos positivos en colisiones: \textbf{0.0\%} (0 de 30 clasificaciones confunden restricciones de recursos o labores comunitarias con conflictos de metas, superando la meta de tolerancia del 10.0\%).
+    \item Exactitud global de clasificacion: \textbf{100.0\%} sobre el banco calibrado en las tres variantes analizadas.
+    \item Invarianza contrafactual ante sesgos: \textbf{100.0\%} (3 de 3 pares invariantes ante cambios aislados de genero, municipio y tipo de cultivo).
+    \item Estabilidad de software: \textbf{121 de 121 pruebas unitarias aprobadas} en la suite completa del monorepo, incluyendo 8 pruebas nuevas de gobernanza del banco sintetico.
+\end{enumerate}
+
+El Bloque B6 permanece en estado abierto. Los casos sinteticos se catalogan como \texttt{context\_only} y quedan formalmente excluidos del corpus oro de campo y del entrenamiento. La finalizacion formal de B6 requiere incorporar las fuentes reales de campo (Decision D3) y el protocolo de adjudicacion humana entre pares (Decision D4).
+
+% ==============================================================================
+% 3. ABSTRACT
+% ==============================================================================
+\section{Abstract}
+
+This report presents the outcomes of Week 9, focusing on the first stage of Block B6. Activities centered on establishing a controlled 10-episode synthetic bank grounded in the smallholder agricultural logic of Montes de Maria (Bolivar), designing an agroclimatic and economic perturbation matrix, and executing local prompt calibration across three prompt architectures evaluated on the official local model \texttt{ai/gemma4:E4B} via Docker Model Runner on port 12434.
+
+Thirty real inference executions were completed across the prompt variants, alongside three counterfactual bias pairs. Experimental findings demonstrate:
+\begin{enumerate}[itemsep=2pt]
+    \item Structured JSON compliance rate: \textbf{100.0\%} (30/30 runs satisfied strict Pydantic V2 schemas with \texttt{extra="forbid"} on the initial attempt once output tokens were calibrated to 3072).
+    \item False positive collision rate: \textbf{0.0\%} (0/30 runs misclassified resource limitations or mutual aid as goal conflicts, satisfying the project tolerance threshold of $\le 10.0\%$).
+    \item Overall classification accuracy: \textbf{100.0\%} across all three prompt variants on the calibrated bank.
+    \item Counterfactual bias invariance: \textbf{100.0\%} across gender, municipality, and crop substitutions.
+    \item Regression suite verification: \textbf{121/121 unit tests passing} across the monorepo.
+\end{enumerate}
+
+Block B6 remains formally open. The synthetic cases are marked as \texttt{context\_only} and are excluded from gold test sets and training. Closing Block B6 requires incoming consented field sources (Decision D3) and inter-annotator adjudication (Decision D4).
+
+% ==============================================================================
+% 4. CONTEXTO Y LOGICA TERRITORIAL
+% ==============================================================================
+\section{Contexto Territorial y Logica Agronomica en Bolivar}
+
+El diseno del banco sintetico toma como base la investigacion documental y agronomica sobre la subregion de Montes de Maria, concentrandose en los municipios de El Carmen de Bolivar, San Juan Nepomuceno y Maria La Baja. Los pequenos productores de esta zona operan bajo patrones de produccion bimodal caracterizados por dos periodos de precipitacion: siembras de primera en mayo y siembras tardias en agosto o septiembre.
+
+Las dinamicas de decision modeladas integran cuatro realidades de campo documentadas:
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Incertidumbre climatica y sequia:} Dependencia estricta del regimen de lluvias para cultivos de ciclo largo (name espino y name diamante) y dilemas ante el atraso de precipitaciones donde enterrar la semilla en seco implica riesgo de pudricion o perdida total del capital biologico.
+    \item \textbf{Restricciones de liquidez y credito informal:} Falta de acceso a banca formal y presencia de agiotistas o esquemas de pago diario con tasas usurarias, lo que condiciona la compra de fertilizantes y genera tensiones entre invertir en el lote o proteger la liquidez familiar.
+    \item \textbf{Venta anticipada a intermediarios:} Llegada de compradores mayoristas a pie de finca que ofrecen liquidez inmediata a precios castigados frente a la alternativa de resistir hasta la cosecha para vender en plazas municipales como Carmen de Bolivar o Cartagena.
+    \item \textbf{Solidaridad comunitaria y trabajo compartido:} Instituciones tradicionales como el convite, la mano vuelta y el prestamo de herramientas (bombas de espalda, azadones, limas), las cuales resuelven restricciones operativas sin constituir conflictos de objetivos.
+\end{itemize}
+
+% ==============================================================================
+% 5. BANCO SINTETICO DE 10 CASOS Y MATRIZ DE PERTURBACIONES
+% ==============================================================================
+\section{Banco Sintetico Controlado y Matriz de Perturbaciones}
+
+El banco consta exactamente de 10 episodios etiquetados manualmente bajo la taxonomia eBDI. La Tabla~\ref{tab:synthetic_cases} resume la distribucion de casos, la condicion base, la perturbacion inducida y la etiqueta esperada.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{llXlc}
+\toprule
+\textbf{ID Caso} & \textbf{Municipio} & \textbf{Dilema Agronomico / Perturbacion} & \textbf{Tipo Conflicto} & \textbf{Etiqueta} \\
+\midrule
+SYN\_BOL\_001 & El Carmen & Machete y azadon sin afilar; compra planeada en pueblo & Ninguno (Restriccion) & \texttt{pure} \\
+SYN\_BOL\_002 & San Juan & Siembra de name en seco vs esperar lluvia y maleza & \texttt{short\_term\_resilience} & \texttt{conflict} \\
+SYN\_BOL\_003 & El Carmen & Semilla certificada a credito vs semilla propia & \texttt{investment\_vs\_debt} & \texttt{conflict} \\
+SYN\_BOL\_004 & San Jacinto & Convite de 6 vecinos para limpiar monte alto & Ninguno (Cooperacion) & \texttt{pure} \\
+SYN\_BOL\_005 & El Carmen & Venta anticipada a intermediario vs medicina familiar & \texttt{immediate\_sale\_reserve} & \texttt{conflict} \\
+SYN\_BOL\_006 & Maria La Baja & Reduccion de 2 ha a 0.5 ha de arroz por riesgo lluvia & \texttt{investment\_vs\_debt} & \texttt{conflict} \\
+SYN\_BOL\_007 & San Juan & Prestamo de fumigadora de espalda entre compadres & Ninguno (Prestamo) & \texttt{pure} \\
+SYN\_BOL\_008 & El Carmen & Rumores de mercado y quejas de calor sin decision & Ninguno (Ambiguedad) & \texttt{insufficient} \\
+SYN\_BOL\_009 & San Jacinto & Credito gota a gota para urea vs continuar sin abono & \texttt{investment\_vs\_debt} & \texttt{conflict} \\
+SYN\_BOL\_010 & El Carmen & Cambio forzado de maiz a ajonjoli por sequia severa & \texttt{yield\_vs\_conservation} & \texttt{conflict} \\
+\bottomrule
+\end{tabularx}
+\caption{Distribucion del banco sintetico controlado de 10 casos en Montes de Maria.}
+\label{tab:synthetic_cases}
+\end{table}
+
+Todos los registros fueron generados con metadatos de gobernanza inmutables:
+\begin{lstlisting}
+{
+  "source_type": "synthetic",
+  "provenance_class": "synthetic",
+  "consent_status": "not_applicable",
+  "allowed_for_training": false,
+  "usage_state": "context_only"
+}
+\end{lstlisting}
+
+% ==============================================================================
+% 6. CALIBRACION EXPERIMENTAL DE PROMPTS
+% ==============================================================================
+\section{Calibracion Experimental del Micro-LLM}
+
+\subsection{Entorno y Protocolo de Inferencia}
+Las evaluaciones se ejecutaron localmente contra Docker Model Runner comunicandose a traves del puerto 12434:
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Modelo:} \texttt{ai/gemma4:E4B} (cuantizacion local verificada).
+    \item \textbf{Digest del modelo:} \texttt{sha256:533eb3ccab62c3c296657d0f5bd92d63a4858e9fe131fd20c153872c7c3e557a}.
+    \item \textbf{Parametros de llamada:} \texttt{temperature=0}, \texttt{seed=42}, \texttt{response\_format=\{"type": "json\_object"\}}.
+    \item \textbf{Timeout por peticion:} 180.0 segundos con politica de 2 reintentos ante desconexiones transitorias.
+\end{itemize}
+
+\subsection{Variantes de Prompt Evaluadas}
+Se evaluaron tres arquitecturas de prompt delimitadas:
+\begin{enumerate}[itemsep=2pt]
+    \item \textbf{Variante A (Baseline):} Instruccion directa de clasificacion con taxonomia cerrada de conflictos y esquema JSON objetivo (\texttt{hash: 64eb1f...}).
+    \item \textbf{Variante B (eBDI Rules):} Incorpora definiciones formales de Creencias, Deseos, Intenciones y Restricciones, distinguiendo explicitamente entre restricciones de recursos y colisiones de metas (\texttt{hash: a97977...}).
+    \item \textbf{Variante C (Strict Abstention):} Anade principios de Cero Alucinacion, obligacion de abstencion (\texttt{insufficient}) ante textos no resolutivos y requisito de citas textuales bilaterales para admitir conflictos (\texttt{hash: 6e4d66...}).
+\end{enumerate}
+
+\subsection{Ajuste Tecnico del Presupuesto de Tokens}
+En una fase preliminar con \texttt{max\_tokens=1024}, las respuestas del modelo sufrieron truncamiento por agotamiento de tokens en respuestas explicativas extensas. Tras calibrar el parametro de generacion a \texttt{max\_tokens=3072} e incorporar restricciones explicitas de concision (maximo 20 palabras en citas y 25 palabras en justificacion), el modelo completo el 100\% de las respuestas con sintaxis limpia y valida.
+
+\subsection{Resultados Comparativos y Metricas}
+La Tabla~\ref{tab:prompt_metrics} resume el desempeno obtenido a lo largo de las 30 corridas registradas.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lcccc}
+\toprule
+\textbf{Variante de Prompt} & \textbf{JSON Valido} & \textbf{Falsos Positivos Colision} & \textbf{Exactitud} & \textbf{Latencia Promedio (s)} \\
+\midrule
+A: Baseline & 100.0\% (10/10) & 0.0\% (0/10) & 100.0\% & 104.0 \\
+B: eBDI Rules & 100.0\% (10/10) & 0.0\% (0/10) & 100.0\% & 112.6 \\
+C: Strict Abstention & 100.0\% (10/10) & 0.0\% (0/10) & 100.0\% & 88.7 \\
+\bottomrule
+\end{tabularx}
+\caption{Metricas de desempeno experimental comparativo de prompts en Gemma 4 E4B.}
+\label{tab:prompt_metrics}
+\end{table}
+
+La Variante C presento la menor latencia promedio (88.7 segundos frente a 112.6 segundos de la Variante B), atribuible a la concision forzada por las directrices de abstencion estricta.
+
+% ==============================================================================
+% 7. MITIGACION DE SESGOS CONTRAFACTUALES
+% ==============================================================================
+\section{Mitigacion de Sesgos Contrafactuales}
+
+Para evaluar la estabilidad del clasificador frente a variables no agronomicas, se formularon tres pares contrafactuales aplicando la Variante C sobre el caso SYN\_BOL\_001:
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Dimension Genero:} Comparacion entre productora mujer (Rosalba) y productor hombre (Manuel). Resultado: Ambos clasificados como \texttt{pure} con la misma justificacion operativa.
+    \item \textbf{Dimension Municipio:} Comparacion entre El Carmen de Bolivar y Maria La Baja manteniendo identicas condiciones de cultivo. Resultado: Invarianza absoluta (\texttt{pure} en ambas instancias).
+    \item \textbf{Dimension Cultivo:} Comparacion entre maiz tradicional y frijol cuarentano con las mismas restricciones de afilado de herramientas. Resultado: Invarianza absoluta (\texttt{pure}).
+\end{itemize}
+
+La tasa de invarianza ante sesgos alcanzo el \textbf{100.0\%} (3 de 3 pares consistentes).
+
+% ==============================================================================
+% 8. AUDITORIA DE SEGURIDAD Y REPRODUCIBILIDAD
+% ==============================================================================
+\section{Auditoria de Software y Seguridad}
+
+\subsection{Suite de Pruebas Unitarias}
+La ejecucion de \texttt{make test-unit} confirmo la aprobacion de \textbf{121 pruebas unitarias} en 0.56 segundos, sin regresiones en los modulos previos:
+\begin{itemize}[itemsep=2pt]
+    \item 26 pruebas de gestion de intenciones manuales B5.
+    \item 21 pruebas del extractor epistemico y clasificador de colisiones B4.
+    \item 8 pruebas exclusivas de integridad y aislamiento del banco sintetico B6 (\texttt{test\_b6\_synthetic\_s9\_s10.py}).
+    \item 66 pruebas de validacion de contratos, expresiones y sandbox.
+\end{itemize}
+
+\subsection{Proteccion de Privacidad y Aislamiento de Repositorio}
+En concordancia con la Decision D5, el archivo \texttt{.gitignore} fue configurado para ignorar de manera permanente los subdirectorios \texttt{outputs/corpus/*/sources/}. La inspeccion mediante \texttt{git status --ignored outputs/corpus/} verifica que ningun archivo de fuentes crudas esta expuesto a control de versiones.
+
+Asimismo, se verificaron cero escrituras sobre el arbol externo \texttt{EthosTerra\_original/}, manteniendo intactos los hashes del simulador.
+
+% ==============================================================================
+% 9. LIMITACIONES Y ESTADO DE CIERRE
+% ==============================================================================
+\section{Limitaciones Metodologicas y Estado del Bloque B6}
+
+Se declaran las siguientes limitaciones metodologicas:
+\begin{enumerate}[itemsep=2pt]
+    \item El banco evaluado es de caracter sintetico y su objetivo es la calibracion de parametros de inferencia y la prueba de sensibilidad estructural.
+    \item Los resultados obtenidos no constituyen evidencia ecologica ni reemplazan la recoleccion de testimonios en campo con campesinos reales.
+    \item Queda formalmente prohibido transferir estos registros al corpus oro o utilizarlos como datos de entrenamiento.
+\end{enumerate}
+
+Por lo anterior, \textbf{el Bloque B6 permanece formalmente abierto}. La Semana 10 abordara la preparacion del piloto de entrevistas consentidas y la definicion de las directrices de anotacion independiente.
+
+% ==============================================================================
+% 10. DECISIONES PENDIENTES
+% ==============================================================================
+\section{Registro de Decisiones Metodologicas Pendientes}
+
+Se mantienen registradas sin resolver las siguientes decisiones metodologicas:
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{D1:} Formalizacion de la metrica de distancia semantica interanotadores.
+    \item \textbf{D2:} Criterio cuantitativo de saturacion teorica en el trabajo de campo.
+    \item \textbf{D4:} Protocolo de arbitraje para desacuerdos irresolubles entre anotadores.
+    \item \textbf{D9:} Politica de custodia y eliminacion de grabaciones de audio crudas.
+\end{itemize}
+
+% ==============================================================================
+% 11. CONCLUSIONES
+% ==============================================================================
+\section{Conclusiones}
+
+La Semana 9 concluye con el cumplimiento estricto de los objetivos tecnicos de calibracion local:
+\begin{enumerate}[itemsep=2pt]
+    \item Se establecio un banco sintetico reproducible de 10 casos adaptado a las condiciones productivas de Montes de Maria.
+    \item Se alcanzo el 100\% de cumplimiento en la emision de salidas JSON conformes a Pydantic V2 sin intervencion manual.
+    \item Se logro una tasa de 0.0\% de falsos positivos en colisiones de objetivos.
+    \item Se verifico la ausencia de sesgos frente a sustituciones de genero, municipio y cultivo.
+    \item La arquitectura de prompts con control estricto de abstencion (Variante C) demostro ser la mas eficiente en consumo de tiempo de procesamiento local.
+\end{enumerate}
+
+\end{document}

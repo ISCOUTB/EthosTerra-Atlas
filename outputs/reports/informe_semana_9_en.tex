@@ -1,0 +1,299 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{amsmath,amssymb}
+\usepackage{microtype}
+
+% Institutional palette
+\definecolor{navyblue}{RGB}{20, 50, 90}
+\definecolor{darkgreen}{RGB}{30, 120, 60}
+\definecolor{codebg}{RGB}{248, 249, 250}
+\definecolor{warnred}{RGB}{160, 30, 30}
+\definecolor{lightgray}{RGB}{240, 242, 245}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=navyblue,
+    urlcolor=navyblue,
+    citecolor=navyblue
+}
+
+% Header and Footer without dashes
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small WellProdSim / EthosTerra: eBDI Framework}
+\fancyhead[R]{\small Progress Report: Week 9 (Block B6)}
+\fancyfoot[C]{\small Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!30},
+    numbers=none,
+    showstringspaces=false
+}
+
+\begin{document}
+
+% ==============================================================================
+% 1. TITLE PAGE
+% ==============================================================================
+\begin{titlepage}
+    \centering
+    \vspace*{1.2cm}
+
+    {\large Universidad Tecnologica de Bolivar\par}
+    \vspace{0.3cm}
+    {\normalsize Master of Science in Engineering: Research Seminar II\par}
+
+    \vspace{2.0cm}
+    {\LARGE\bfseries Controlled Synthetic Bank, Prompt Calibration, and Local Micro-LLM Evaluation in Montes de Maria\par}
+    \vspace{0.5cm}
+    {\large Technical and Experimental Progress Report: Block B6 (Week 9 of 16)\par}
+
+    \vspace{2.0cm}
+    \begin{tabular}{rl}
+        \textbf{Project:} & Hybrid Emotional eBDI Agent Framework with Micro-LLM \\
+                           & for Simulating Agronomic Decision-Making in Smallholder Farmers \\
+        \textbf{Base System:} & WellProdSim / EthosTerra \\
+        \textbf{Researcher:} & Jesus Antonio Martinez Velandia \\
+        \textbf{Advisor:} & Jairo Serrano \\
+        \textbf{Co-advisors:} & Edwin Puertas, Juan Martinez \\
+        \textbf{Period:} & Week 9 of 16 (Phase 2) \\
+        \textbf{Evaluated Block:} & B6: Field Agronomic Corpus (Stage 1: Synthetic Calibration) \\
+        \textbf{Block Status:} & B6 IN PROGRESS (S9-S10 Calibrated; Real Field Sources Pending) \\
+        \textbf{Date:} & October 6, 2026 \\
+    \end{tabular}
+
+    \vfill
+    {\small Real local experimental measurement with Docker Model Runner and ai/gemma4:E4B\par}
+    \vspace*{0.8cm}
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+% ==============================================================================
+% 2. EXECUTIVE SUMMARY
+% ==============================================================================
+\section{Executive Summary}
+
+This report documents the outcomes of Week 9, covering the initial phase of Block B6. Work concentrated on assembling a controlled 10-episode synthetic benchmark derived from the documented agricultural logic of Montes de Maria (Bolivar, Colombia), defining an agroclimatic and financial perturbation matrix, and conducting local prompt calibration across three prompt variants on the official offline model \texttt{ai/gemma4:E4B} served via Docker Model Runner on port 12434.
+
+Thirty real inference executions were logged across the three prompt variants (10 episodes each), complemented by three counterfactual bias evaluations. Key quantitative findings include:
+\begin{enumerate}[itemsep=2pt]
+    \item Structured JSON schema compliance rate: \textbf{100.0\%} (30 of 30 executions satisfied strict Pydantic V2 validation with \texttt{extra="forbid"} on the initial attempt once the generation token limit was adjusted to 3072).
+    \item False positive collision rate: \textbf{0.0\%} (0 of 30 runs misclassified resource constraints or community mutual aid as goal conflicts, satisfying the project tolerance threshold of $\le 10.0\%$).
+    \item Global classification accuracy: \textbf{100.0\%} on the calibrated benchmark across all three architectures.
+    \item Counterfactual bias invariance: \textbf{100.0\%} (3 of 3 pairs preserved exact classifications across isolated variations in gender, municipality, and crop type).
+    \item Software stability: \textbf{121 of 121 unit tests passing} in the global monorepo suite, including 8 dedicated synthetic governance tests.
+\end{enumerate}
+
+Block B6 remains open. Synthetic episodes are labeled as \texttt{context\_only} and are excluded from gold test sets and training pipelines. Formally concluding B6 requires incorporating consented primary field evidence (Decision D3) and establishing expert inter-annotator adjudication (Decision D4).
+
+% ==============================================================================
+% 3. ABSTRACT
+% ==============================================================================
+\section{Abstract}
+
+During Week 9, experimental activities addressed the first stage of Block B6 in the eBDI smallholder modeling architecture. Objectives included creating a controlled 10-episode synthetic benchmark grounded in Montes de Maria agronomic practices, establishing an environmental and financial perturbation matrix, and calibrating three prompt architectures against the local quantized model \texttt{ai/gemma4:E4B} running under Docker Model Runner.
+
+Empirical evaluation comprised 30 full inference executions and three counterfactual bias audits. All 30 executions produced valid Pydantic V2 outputs on the first attempt (100.0\% JSON success rate), achieved a 0.0\% false positive collision rate, maintained 100.0\% counterfactual invariance, and verified 121/121 regression unit tests. The prompt architecture enforcing strict abstention (Variant C) yielded the lowest average processing latency (88.7 seconds). Block B6 remains open pending primary field interviews and human consensus annotation.
+
+% ==============================================================================
+% 4. TERRITORIAL CONTEXT AND LOCAL LOGIC
+% ==============================================================================
+\section{Territorial Context and Agronomic Logic in Bolivar}
+
+The synthetic benchmark builds upon documented smallholder practices in Montes de Maria, with particular focus on El Carmen de Bolivar, San Juan Nepomuceno, and Maria La Baja. Farming systems in this subregion follow a bimodal rainfall pattern featuring primary planting windows in May and secondary planting cycles in August or September.
+
+Four documented operational realities govern the modeled scenarios:
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Climate uncertainty and drought:} Strict reliance on rainfall onset for long-cycle staples (such as yam and cassava) and dilemmas caused by precipitation delays, where planting into dry soil risks biological loss while waiting risks weed overgrowth and lost land clearing labor.
+    \item \textbf{Liquidity constraints and informal lending:} Limited access to institutional credit combined with reliance on informal daily moneylenders carrying high interest rates, creating friction between crop input purchases and basic family liquidity.
+    \item \textbf{Early crop sales to intermediaries:} On-farm visits by wholesale middlemen offering cash advances at reduced prices, forcing tradeoffs between securing immediate emergency cash and preserving produce for regional open markets.
+    \item \textbf{Community labor and tool sharing:} Traditional cooperative institutions such as communal work days (convite) and equipment loans (backpack sprayers, machetes, files), which resolve operational hurdles without creating antagonistic agent goals.
+\end{itemize}
+
+% ==============================================================================
+% 5. CONTROLLED SYNTHETIC BANK AND PERTURBATION MATRIX
+% ==============================================================================
+\section{Controlled Synthetic Benchmark and Perturbation Matrix}
+
+The benchmark comprises exactly 10 episodes manually structured under eBDI taxonomy rules. Table~\ref{tab:synthetic_cases_en} details the scenario distribution, base conditions, applied perturbations, and target classifications.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{llXlc}
+\toprule
+\textbf{Case ID} & \textbf{Municipality} & \textbf{Agronomic Dilemma / Perturbation} & \textbf{Conflict Type} & \textbf{Label} \\
+\midrule
+SYN\_BOL\_001 & El Carmen & Unsharpened tools; planned purchase in town & None (Constraint) & \texttt{pure} \\
+SYN\_BOL\_002 & San Juan & Dry planting vs waiting for rain and weed growth & \texttt{short\_term\_resilience} & \texttt{conflict} \\
+SYN\_BOL\_003 & El Carmen & Certified seed on credit vs native farm seed & \texttt{investment\_vs\_debt} & \texttt{conflict} \\
+SYN\_BOL\_004 & San Jacinto & Communal convite of 6 neighbors to clear land & None (Cooperation) & \texttt{pure} \\
+SYN\_BOL\_005 & El Carmen & Early sale to middleman vs family medical need & \texttt{immediate\_sale\_reserve} & \texttt{conflict} \\
+SYN\_BOL\_006 & Maria La Baja & Rice plot reduced from 2 to 0.5 ha due to rain risk & \texttt{investment\_vs\_debt} & \texttt{conflict} \\
+SYN\_BOL\_007 & San Juan & Shared backpack sprayer between neighboring farms & None (Tool loan) & \texttt{pure} \\
+SYN\_BOL\_008 & El Carmen & Market gossip and heat complaints without action & None (Ambiguity) & \texttt{insufficient} \\
+SYN\_BOL\_009 & San Jacinto & Daily informal loan for urea vs unfertilized crop & \texttt{investment\_vs\_debt} & \texttt{conflict} \\
+SYN\_BOL\_010 & El Carmen & Crop switch from maize to sesame under drought & \texttt{yield\_vs\_conservation} & \texttt{conflict} \\
+\bottomrule
+\end{tabularx}
+\caption{Distribution of the 10-episode synthetic benchmark in Montes de Maria.}
+\label{tab:synthetic_cases_en}
+\end{table}
+
+Every entry carries strict data governance metadata:
+\begin{lstlisting}
+{
+  "source_type": "synthetic",
+  "provenance_class": "synthetic",
+  "consent_status": "not_applicable",
+  "allowed_for_training": false,
+  "usage_state": "context_only"
+}
+\end{lstlisting}
+
+% ==============================================================================
+% 6. EXPERIMENTAL PROMPT CALIBRATION
+% ==============================================================================
+\section{Experimental Micro-LLM Prompt Calibration}
+
+\subsection{Inference Environment and Parameters}
+Testing ran locally against Docker Model Runner on port 12434:
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Model:} \texttt{ai/gemma4:E4B} (verified local execution).
+    \item \textbf{Model digest:} \texttt{sha256:533eb3ccab62c3c296657d0f5bd92d63a4858e9fe131fd20c153872c7c3e557a}.
+    \item \textbf{Request parameters:} \texttt{temperature=0}, \texttt{seed=42}, \texttt{response\_format=\{"type": "json\_object"\}}.
+    \item \textbf{Timeout:} 180.0 seconds with automatic retry on transient connection drops.
+\end{itemize}
+
+\subsection{Evaluated Prompt Architectures}
+Three prompt structures were compared:
+\begin{enumerate}[itemsep=2pt]
+    \item \textbf{Variant A (Baseline):} Direct classification prompt with closed conflict taxonomy and expected schema (\texttt{hash: 64eb1f...}).
+    \item \textbf{Variant B (eBDI Rules):} Supplies explicit definitions for Beliefs, Desires, Intentions, and Constraints, distinguishing technical hurdles from true conflicts (\texttt{hash: a97977...}).
+    \item \textbf{Variant C (Strict Abstention):} Enforces zero hallucination, mandatory abstention on indecisive text (\texttt{insufficient}), and bilateral textual quotes for conflict confirmation (\texttt{hash: 6e4d66...}).
+\end{enumerate}
+
+\subsection{Token Budget Adjustment}
+In initial runs with \texttt{max\_tokens=1024}, model responses were occasionally cut off when outputting extended rationales. Increasing generation capacity to \texttt{max\_tokens=3072} alongside strict conciseness guidelines (under 20 words for quotes, under 25 words for rationale) eliminated all truncation errors across all prompt variants.
+
+\subsection{Comparative Experimental Results}
+Table~\ref{tab:prompt_metrics_en} presents the quantitative metrics across the 30 recorded runs.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lcccc}
+\toprule
+\textbf{Prompt Variant} & \textbf{Valid JSON Rate} & \textbf{False Positive Collision Rate} & \textbf{Accuracy} & \textbf{Mean Latency (s)} \\
+\midrule
+A: Baseline & 100.0\% (10/10) & 0.0\% (0/10) & 100.0\% & 104.0 \\
+B: eBDI Rules & 100.0\% (10/10) & 0.0\% (0/10) & 100.0\% & 112.6 \\
+C: Strict Abstention & 100.0\% (10/10) & 0.0\% (0/10) & 100.0\% & 88.7 \\
+\bottomrule
+\end{tabularx}
+\caption{Comparative prompt calibration metrics on Gemma 4 E4B.}
+\label{tab:prompt_metrics_en}
+\end{table}
+
+Variant C recorded the fastest average runtime (88.7 seconds versus 112.6 seconds in Variant B) due to compact outputs encouraged by the abstention framing.
+
+% ==============================================================================
+% 7. COUNTERFACTUAL BIAS MITIGATION
+% ==============================================================================
+\section{Counterfactual Bias Mitigation}
+
+To verify robustness against non-agronomic narrative elements, three counterfactual pairs were evaluated with Variant C on episode SYN\_BOL\_001:
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{Gender dimension:} Comparing female producer (Rosalba) with male producer (Manuel). Result: Both classified as \texttt{pure} with consistent reasoning.
+    \item \textbf{Municipality dimension:} Comparing El Carmen de Bolivar with Maria La Baja under identical plot conditions. Result: Invariant classification (\texttt{pure} in both cases).
+    \item \textbf{Crop dimension:} Comparing maize with beans under identical tool maintenance needs. Result: Invariant classification (\texttt{pure}).
+\end{itemize}
+
+Overall counterfactual invariance reached \textbf{100.0\%} (3 of 3 pairs consistent).
+
+% ==============================================================================
+% 8. SECURITY AUDIT AND REPRODUCIBILITY
+% ==============================================================================
+\section{Software Audit and Security Verification}
+
+\subsection{Unit Test Execution}
+Running \texttt{make test-unit} confirmed that \textbf{121 unit tests passed} in 0.56 seconds with zero regressions:
+\begin{itemize}[itemsep=2pt]
+    \item 26 tests for B5 manual intention management.
+    \item 21 tests for B4 epistemic extraction and collision checks.
+    \item 8 dedicated tests for B6 synthetic benchmark governance (\texttt{test\_b6\_synthetic\_s9\_s10.py}).
+    \item 66 tests for contract schemas, logic expressions, and sandboxing.
+\end{itemize}
+
+\subsection{Data Privacy and Repository Isolation}
+Following Decision D5, \texttt{.gitignore} excludes all \texttt{outputs/corpus/*/sources/} folders. Verification via \texttt{git status --ignored outputs/corpus/} confirms raw text files remain untracked.
+
+No writes occurred within the external \texttt{EthosTerra\_original/} directory, maintaining simulator SHA-256 integrity.
+
+% ==============================================================================
+% 9. METHODOLOGICAL LIMITATIONS AND STATUS
+% ==============================================================================
+\section{Methodological Limitations and Block Status}
+
+Three methodology boundaries are established:
+\begin{enumerate}[itemsep=2pt]
+    \item The benchmark is entirely synthetic and serves exclusively for inference parameter calibration and sensitivity testing.
+    \item These metrics do not provide ecological validity or substitute primary fieldwork with smallholders.
+    \item Synthetic cases are excluded from the gold evaluation corpus and training pipelines.
+\end{enumerate}
+
+Consequently, \textbf{Block B6 remains formally in progress}. Week 10 will focus on protocol preparation for consented field interviews and independent annotation rubrics.
+
+% ==============================================================================
+% 10. PENDING METHODOLOGICAL DECISIONS
+% ==============================================================================
+\section{Record of Pending Decisions}
+
+Four research decisions remain unresolved:
+\begin{itemize}[itemsep=2pt]
+    \item \textbf{D1:} Formal semantic distance metric for inter-annotator disagreement.
+    \item \textbf{D2:} Quantitative saturation criteria for fieldwork sampling.
+    \item \textbf{D4:} Arbitration protocol for persistent annotator disagreements.
+    \item \textbf{D9:} Retention and deletion schedule for raw audio recordings.
+\end{itemize}
+
+% ==============================================================================
+% 11. CONCLUSIONS
+% ==============================================================================
+\section{Conclusions}
+
+Week 9 satisfied its technical calibration objectives:
+\begin{enumerate}[itemsep=2pt]
+    \item A reproducible 10-episode synthetic benchmark reflecting Montes de Maria farming logic was established.
+    \item Pydantic V2 structured JSON outputs achieved 100.0\% compliance without manual correction.
+    \item The false positive collision rate remained at 0.0\%.
+    \item Counterfactual invariance reached 100.0\% across gender, location, and crop tests.
+    \item The strict abstention architecture (Variant C) delivered the lowest local inference latency.
+\end{enumerate}
+
+\end{document}

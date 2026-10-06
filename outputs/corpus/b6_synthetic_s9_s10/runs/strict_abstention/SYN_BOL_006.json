@@ -1,0 +1,17 @@
+{
+  "episode_id": "SYN_BOL_006",
+  "variant": "strict_abstention",
+  "prompt_hash": "6e4d66cfa6c6e567a89b604f43cbd970032d70c29417eeac45f5941558bcb48f",
+  "latency_ms": 86983.73,
+  "was_initially_clean_json": true,
+  "is_valid_schema": true,
+  "validation_error": null,
+  "predicted_case_type": "conflict",
+  "expected_case_type": "conflict",
+  "predicted_conflict_type": "short_term_vs_long_term_resilience",
+  "expected_conflict_type": "investment_vs_liquidity_debt",
+  "evidence_a": "Mi plan original era sembrar las dos hectáreas completas de arroz para pagar la deuda del banco",
+  "evidence_b": "aunque reduciendo el área sé perfectamente que no me va a alcanzar la plata para pagar la cuota de junio",
+  "rationale": "El productor debe elegir entre maximizar la producción para pagar la deuda o reducir el riesgo climático.",
+  "is_match": true
+}
