@@ -14,6 +14,7 @@ from src.adapters.dmr_gateway import DMRGateway
 from src.ports.model_gateway import ModelGateway
 from src.api.v2_routes import v2_router
 from src.api.intents_routes import intents_router, get_intent_service
+from src.api.atlas_routes import atlas_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("api")
@@ -45,6 +46,7 @@ app.add_middleware(
 
 app.include_router(v2_router)
 app.include_router(intents_router)
+app.include_router(atlas_router)
 
 
 def get_model_gateway() -> ModelGateway:

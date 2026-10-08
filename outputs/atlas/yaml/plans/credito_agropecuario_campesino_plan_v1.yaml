@@ -1,0 +1,21 @@
+# PlanSpec: credito_agropecuario_campesino_plan_v1
+# Documento de Origen: src_test_api_flow
+# Hash de Aprobación: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+
+id: credito_agropecuario_campesino_plan_v1
+version: '1.0'
+description: 'Plan de acción territorial: Solicita línea de microcrédito municipal.'
+steps:
+  - id: agro_ecosystem_operation_op
+    action: agro_ecosystem_operation
+    args:
+      operation: PREPARE
+  - id: emit_territorial_episode
+    action: emit_episode
+    args:
+      text: Solicita línea de microcrédito municipal.
+      tags:
+        - territorial_policy
+        - reactivacion_economica_agropecuaria
+on_timeout: []
+on_failure: []

@@ -1,0 +1,31 @@
+{
+  "milestone": "Week 7 - Block B4 (Caso Conflictivo)",
+  "timestamp_utc": "2026-09-25T07:11:25.000000+00:00",
+  "model": {
+    "name": "ai/gemma4:E4B",
+    "digest": "sha256:533eb3ccab62",
+    "provider": "Docker Model Runner (DMR)",
+    "quantization": "MOSTLY_Q4_K_M",
+    "runtime_compatible": "unknown",
+    "simulation_execution_status": "not_executed"
+  },
+  "dataset": {
+    "version": "v2_week7_30cases",
+    "total_cases": 30,
+    "breakdown": {
+      "pure_real": 8,
+      "conflict_real": 12,
+      "unclear_real": 10,
+      "total": 30
+    },
+    "legacy_cases_count": 20,
+    "agronomic_dev_cases_count": 10
+  },
+  "gate_status": {
+    "approval_gate_cryptographic_verification": "enforced",
+    "invariants_checked": true,
+    "zero_hallucination_rate": 0.0,
+    "source_traceability_rate": 1.0,
+    "unit_tests": "53/53 passed"
+  }
+}

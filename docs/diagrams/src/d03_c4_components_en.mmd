@@ -1,0 +1,38 @@
+%%{init: {"flowchart": {"nodeSpacing": 15, "rankSpacing": 20}}}%%
+flowchart TD
+    %% Figure D3. Internal Backend Components (C4 Level 3)
+
+    subgraph TIER1["1. Controllers and Routing (src/api/)"]
+        direction LR
+        R_MAIN["main.py<br/>[/health, /propose]"]:::impl
+        R_V2["v2_routes.py<br/>[/documents, /sandbox]"]:::impl
+    end
+
+    subgraph TIER2["2. Domain and Contracts (src/domain/)"]
+        direction LR
+        S_OPER["Pydantic V2 Schemas<br/>(GoalSpec, PlanSpec, Document)"]:::impl
+        CAT["17 Actions Catalog<br/>(ActionCatalogService)"]:::impl
+        PROMPTS["Zero-Trust Prompts<br/>(case_pure_v1, case_conflict_v1)"]:::impl
+    end
+
+    subgraph TIER3["3. Application and Adapters (src/application/ & src/adapters/)"]
+        direction LR
+        GATE["Approval Gate & Hasher<br/>(11-field canonical SHA-256)"]:::impl
+        Y_SVC["YAML Generator & Validator<br/>(yaml_generator, yaml_validator)"]:::impl
+        SAND["Sandbox Service<br/>(Installation & Rollback)"]:::impl
+        DMR["DMRGateway & Hooks<br/>(5ms Bypass + Gemma 4 E4B)"]:::impl
+    end
+
+    TIER1 --> TIER2
+    TIER2 --> TIER3
+
+    subgraph LEYENDA["State Legend"]
+        direction LR
+        LEG_IMP["IMPLEMENTED"]:::impl
+        LEG_PAR["PARTIAL"]:::partial
+        LEG_PEN["PENDING"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

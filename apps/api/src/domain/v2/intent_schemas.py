@@ -31,12 +31,50 @@ def validate_identifier(v: str) -> str:
 IntentPayload = Annotated[CasoPuro | CasoConflictivo, Field(discriminator="tipo")]
 
 
+class HumanReviewMetadata(BaseModel):
+    """Metadatos formales de revisión humana experta para el Bloque B5."""
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    status: Literal["pendiente", "aprobado", "observado", "rechazado"] = Field(
+        default="pendiente",
+        description="Estado de la revisión epistemológica y metodológica",
+    )
+    reviewer: str = Field(
+        default="investigador_principal",
+        min_length=1,
+        max_length=64,
+        description="Identidad del evaluador o investigador humano responsable",
+    )
+    reviewed_at: datetime | None = Field(
+        default=None,
+        description="Marca temporal UTC de la última evaluación formal",
+    )
+    comments: str = Field(
+        default="",
+        max_length=2000,
+        description="Observaciones metodológicas y notas contextuales del investigador",
+    )
+    decision_rationale: str = Field(
+        default="",
+        max_length=2000,
+        description="Justificación formal de la decisión de aprobación/observación/rechazo",
+    )
+    requires_additional_review: bool = Field(
+        default=False,
+        description="Indica si el caso requiere una segunda revisión o escalamiento metodológico",
+    )
+
+
 class CreateIntentRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     id: str = Field(..., description="Identificador único del intento (alfanumérico, '-', '_', 1-64 chars)")
     author: str = Field(default="operador_manual", min_length=1, max_length=64, description="Identidad del autor o creador")
     intent: IntentPayload = Field(..., description="Cuerpo del caso (Caso Puro o Caso Conflictivo)")
+    human_review: HumanReviewMetadata | None = Field(
+        default=None,
+        description="Revisión humana experta opcional al momento de creación",
+    )
 
     @field_validator("id")
     @classmethod
@@ -49,6 +87,10 @@ class UpdateIntentRequest(BaseModel):
 
     author: str = Field(default="operador_manual", min_length=1, max_length=64, description="Identidad del editor")
     intent: IntentPayload = Field(..., description="Cuerpo actualizado del caso")
+    human_review: HumanReviewMetadata | None = Field(
+        default=None,
+        description="Revisión humana experta actualizada",
+    )
 
 
 class IntentMetadata(BaseModel):
@@ -68,6 +110,7 @@ class IntentResponse(BaseModel):
     id: str
     intent: IntentPayload
     metadata: IntentMetadata
+    human_review: HumanReviewMetadata = Field(default_factory=HumanReviewMetadata)
 
 
 class TrashMetadata(BaseModel):
@@ -87,6 +130,7 @@ class TrashIntentResponse(BaseModel):
     intent: IntentPayload
     metadata: IntentMetadata
     trash_metadata: TrashMetadata
+    human_review: HumanReviewMetadata = Field(default_factory=HumanReviewMetadata)
 
 
 class RestoreIntentRequest(BaseModel):

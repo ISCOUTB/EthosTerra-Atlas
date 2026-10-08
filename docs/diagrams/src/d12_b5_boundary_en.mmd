@@ -1,0 +1,55 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figure D12. Current Architectural Boundary for B5 Integration (Intentions CRUD)
+
+    subgraph TIER1["1. Ingestion and Decoupled Registry B5 (Implemented)"]
+        direction LR
+        subgraph ROUTE["API and Access"]
+            API_R["v2_routes.py & intents_routes.py<br/>(Mount points)"]:::impl
+            API_SEC["Access Control & Whitelist<br/>(validate_identifier)"]:::impl
+            API_R --> API_SEC
+        end
+        subgraph STORE["Decoupled Storage (Implemented)"]
+            ST_ACT["Intentions Registry<br/>(outputs/intents/ & audit log)"]:::impl
+            ST_TRASH["30-Day Trash Bin<br/>(Soft delete .trash/)"]:::impl
+            ST_ACT -.-> ST_TRASH
+        end
+        API_SEC --> ST_ACT
+    end
+
+    subgraph TIER2["2. Existing Protective Barriers and Destination Zones"]
+        direction TB
+        subgraph PROT["Operative Protective Mechanisms"]
+            direction LR
+            GATE["Approval Gate<br/>(assert_allowed)"]:::impl
+            HASH["Canonical Hasher<br/>(SHA-256 canonical)"]:::impl
+            SAND_SVC["Sandbox Service<br/>(validate_target)"]:::impl
+            GATE --- HASH --- SAND_SVC
+        end
+
+        subgraph ZONES["Storage Zones"]
+            direction LR
+            subgraph FORBIDDEN["PROTECTED ZONE (0 Writes)"]
+                ORIG_CORE["EthosTerra_original/ (Python BESA)<br/>[READ-ONLY - TOTAL LOCK]<br/>InstallationSecurityError on mutation"]:::impl
+            end
+            subgraph ALLOWED["Experiment Sandbox"]
+                EXP_EBDI["EthosTerra_experiment/<br/>data/ebdi/goals/ & plans/<br/>[Simulator target permitted]"]:::impl
+            end
+        end
+        PROT --> ZONES
+    end
+
+    TIER1 --> TIER2
+    GATE -.->|"Absolute block"| FORBIDDEN
+    SAND_SVC -->|"Permitted post-approval"| ALLOWED
+
+    subgraph LEGEND["Status Legend"]
+        direction LR
+        LEG_IMP["IMPLEMENTED (B5 & Barriers)"]:::impl
+        LEG_PAR["IN PLANNING (B6)"]:::partial
+        LEG_PEN["PENDING (B7 Integration)"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

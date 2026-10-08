@@ -1,0 +1,61 @@
+flowchart TB
+    %% Figura D9. Despliegue y Entorno de Ejecución Local Offline-First
+
+    subgraph HW_LOCAL["Hardware de Desarrollo Local (Soberanía de Datos)"]
+        MAC_M4["MacBook Air M4 (Apple Silicon)\n[16 GB Memoria Unificada | 10 Cores CPU | 10 Cores GPU]\nArquitectura arm64 | macOS Sequoia"]:::impl
+    end
+
+    subgraph OS_PROCESSES["Procesos y Runtimes Locales en Host"]
+        subgraph UI_HOST["Frontend Web (Vite + React 19)"]
+            PROC_UI["Node.js / pnpm\n[apps/ui/]"]:::impl
+            PORT_UI["Puerto Local: http://localhost:5173"]:::impl
+        end
+
+        subgraph API_HOST["Backend API (FastAPI)"]
+            PROC_API["Python 3.14 gestionado con uv\n[apps/api/]"]:::impl
+            PORT_API["Puerto Local: http://localhost:8000"]:::impl
+        end
+    end
+
+    subgraph CONTAINER_ENV["Entorno Contenedorizado Local (Docker Desktop)"]
+        DOCKER_ENGINE["Docker Engine (Local Desktop)"]:::impl
+        DMR_RUNNER["Docker Model Runner (DMR)\n[Runtime Optimizado Apple Silicon]"]:::impl
+        MODEL_LOCAL["Modelo Local: ai/gemma4:E4B\n[Digest: sha256:533eb3ccab62]\nCuantización: MOSTLY_Q4_K_M"]:::impl
+        PORT_DMR["Socket / Puerto Local: http://localhost:11434"]:::impl
+    end
+
+    subgraph NET_ISOLATION["Frontera de Aislamiento de Red"]
+        OFFLINE_LOCK["Ejecución 100% Offline-First\nCero peticiones a APIs externas en nube\nCero telemetría de inferencia"]:::impl
+    end
+
+    subgraph HW_PENDING["Infraestructura Institucional (Escala Futura)"]
+        SRV_GPU["Servidor Institucional UTB\n[GPU Dedicada de 24 GB VRAM]\n(Evaluaciones masivas y hold-out)"]:::pending
+    end
+
+    %% Relaciones
+    MAC_M4 --> OS_PROCESSES
+    MAC_M4 --> CONTAINER_ENV
+
+    PROC_UI --> PORT_UI
+    PROC_API --> PORT_API
+    DMR_RUNNER --> MODEL_LOCAL
+    DMR_RUNNER --> PORT_DMR
+
+    PORT_UI -->|"Peticiones HTTP/JSON locales"| PORT_API
+    PORT_API -->|"Inferencia httpx (/chat/completions)"| PORT_DMR
+
+    CONTAINER_ENV -.-> OFFLINE_LOCK
+    OS_PROCESSES -.-> OFFLINE_LOCK
+
+    MAC_M4 -.->|"Migración pendiente para benchmarking de alta concurrencia"| SRV_GPU
+
+    %% Leyenda
+    subgraph LEYENDA["Leyenda de Estado"]
+        LEG_IMP["IMPLEMENTADO (Operativo en Host M4)"]:::impl
+        LEG_PAR["PARCIAL"]:::partial
+        LEG_PEN["PENDIENTE (Infraestructura de Escala)"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

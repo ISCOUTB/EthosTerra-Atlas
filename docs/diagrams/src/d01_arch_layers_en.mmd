@@ -1,0 +1,40 @@
+%%{init: {"flowchart": {"nodeSpacing": 15, "rankSpacing": 20}}}%%
+flowchart TD
+    %% Figure D1. General Layered Architecture of the Hybrid eBDI System
+
+    subgraph TIER1["1. Presentation and Exposure Layer (React UI & FastAPI)"]
+        direction LR
+        UI["React 19 / TypeScript UI<br/>(DocumentPipelineView)"]:::impl --> API["FastAPI RouterV2<br/>(/v2/documents, :8000)"]:::impl
+    end
+
+    subgraph TIER2["2. Application, Domain & Hybrid Inference Layer"]
+        direction LR
+        APP["Application Services<br/>(Approval Gate, SHA-256 Hasher,<br/>YAML Generator & Validator)"]:::impl
+        DOM["Domain & Contracts<br/>(Pydantic V2 Schemas,<br/>17 Formal Actions Catalog)"]:::impl
+        INF["Hybrid Inference<br/>(Deterministic Hooks 5ms bypass<br/>+ Gemma 4 E4B Micro-LLM DMR)"]:::impl
+        APP <--> DOM
+        APP <--> INF
+    end
+
+    subgraph TIER3["3. Local Storage, Sandbox & Simulator Boundary"]
+        direction LR
+        SANDBOX["Sandbox & Storage<br/>(exp_vertical_001, .tar.gz Backups)"]:::impl
+        ORIG["EthosTerra_original<br/>(READ-ONLY - 0 writes to core)"]:::impl
+        EXT["External WellProdSim Simulator<br/>(Python BESA - Decoupled S6-S7)"]:::pending
+        SANDBOX -.->|"Read without mutation"| ORIG
+        SANDBOX -.->|"Deferred B7 link"| EXT
+    end
+
+    TIER1 --> TIER2
+    TIER2 --> TIER3
+
+    subgraph LEYENDA["State Legend"]
+        direction LR
+        LEG_IMP["IMPLEMENTED"]:::impl
+        LEG_PAR["PARTIAL"]:::partial
+        LEG_PEN["PENDING"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

@@ -1,0 +1,38 @@
+%%{init: {"flowchart": {"nodeSpacing": 15, "rankSpacing": 20}}}%%
+flowchart TD
+    %% Figura D4b. Flujo del Clasificador Híbrido — Inferencia Semántica Micro-LLM y Validación Pydantic
+
+    FROM_D4A["Viene de D4a:<br/>Casos Nominales / Inciertos<br/>(9 de 30 casos en dev set)"]:::partial --> PROMPT_SEL{"3b. Selección Condicional<br/>de Prompt"}:::impl
+
+    PROMPT_SEL -- "Conflicto" --> P_CONF["case_conflict_v1.txt"]:::impl
+    PROMPT_SEL -- "Nominal" --> P_PURE["case_pure_v1.txt"]:::impl
+
+    P_CONF --> DIGEST["4. Inyección Zero-Trust<br/>(Digest SHA-256)"]:::impl
+    P_PURE --> DIGEST
+
+    DIGEST --> DMR["5. Inferencia Micro-LLM Local<br/>(ai/gemma4:E4B vía DMR en :11434)<br/>temp: 0.0 | json_object | semáforo=1"]:::impl
+
+    DMR --> PYD_VAL{"6. Validación Sintáctica<br/>(Pydantic V2 / Schema)"}:::impl
+
+    PYD_VAL -- "Fallo de validación" --> REPAIR["Error / Escalamiento"]:::partial
+    PYD_VAL -- "JSON Válido" --> TYPE_DEC{"7. Tipo de Caso"}:::impl
+
+    TYPE_DEC -->|"puro"| RES_PURE["CasoPuro (humano: false)"]:::impl
+    TYPE_DEC -->|"conflicto"| RES_CONF["CasoConflictivo (humano: true)"]:::impl
+    TYPE_DEC -->|"ambiguo"| RES_UNCLEAR["CasoAmbiguo (humano: true)"]:::impl
+
+    RES_PURE --> FINAL_OUT(["Salida Contractual: PropuestaClasificacion<br/>(trace_id, latencia media 55s)"]):::impl
+    RES_CONF --> FINAL_OUT
+    RES_UNCLEAR --> FINAL_OUT
+
+    %% Leyenda
+    subgraph LEYENDA["Leyenda de Estado"]
+        direction LR
+        LEG_IMP["IMPLEMENTADO"]:::impl
+        LEG_PAR["PARCIAL / CONEXIÓN"]:::partial
+        LEG_PEN["PENDIENTE"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

@@ -1,0 +1,45 @@
+{
+  "source_id": "art_resolucion_841_2026",
+  "instrument_title": "Resolución 000841 de 2026: Adopción de la revisión y actualización de los Planes de Acción para la Transformación Regional (PATR)",
+  "document_sha256": "d4a73e8755ac97d63dee7a737dd354e998b2ed9a13e4c28858010a1ce48e28ee",
+  "extraction_timestamp_utc": "2026-10-08T02:03:58.801610+00:00",
+  "model_used": "gemma4:e4b",
+  "extraction_method": "local_tesseract_ocr_plus_micro_llm",
+  "total_beliefs_extracted": 1,
+  "verified_beliefs_count": 1,
+  "rejected_hallucinations_count": 0,
+  "beliefs": [
+    {
+      "belief_id": "bel_d4a73e87_det_e368",
+      "source_id": "art_resolucion_841_2026",
+      "pillar": "reactivacion_economica_agropecuaria",
+      "topic": "Pactos y Diagnóstico Territorial",
+      "belief_key": "pacto_diagnostico_territorial",
+      "trigger_condition": "El productor requiere planificar su ciclo agrícola conforme a los pactos territoriales vigentes.",
+      "executable_action": "agro_ecosystem_operation",
+      "action_operation_type": "PREPARE",
+      "behavioral_effect": "Planifica la preparación del suelo integrando las directrices territoriales.",
+      "activation_rule_template": "state.farmReady == 0",
+      "raw_excerpt": "El Acuerdo, en el punto 1 contiene la “Reforma Rural Integral’-RRI, el punto 2 la “Participacién Politica:\nApertura democratica para construir la paz’, el punto 3 el “Cese al fuego y de hostilidades Bilateral y\nDefinitivo y la Dejacion de las Armas”, el punto 4 “Solucién al Problema de las Drogas llicitas”, el punto\n2 “Victimas” y el punto 6 el “Mecanismos de Implementacién verificacion’",
+      "ebdi_belief_assertion": "En Montes de María: El Acuerdo, en el punto 1 contiene la “Reforma Rural Integral’-RRI, el punto 2 la “Participacién Politica:\nApertura democratica para construir la paz’, el punto 3 el “Cese al fuego y de hostilidades Bilateral y\nDefinitivo y la Dejacion de las Armas”, el punto 4 “Solucién al Problema de las Drogas llicitas”, el punto\n2 “Victimas” y el punto 6 el “Mecanismos de Implementacién verificacion’.",
+      "target_municipalities": [
+        "Montes de María"
+      ],
+      "applicable_divipolas": [
+        "13244",
+        "13654",
+        "13657",
+        "13442",
+        "70717"
+      ],
+      "confidence": 1.0,
+      "verification_status": "verified_verbatim",
+      "collision_detected": false,
+      "collision_reason": null,
+      "curation_status": "pending",
+      "curation_notes": null,
+      "curator_id": null,
+      "curation_timestamp_utc": null
+    }
+  ]
+}

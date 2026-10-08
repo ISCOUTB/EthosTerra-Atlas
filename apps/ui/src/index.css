@@ -1,13 +1,131 @@
 @import "tailwindcss";
 
+/*
+ * Sistema de diseño: DESIGN.md (Apple) adaptado a herramienta densa.
+ * Capa 1 = primitivos de color. Capa 2 = alias semanticos (bg-canvas, text-ink, ...).
+ * Los modulos existentes usan slate/blue/shadow: se remapean aqui para heredar
+ * el sistema sin tocar su logica.
+ */
 @theme {
-  --color-border: hsl(214.3 31.8% 91.4%);
-  --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(221.2 83.2% 53.3%);
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222.2 84% 4.9%);
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+  /* Semanticos */
+  --color-primary: #0066cc;
+  --color-primary-focus: #0071e3;
+  --color-primary-on-dark: #2997ff;
+  --color-ink: #1d1d1f;
+  --color-ink-muted: #515154;
+  --color-ink-subtle: #6e6e73;
+  --color-canvas: #ffffff;
+  --color-parchment: #f5f5f7;
+  --color-pearl: #fafafc;
+  --color-tile-dark: #272729;
+  --color-black-void: #000000;
+  --color-hairline: #e0e0e0;
+  --color-border: #e0e0e0;
+  --color-input: #e0e0e0;
+  --color-ring: #0071e3;
+  --color-background: #ffffff;
+  --color-foreground: #1d1d1f;
+
+  /* Tonos semanticos: SOLO para insignias de estado */
+  --color-status-puro-bg: #e8f5ec;
+  --color-status-puro-fg: #1e6b36;
+  --color-status-conflictivo-bg: #fff4e0;
+  --color-status-conflictivo-fg: #8a5200;
+  --color-status-error-bg: #fdecec;
+  --color-status-error-fg: #b3261e;
+  --color-status-vencido-bg: #fdeee3;
+  --color-status-vencido-fg: #a14a12;
+  --color-status-restaurado-bg: #e6f4f4;
+  --color-status-restaurado-fg: #176b6b;
+
+  /* Neutros: slate -> escala Apple */
+  --color-slate-50: #fafafc;
+  --color-slate-100: #f5f5f7;
+  --color-slate-200: #e0e0e0;
+  --color-slate-300: #d2d2d7;
+  --color-slate-400: #86868b;
+  --color-slate-500: #6e6e73;
+  --color-slate-600: #515154;
+  --color-slate-700: #333333;
+  --color-slate-800: #272729;
+  --color-slate-900: #1d1d1f;
+  --color-slate-950: #000000;
+
+  /* Un solo azul de accion (incluye usos heredados de purple) */
+  --color-blue-50: #f2f7fc;
+  --color-blue-100: #e5f0fa;
+  --color-blue-200: #cce1f5;
+  --color-blue-300: #99c3eb;
+  --color-blue-400: #2997ff;
+  --color-blue-500: #0071e3;
+  --color-blue-600: #0066cc;
+  --color-blue-700: #0058b0;
+  --color-blue-800: #004a94;
+  --color-blue-900: #003a75;
+  --color-purple-700: #0058b0;
+
+  /* Gramatica de radios: 8px utilidad, 18px tarjetas, pill para acciones */
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  --radius-xl: 18px;
+  --radius-2xl: 18px;
+
+  /* Sin sombras */
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
 }
 
 html, body, #root {
   height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.47;
+  letter-spacing: -0.224px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco siempre visible (teclado) */
+:focus-visible {
+  outline: 2px solid var(--color-primary-focus);
+  outline-offset: 2px;
+}
+
+/* IDs y hashes: monoespaciada a 14px en toda la app (sin capa para ganar a utilidades) */
+.font-mono {
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes progress-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-progress-shimmer {
+  background-size: 200% 100%;
+  animation: progress-shimmer 2.5s ease-in-out infinite;
 }

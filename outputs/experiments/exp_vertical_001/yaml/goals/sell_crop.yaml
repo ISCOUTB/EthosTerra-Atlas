@@ -1,0 +1,17 @@
+# GoalSpec: sell_crop
+# Documento de Origen: doc_diario_001
+# Hash de Aprobación: b5a5cb4ba1846e03c2882255d1cf757646902119d5bd6622353ff6d808056096
+
+id: sell_crop
+version: '1.0'
+display_name: Vender Cosecha
+description: Venta de cosecha en el mercado local para sustentar el hogar (peasant_77).
+pyramid_level: OPPORTUNITY
+sub_level: L3_PRODUCTIVE_DEVELOPMENT
+plan_ref: sell_crop_plan_v1
+activation_when: state.hasHarvestedWeight()
+contribution_rules:
+  fixed_value: 0.98
+normative_tags:
+  - agro
+  - market

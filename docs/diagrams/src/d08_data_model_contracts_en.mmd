@@ -1,0 +1,77 @@
+classDiagram
+    %% Figure D8. Data Model, Pydantic V2 Contracts and Epistemic States
+    direction TB
+
+    class EpistemicStatus {
+        <<enumeration>>
+        observed : Direct extraction
+        inferred : Deduced
+        proposed : Proposed action
+        required : Required resource
+        unknown : Unknown
+        not_stated : Not stated
+    }
+
+    class EpistemicItem {
+        +EpistemicStatus status
+        +Any value
+        +str evidence_ref
+        +str rationale
+    }
+
+    class EvidenceSpan {
+        +str fragment_id
+        +str source_ref
+        +int start_char
+        +int end_char
+        +str text_quote
+    }
+
+    class ExtractedKnowledge {
+        +EpistemicItem actor_alias
+        +EpistemicItem territory_context
+        +List~EpistemicItem~ beliefs
+        +List~EpistemicItem~ desires
+        +List~EpistemicItem~ intentions
+        +List~EpistemicItem~ requirements
+        +List~EpistemicItem~ detected_conflicts
+    }
+
+    class DocumentAnalysisSchema {
+        +str schema_version
+        +str document_id
+        +str document_hash
+        +ExtractedKnowledge extracted_knowledge
+        +List~EvidenceSpan~ evidence_spans
+    }
+
+    class OperationalDocumentSchema {
+        +str schema_version
+        +str experiment_id
+        +str document_id
+        +str status
+        +str review_status
+        +bool requires_human_review
+        +str tipo_caso
+        +List~EvidenceSpan~ evidence_spans
+    }
+
+    class GoalSpecArtifact {
+        +str goal_id
+        +str description
+        +List~str~ success_conditions
+    }
+
+    class PlanSpecArtifact {
+        +str plan_id
+        +str goal_ref
+        +List~str~ step_actions
+    }
+
+    DocumentAnalysisSchema *-- ExtractedKnowledge
+    ExtractedKnowledge *-- EpistemicItem
+    EpistemicItem *-- EpistemicStatus
+    DocumentAnalysisSchema *-- EvidenceSpan
+    OperationalDocumentSchema *-- EvidenceSpan
+    OperationalDocumentSchema <|-- GoalSpecArtifact
+    OperationalDocumentSchema <|-- PlanSpecArtifact

@@ -1,0 +1,49 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figure D11. Status Map and Development Roadmap (Blocks B1 to B13)
+
+    subgraph FASE_CONCLUIDA["1. Completed Phase (Baseline, Classification & Manual CRUD)"]
+        direction LR
+        B1["B1. Local Baseline<br/>[Week 5 | CLOSED]<br/>Canary DMR, 20 cases"]:::impl
+        B2["B2. Pure Case<br/>[Week 6 | CLOSED]<br/>Zero-Trust, Pydantic V2"]:::impl
+        B3["B3. Pipeline V2<br/>[Week 6 | CLOSED]<br/>EvidenceSpan, Gate"]:::impl
+        B4["B4. Conflict Case<br/>[Week 7 | CLOSED]<br/>30 cases, 53/53 tests"]:::impl
+        B5["B5. Manual Intentions CRUD<br/>[Week 8 | CLOSED]<br/>30d trash, 79/79 tests"]:::impl
+        B1 --> B2 --> B3 --> B4 --> B5
+    end
+
+    subgraph FASE_PROXIMA["2. Immediate Next Stage"]
+        B6["B6. Field Agronomic Corpus<br/>[NEXT STAGE / IN PLANNING]<br/>Ingestion of peasant diaries and interviews"]:::partial
+    end
+
+    subgraph FASE_FUTURA["3. Future Phases (Integration, Simulation and Validation)"]
+        direction TB
+        subgraph F_ROW1["Integration and Simulation (Weeks 10-12)"]
+            direction LR
+            B7["B7. EthosTerra Sim"]:::pending
+            B8["B8. BDI Sandbox"]:::pending
+            B9["B9. Adaptive BDI"]:::pending
+        end
+        subgraph F_ROW2["Scale, Validation and Degree"]
+            direction LR
+            B10["B10. GPU Server"]:::pending
+            B11["B11. Experts"]:::pending
+            B12["B12. Quality Gate"]:::pending
+            B13["B13. Final Thesis"]:::pending
+        end
+        F_ROW1 --> F_ROW2
+    end
+
+    B5 ==>|"Current Milestone: Ready for B6"| B6
+    B6 -.->|"Planned"| FASE_FUTURA
+
+    subgraph LEGEND["Status Legend"]
+        direction LR
+        LEG_IMP["IMPLEMENTED (B1-B5)"]:::impl
+        LEG_PAR["IN PLANNING (B6)"]:::partial
+        LEG_PEN["PENDING (B7-B13)"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

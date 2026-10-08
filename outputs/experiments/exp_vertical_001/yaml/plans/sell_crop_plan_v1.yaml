@@ -1,0 +1,24 @@
+# PlanSpec: sell_crop_plan_v1
+# Documento de Origen: doc_diario_001
+# Hash de Aprobación: b5a5cb4ba1846e03c2882255d1cf757646902119d5bd6622353ff6d808056096
+
+id: sell_crop_plan_v1
+version: '1.0'
+description: Ejecutar venta de cosecha en el mercado (peasant_77).
+steps:
+  - id: sell_op
+    action: agro_ecosystem_operation
+    args:
+      operation: SELL
+      crop_type: frijol
+  - id: record_sell_episode
+    action: emit_episode
+    args:
+      text: He vendido la cosecha en el mercado local para cubrir necesidades familiares
+        (peasant_77).
+      tags:
+        - agro
+        - sell
+        - market
+on_timeout: []
+on_failure: []

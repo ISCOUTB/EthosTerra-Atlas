@@ -1,0 +1,66 @@
+stateDiagram-v2
+    %% Figura D6. Diagrama de Estados del Documento Operativo y Compuertas Criptográficas
+
+    [*] --> Borrador: Ingesta de texto crudo<br/>(POST /v2/documents/ingest)
+    note right of Borrador
+        Texto canonicalizado y hash SHA-256
+        guardado en outputs/experiments/.../sources/
+    end note
+
+    Borrador --> Analizado: Extracción epistemológica<br/>(POST /v2/documents/{id}/extract)
+
+    Analizado --> EvaluandoTipo: Estructuración operativa<br/>(POST /v2/documents/{id}/structure)
+
+    state EvaluandoTipo <<choice>>
+    EvaluandoTipo --> AprobacionPendiente: tipo_caso == 'puro'
+    EvaluandoTipo --> Requiere_Revision: tipo_caso == 'conflicto' o ambigüedad
+
+    state Requiere_Revision {
+        [*] --> RevisionHumana: review_status = 'pending'<br/>requires_human_review = true<br/>selected_alternative = null
+        RevisionHumana --> Resolucion: Investigador selecciona alternativa y anota justificación
+        RevisionHumana --> Rechazado: Investigador rechaza propuesta
+    }
+
+    state AprobacionPendiente {
+        [*] --> EsperaFirma: review_status = 'not_required'<br/>Validación sintáctica OK
+    }
+
+    EsperaFirma --> Aprobado: Aprobación humana<br/>(POST /v2/documents/{id}/approve)
+    Resolucion --> Aprobado: Aprobación con alternativa<br/>(POST /v2/documents/{id}/approve)
+
+    note right of Aprobado
+        Sello Criptográfico Inmutable:
+        Se calcula hash SHA-256 canónico (11 campos)
+        y se registra en approval_metadata.approved_json_hash
+    end note
+
+    Aprobado --> Generado_YAML: Generar YAMLs<br/>(POST /v2/documents/{id}/generate-yaml)<br/>Verificación assert_yaml_generation_allowed
+    note right of Generado_YAML
+        YAMLs de GoalSpec y PlanSpec
+        escritos en outputs/.../yaml/
+        con header de trazabilidad
+    end note
+
+    Generado_YAML --> Instalado_Sandbox: Instalar en Sandbox<br/>(POST /v2/experiments/{id}/install)
+    note right of Instalado_Sandbox
+        Crea backup .tar.gz en backups/
+        Instala en EthosTerra_experiment
+        (EthosTerra_original intacto)
+    end note
+
+    Instalado_Sandbox --> [*]
+    Rechazado --> [*]
+
+    %% Transiciones de Bloqueo
+    Borrador --> Bloqueo_403: Intento directo de generar YAML<br/>[Documento no aprobado]
+    Analizado --> Bloqueo_403: Intento directo de generar YAML<br/>[Documento no aprobado]
+    Requiere_Revision --> Bloqueo_403: Intento sin seleccionar alternativa<br/>[selected_alternative == null]
+    Aprobado --> Bloqueo_Tampering_403: Alteración posterior del JSON<br/>[current_hash ≠ approved_json_hash]
+
+    state Bloqueo_403 {
+        [*] --> HTTP_403_Forbidden: YAMLGenerationBlocked<br/>Compuerta de seguridad deniega generación
+    }
+
+    state Bloqueo_Tampering_403 {
+        [*] --> HTTP_403_Tamper: Violación de Integridad Criptográfica<br/>Hash recalculado discrepa de la firma
+    }

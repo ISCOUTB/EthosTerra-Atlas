@@ -2,13 +2,13 @@
   "schema_version": "2.0.0",
   "document_id": "doc_diario_001",
   "source_type": "peasant_diary",
-  "document_hash": "c03e7415c72c0019706555bea0b9951a950047a58efd636f628e2bc53424d6c4",
+  "document_hash": "b4dd8de3cb2688dc2d69410c2373c14e1e790838763259f4c531a4616105cac2",
   "extracted_knowledge": {
     "actor_alias": {
       "status": "observed",
-      "value": "peasant_01",
+      "value": "peasant_77",
       "evidence_ref": "frag_01",
-      "rationale": null
+      "rationale": "Alias 'peasant_77' explícitamente observado en el documento."
     },
     "territory_context": {
       "status": "not_stated",
@@ -20,27 +20,46 @@
     "desires": [
       {
         "status": "inferred",
-        "value": "alistar el suelo para la siembra",
+        "value": "comprar alimentos y pagar transporte escolar",
         "evidence_ref": "frag_01",
-        "rationale": null
+        "rationale": "Deseo socioeconómico inferido de la destinación del ingreso."
       }
     ],
     "intentions": [
       {
         "status": "observed",
-        "value": "prepare_land",
+        "value": "sell_crop",
         "evidence_ref": "frag_01",
-        "rationale": null
+        "rationale": "La campesina/campesino declara la necesidad de vender parte de la cosecha."
       }
     ],
     "requirements": [
       {
         "status": "required",
         "value": {
-          "resource": "tools"
+          "resource": "costales",
+          "specification": "costales limpios"
         },
         "evidence_ref": "frag_01",
-        "rationale": "El texto explicita que se requiere tener las herramientas disponibles."
+        "rationale": "Requiere costales limpios para empacar la cosecha."
+      },
+      {
+        "status": "required",
+        "value": {
+          "resource": "acceso_vial",
+          "specification": "acceso al camino veredal"
+        },
+        "evidence_ref": "frag_01",
+        "rationale": "Requiere acceso al camino veredal para movilizar la carga."
+      },
+      {
+        "status": "required",
+        "value": {
+          "resource": "transporte",
+          "specification": "apoyo de un vecino con motocicleta"
+        },
+        "evidence_ref": "frag_01",
+        "rationale": "Requiere transporte solidario mediante motocicleta."
       }
     ],
     "detected_conflicts": [],
@@ -71,13 +90,13 @@
       "fragment_id": "frag_01",
       "source_ref": "diario_campesino_preparacion.txt",
       "start_char": 0,
-      "end_char": 219,
-      "text_quote": "El campesino peasant_01 indica que para la próxima temporada de siembra es indispensable preparar el terreno adecuadamente. Para llevar a cabo esta labor se requiere contar con las herramientas necesarias en la parcela."
+      "end_char": 255,
+      "text_quote": "La campesina peasant_77 declara que necesita vender parte de la cosecha de frijol en el mercado local para comprar alimentos y pagar transporte escolar. Para hacerlo requiere costales limpios, acceso al camino veredal y apoyo de un vecino con motocicleta."
     }
   ],
   "extraction_metadata": {
-    "extractor_model": "ai/gemma4:E4B",
-    "extraction_mode": "controlled_vertical_slice",
-    "extracted_at": "2026-09-17T03:02:54.562898+00:00"
+    "extractor_model": "deterministic_rules_v1",
+    "extraction_mode": "deterministic_fallback",
+    "extracted_at": "2026-10-05T20:52:37.563787+00:00"
   }
 }

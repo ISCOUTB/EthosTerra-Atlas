@@ -1,0 +1,62 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figure D10. Forensic Traceability of Artifacts, Evidence and Reports
+
+    subgraph TIER1["1. Ingestion and JSON Pipeline"]
+        direction TB
+        SRC_TXT["diario_campesino.txt (SHA-256 Hash)"]:::impl --> JSON_AN["analysis.json (Spans)"]:::impl
+        JSON_AN --> JSON_APP["approved.json (11-field Hash)"]:::impl
+    end
+
+    subgraph TIER2["2. Declarative Artifacts and Sandbox"]
+        direction TB
+        subgraph YAMLS["YAML Artifacts"]
+            direction LR
+            Y_GOAL["goals/*.yaml"]:::impl
+            Y_PLAN["plans/*.yaml"]:::impl
+        end
+        subgraph SAND["Experiment Sandbox and Backups"]
+            direction LR
+            EXP_SAND["EthosTerra_experiment/"]:::impl
+            BACKUP["backup_*.tar.gz"]:::impl
+        end
+        YAMLS --> EXP_SAND
+        EXP_SAND -.-> BACKUP
+    end
+
+    subgraph TIER3["3. B4 Evaluation and Academic Manuscripts"]
+        direction TB
+        subgraph EV1["Metrics and Manifest"]
+            direction LR
+            REP["report_week7.json<br/>(avg 16.518ms, p50 5ms, p95 68.480ms)"]:::impl
+            MAN["manifest_week7.json<br/>(runtime_compat: unknown)"]:::impl
+        end
+        subgraph EV2["Tests and Traceability"]
+            direction LR
+            VAL["validation_report.json (53/53 tests)"]:::impl
+            TRAC["b4_traceability.json (30 cases: 21 hooks, 9 LLM)"]:::impl
+        end
+        subgraph DOCS["Formal Manuscripts"]
+            direction LR
+            D_ES["informe_semana_7_es.tex / .pdf"]:::impl
+            D_EN["week_7_report_en.tex / .pdf"]:::impl
+        end
+        EV1 --> EV2
+        EV2 --> DOCS
+    end
+
+    TIER1 --> TIER2
+    TIER2 --> TIER3
+
+    NOTE_DEV["Methodological Note: 10 agronomic cases are dev set.<br/>100% metrics are not generalizable."]:::partial
+
+    subgraph LEGEND["Status Legend"]
+        direction LR
+        LEG_IMP["IMPLEMENTED"]:::impl
+        LEG_PAR["PARTIAL / DEV SET"]:::partial
+        LEG_PEN["PENDING"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

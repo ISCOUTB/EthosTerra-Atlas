@@ -1,0 +1,34 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figure D2. System Context Diagram (C4 Level 1)
+
+    subgraph IN["1. Actors and Document Ingestion"]
+        direction LR
+        ACT_INV["Principal Investigator<br/>(Audit and Approval)"]:::impl
+        DOCS["Field Diaries<br/>(Raw input text)"]:::impl
+    end
+
+    subgraph SYS["2. Offline System Boundary (Apple Silicon M4)"]
+        SYS_MAIN["Hybrid eBDI + Local Micro-LLM System<br/>(FastAPI / React / Pydantic V2)<br/>Ingestion, extraction, classification and invariants"]:::impl
+    end
+
+    subgraph OUT["3. Execution Environment and External Boundary"]
+        direction LR
+        DMR_LOCAL["Docker Model Runner (DMR)<br/>ai/gemma4:E4B local :11434"]:::impl
+        SIM_CORE["WellProdSim Simulator<br/>(Python BESA - Decoupled B7)"]:::pending
+    end
+
+    IN -->|"HTTP / Ingestion"| SYS
+    SYS -->|"Offline inference :11434"| DMR_LOCAL
+    SYS -.->|"Decoupled boundary B7"| SIM_CORE
+
+    subgraph LEGEND["Status Legend"]
+        direction LR
+        LEG_IMP["IMPLEMENTED"]:::impl
+        LEG_PAR["PARTIAL"]:::partial
+        LEG_PEN["PENDING"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

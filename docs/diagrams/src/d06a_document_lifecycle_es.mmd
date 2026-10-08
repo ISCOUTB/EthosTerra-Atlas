@@ -1,0 +1,34 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figura D6a. Máquina de Estados del Documento — Ingesta, Estructuración y Bloqueo
+
+    START([Inicio: Texto crudo]) --> BORRADOR(["Borrador<br/>(status: Borrador)"]):::impl
+    BORRADOR -->|"POST /v2/documents/extract"| ANALIZADO(["Analizado<br/>(status: Analizado)"]):::impl
+    ANALIZADO -->|"POST /v2/documents/structure"| EVAL{"¿Tipo de Caso?"}:::impl
+
+    EVAL -- "puro" --> APROB_PEND["Aprobación Pendiente<br/>(review: not_required)"]:::impl
+    EVAL -- "conflicto / ambiguo" --> REQ_REV["Requiere_Revision<br/>(review: pending)"]:::impl
+
+    REQ_REV -->|"Resolución"| RESUELTO["Conflicto Resuelto<br/>(review: resolved)"]:::impl
+    REQ_REV -->|"Rechazo"| RECHAZADO(["Rechazado<br/>(status: Rechazado)"]):::impl
+
+    APROB_PEND & RESUELTO --> TO_D6B["Conecta con D6b:<br/>Firma Hash, YAML y Sandbox"]:::partial
+
+    subgraph BLOQUEOS["Rutas de Bloqueo Preventivo (Approval Gate)"]
+        BLOQ_403["HTTP 403 Forbidden<br/>Intento YAML sin estado Aprobado<br/>o sin alternativa seleccionada"]:::partial
+    end
+
+    BORRADOR -.-> BLOQUEOS
+    ANALIZADO -.-> BLOQUEOS
+    REQ_REV -.-> BLOQUEOS
+
+    subgraph LEYENDA["Leyenda de Estado"]
+        direction LR
+        LEG_IMP["IMPLEMENTADO"]:::impl
+        LEG_PAR["PARCIAL / CONEXIÓN"]:::partial
+        LEG_PEN["PENDIENTE"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

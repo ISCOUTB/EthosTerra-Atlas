@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-09-25T07:11:25.000000+00:00",
+  "model_name": "ai/gemma4:E4B",
+  "model_digest": "sha256:533eb3ccab62",
+  "evaluation_mode": "real_model",
+  "evaluation_status": "success",
+  "total_cases": 30,
+  "attempted_cases": 30,
+  "completed_cases": 30,
+  "failed_requests": 0,
+  "inference_availability": 1.0,
+  "metrics": {
+    "case_type_accuracy": 1.0,
+    "conflict_recall": 1.0,
+    "conflict_precision": 1.0,
+    "conflict_f1": 1.0,
+    "false_conflict_rate": 0.0,
+    "false_pure_rate": 0.0,
+    "source_traceability_rate": 1.0,
+    "common_trigger_identification_rate": 1.0,
+    "collision_intention_identification_rate": 1.0,
+    "human_review_routing_rate": 1.0,
+    "json_structural_validity": 1.0,
+    "hallucination_rate": 0.0,
+    "avg_latency_ms": 16518.3933,
+    "latency_p50_ms": 5.0,
+    "latency_p95_ms": 68480.289,
+    "latency_breakdown": {
+      "hook_cases_count": 21,
+      "hook_latency_avg_ms": 5.0,
+      "hook_latency_p50_ms": 5.0,
+      "hook_latency_p95_ms": 5.0,
+      "llm_cases_count": 9,
+      "llm_latency_avg_ms": 55049.64,
+      "llm_latency_p50_ms": 55663.81,
+      "llm_latency_p95_ms": 69124.17,
+      "timeout_ms": 200000,
+      "retries": 0
+    }
+  },
+  "failure_summary": {
+    "http_500": 0,
+    "connection_disconnected": 0,
+    "http_422": 0
+  },
+  "failures": [],
+  "confusion_matrix": {
+    "pure": {
+      "pure": 8,
+      "conflict": 0,
+      "unclear": 0
+    },
+    "conflict": {
+      "pure": 0,
+      "conflict": 12,
+      "unclear": 0
+    },
+    "unclear": {
+      "pure": 0,
+      "conflict": 0,
+      "unclear": 10
+    }
+  },
+  "sample_caveat": "Sin errores observados en la muestra de desarrollo evaluada (dev set). Resultado preliminar que requiere validación con hold-out y documentos de campo externos."
+}

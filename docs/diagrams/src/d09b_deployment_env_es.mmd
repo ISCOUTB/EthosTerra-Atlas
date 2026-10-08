@@ -1,0 +1,40 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figura D9b. Runtime de Inferencia Docker Model Runner y Aislamiento de Red
+
+    FROM_D9A["Viene de Figura D9a:<br/>Backend FastAPI (:8000)"]:::partial --> DOCKER_NET
+
+    subgraph DOCKER_NET["2. Entorno Contenerizado Docker (Red Interna :11434)"]
+        direction TB
+        DMR["Docker Model Runner (DMR)<br/>ai/gemma4:E4B (Q4_K_M / 4.3 GB)<br/>Inferencia local Metal / GPU Apple"]:::impl
+
+        subgraph VOLS["Volúmenes Persistentes"]
+            direction LR
+            V_MODELS["dmr-models<br/>(pesos del modelo)"]:::impl
+            V_CACHE["dmr-cache<br/>(contexto KV)"]:::impl
+        end
+
+        DMR --- VOLS
+    end
+
+    subgraph EXT_FS["3. Sistema de Archivos y Frontera"]
+        direction TB
+        FS_EXP["EthosTerra_experiment/<br/>(Instalación y backups)"]:::impl
+        FS_ORIG["EthosTerra_original/<br/>(Solo lectura - 0 escrituras)"]:::impl
+        FS_SIM["Simulador WellProdSim<br/>(Desacoplado hasta B7)"]:::pending
+    end
+
+    DOCKER_NET --> FS_EXP
+    FS_EXP -.->|"Lectura sin mutación"| FS_ORIG
+    FS_EXP -.->|"Enlace diferido B7"| FS_SIM
+
+    subgraph LEYENDA["Leyenda de Estado"]
+        direction LR
+        LEG_IMP["IMPLEMENTADO"]:::impl
+        LEG_PAR["PARCIAL / CONEXIÓN"]:::partial
+        LEG_PEN["PENDIENTE"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

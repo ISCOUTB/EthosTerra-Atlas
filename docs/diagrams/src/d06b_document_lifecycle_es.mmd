@@ -1,0 +1,37 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figura D6b. Máquina de Estados del Documento — Aprobación, Hash, YAML y Sandbox
+
+    FROM_D6A["Viene de Figura D6a:<br/>Aprobación Pendiente o Resuelto"]:::partial --> APPROVE_CALL["1. Solicitud de Aprobación<br/>(POST /v2/documents/approve)"]:::impl
+
+    APPROVE_CALL --> CANONICAL_HASH["2. Hasher Canónico SHA-256<br/>(Firma sobre 11 campos normativos)"]:::impl
+
+    CANONICAL_HASH --> APROBADO(["3. Estado: Aprobado<br/>(approval_metadata sellado)"]):::impl
+
+    APROBADO --> GEN_YAML["4. Generación Gobernada de YAML<br/>(POST /generate-yaml | Gate valida hash)"]:::impl
+
+    GEN_YAML --> ARTIFACTS["5. Artefactos Declarativos Listos<br/>(goals/*.yaml y plans/*.yaml)"]:::impl
+
+    ARTIFACTS --> INSTALL_CALL["6. Instalación en Sandbox<br/>(POST /experiments/install)"]:::impl
+
+    INSTALL_CALL --> GATE_CHECK{"7. Validación de Destino<br/>(validate_target_sandbox)"}:::impl
+
+    GATE_CHECK -- "Ruta original (RO)" --> SEC_ERR["InstallationSecurityError<br/>(0 escrituras al núcleo)"]:::partial
+    GATE_CHECK -- "Sandbox experimental" --> INSTALLED["Instalado con Backup .tar.gz<br/>(EthosTerra_experiment)"]:::impl
+
+    subgraph TAMPERING["Protección Post-Aprobación"]
+        TAMP_NODE["Detección de Tampering<br/>Si el JSON cambia post-firma,<br/>hash mismatch bloquea generación"]:::partial
+    end
+
+    APROBADO -.-> TAMPERING
+
+    subgraph LEYENDA["Leyenda de Estado"]
+        direction LR
+        LEG_IMP["IMPLEMENTADO"]:::impl
+        LEG_PAR["PARCIAL / CONEXIÓN"]:::partial
+        LEG_PEN["PENDIENTE"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

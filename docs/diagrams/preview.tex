@@ -1,0 +1,38 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-nodecimaldot]{babel}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{pdflscape}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\begin{document}
+
+\title{\textbf{Paquete de Diagramas Arquitectónicos y de Trazabilidad}\\[0.5em]\large Framework Híbrido de Agentes Emocionales eBDI con Micro-LLM Local (\texttt{ai/gemma4:E4B})}
+\author{Maestría en Ingeniería --- Universidad Tecnológica de Bolívar (UTB)}
+\date{Octubre 2026}
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+Este documento consolida el paquete completo de figuras arquitectónicas, de flujo y de trazabilidad forense correspondiente al estado actual del proyecto tras la consolidación de los bloques B1 a B4 (Línea Base Canario, Caso Puro, Pipeline V2 Formal y Caso Conflictivo), y delimita las fronteras arquitectónicas para el Bloque B5 (CRUD Manual de Intenciones Declarativas). Comprende 16 figuras principales divididas en vistas de detalle operativas (32 páginas en español e inglés). Todas las figuras en orientación vertical cumplen estrictamente con el umbral tipográfico de legibilidad en página impresa A4 ($\ge 6{,}0\text{ pt}$ en cuerpo de texto).
+\end{abstract}
+
+\clearpage
+
+\input{docs/diagrams/figures.tex}
+
+\end{document}

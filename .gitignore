@@ -47,3 +47,12 @@ README_LATEX.md
 # Corpus raw sources (raw interviews, diaries, PII audio/text)
 outputs/corpus/*/sources/
 outputs/corpus/**/sources/
+
+# Atlas raw documents and downloads (AT-1)
+outputs/atlas/**/sources/
+outputs/atlas/raw/
+
+# Ephemeral artifacts & test results
+scratch/
+test-results/
+municipios-colombia/

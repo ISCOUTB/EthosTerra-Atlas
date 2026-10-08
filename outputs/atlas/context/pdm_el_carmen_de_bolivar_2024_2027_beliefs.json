@@ -1,0 +1,39 @@
+{
+  "source_id": "pdm_el_carmen_de_bolivar_2024_2027",
+  "instrument_title": "Plan de Desarrollo Municipal de El Carmen de Bolívar 2024-2027: Transformación Agropecuaria y Resiliencia Hídrica",
+  "document_sha256": "0d50576d198e4b86206f2d9f1e521cd016e6163952f9a6d2d932ed1ec8978a32",
+  "extraction_timestamp_utc": "2026-10-07T23:48:17.693228+00:00",
+  "model_used": "gemma4:e4b",
+  "extraction_method": "poppler_pdftotext_plus_micro_llm",
+  "total_beliefs_extracted": 1,
+  "verified_beliefs_count": 1,
+  "rejected_hallucinations_count": 0,
+  "beliefs": [
+    {
+      "belief_id": "bel_0d50576d_0_0_7e20",
+      "source_id": "pdm_el_carmen_de_bolivar_2024_2027",
+      "pillar": "reactivacion_economica_agropecuaria",
+      "topic": "Gestión hídrica y cultivos",
+      "belief_key": "acceso_riego_comunal",
+      "trigger_condition": "Cuando la disponibilidad de agua es insuficiente para el ciclo de cultivo.",
+      "executable_action": "agro_ecosystem_operation",
+      "action_operation_type": "IRRIGATE",
+      "behavioral_effect": "Busca y gestiona el acceso a fuentes de agua colectivas o subsidios de riego.",
+      "activation_rule_template": "state.water_available < 10",
+      "raw_excerpt": "Resiliencia Hídrica",
+      "ebdi_belief_assertion": "El acceso a fuentes de agua colectivas es fundamental para garantizar la continuidad de los ciclos de cultivo en El Carmen de Bolívar.",
+      "target_municipalities": [
+        "El Carmen de Bolívar"
+      ],
+      "applicable_divipolas": [
+        "13244"
+      ],
+      "confidence": 0.95,
+      "verification_status": "verified_verbatim",
+      "curation_status": "pending",
+      "curation_notes": null,
+      "curator_id": null,
+      "curation_timestamp_utc": null
+    }
+  ]
+}

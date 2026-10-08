@@ -1,0 +1,221 @@
+{
+  "generated_at": "2026-09-25T07:30:00.000000+00:00",
+  "verification_status": "passed_perfect_consistency",
+  "documents": {
+    "spanish_report": {
+      "tex_file": "outputs/reports/informe_semana_7_es.tex",
+      "pdf_file": "outputs/reports/informe_semana_7_es.pdf",
+      "title": "Implementación del clasificador de Caso Conflictivo y trazabilidad de colisiones de intenciones",
+      "sections_count": 24,
+      "pdf_size_bytes": 612347,
+      "sha256_tex": "456caf21695d46ddd7f1ad5bd77bf3e8042482731ea109acc8e446ff6c688e4d",
+      "sha256_pdf": "487ad61973c18d8393b3ac95528d926a31ff90f2bd36c4906149079cf2364324"
+    },
+    "english_report": {
+      "tex_file": "outputs/reports/week_7_report_en.tex",
+      "pdf_file": "outputs/reports/week_7_report_en.pdf",
+      "title": "Implementation of the Conflict-Case Classifier and Traceability of Intention Collisions",
+      "sections_count": 24,
+      "pdf_size_bytes": 587559,
+      "sha256_tex": "dbbc6ea788277d992b8f588dc88fa72d8577bb6d29373d00c92b1575e57f9630",
+      "sha256_pdf": "5ba911511fc607e1cb7fbbcd6a7722f32185ea2229f03e7cad294e89ec9555f7"
+    }
+  },
+  "project_metadata": {
+    "project_title_es": "Framework Híbrido de Agentes Emocionales eBDI con Micro-LLM para la Simulación de Decisiones Agronómicas en Pequeños Productores",
+    "project_title_en": "Hybrid eBDI Emotional Agent Framework with Micro-LLM for Agronomic Decision Simulation in Smallholder Farmers",
+    "base_system": "WellProdSim / EthosTerra",
+    "investigator": "Jesús Antonio Martínez Velandia",
+    "institution": "Universidad Tecnológica de Bolívar",
+    "program": "Maestría en Ingeniería",
+    "course": "Seminario de Investigación II",
+    "director": "Jairo Serrano",
+    "co_directors": [
+      "Edwin Puertas",
+      "Juan Martínez"
+    ],
+    "period": "Semana 7 de 16 (Hito B4)",
+    "date": "2026-09-25"
+  },
+  "dataset_partitioning": {
+    "total_cases": 30,
+    "legacy_cases_count": 20,
+    "legacy_cases_role": "comparative_regression_baseline_s5_s6",
+    "agronomic_dev_cases_count": 10,
+    "agronomic_dev_cases_role": "development_calibration_sample",
+    "is_independent_holdout": false,
+    "overfitting_risk_declared": true,
+    "class_breakdown": {
+      "pure_cases": 8,
+      "conflict_cases": 12,
+      "unclear_cases": 10
+    }
+  },
+  "confusion_matrix_3x3": {
+    "pure": {
+      "pure": 8,
+      "conflict": 0,
+      "unclear": 0
+    },
+    "conflict": {
+      "pure": 0,
+      "conflict": 12,
+      "unclear": 0
+    },
+    "unclear": {
+      "pure": 0,
+      "conflict": 0,
+      "unclear": 10
+    }
+  },
+  "quantitative_metrics_comparison": {
+    "overall_accuracy": {
+      "spanish_report_val": 1.0,
+      "english_report_val": 1.0,
+      "official_json_val": 1.0,
+      "threshold": 0.85,
+      "is_identical": true
+    },
+    "conflict_precision": {
+      "spanish_report_val": 1.0,
+      "english_report_val": 1.0,
+      "official_json_val": 1.0,
+      "threshold": 0.85,
+      "is_identical": true
+    },
+    "conflict_recall": {
+      "spanish_report_val": 1.0,
+      "english_report_val": 1.0,
+      "official_json_val": 1.0,
+      "threshold": 0.9,
+      "is_identical": true
+    },
+    "conflict_f1": {
+      "spanish_report_val": 1.0,
+      "english_report_val": 1.0,
+      "official_json_val": 1.0,
+      "threshold": 0.85,
+      "is_identical": true
+    },
+    "false_pure_rate": {
+      "spanish_report_val": 0.0,
+      "english_report_val": 0.0,
+      "official_json_val": 0.0,
+      "threshold": 0.05,
+      "is_identical": true
+    },
+    "false_conflict_rate": {
+      "spanish_report_val": 0.0,
+      "english_report_val": 0.0,
+      "official_json_val": 0.0,
+      "threshold": 0.1,
+      "is_identical": true
+    },
+    "source_traceability_rate": {
+      "spanish_report_val": 1.0,
+      "english_report_val": 1.0,
+      "official_json_val": 1.0,
+      "threshold": 1.0,
+      "is_identical": true
+    },
+    "common_trigger_identification_rate": {
+      "spanish_report_val": 1.0,
+      "english_report_val": 1.0,
+      "official_json_val": 1.0,
+      "threshold": 1.0,
+      "is_identical": true
+    },
+    "collision_intention_identification_rate": {
+      "spanish_report_val": 1.0,
+      "english_report_val": 1.0,
+      "official_json_val": 1.0,
+      "threshold": 1.0,
+      "is_identical": true
+    },
+    "human_review_routing_rate": {
+      "spanish_report_val": 1.0,
+      "english_report_val": 1.0,
+      "official_json_val": 1.0,
+      "threshold": 1.0,
+      "is_identical": true
+    },
+    "json_structural_validity": {
+      "spanish_report_val": 1.0,
+      "english_report_val": 1.0,
+      "official_json_val": 1.0,
+      "threshold": 1.0,
+      "is_identical": true
+    },
+    "hallucination_cases_observed": {
+      "spanish_report_val": 0,
+      "english_report_val": 0,
+      "official_json_val": 0,
+      "threshold": 0,
+      "is_identical": true
+    },
+    "inference_availability": {
+      "spanish_report_val": 1.0,
+      "english_report_val": 1.0,
+      "official_json_val": 1.0,
+      "threshold": 0.95,
+      "is_identical": true
+    },
+    "unit_tests_passing": {
+      "spanish_report_val": "53/53",
+      "english_report_val": "53/53",
+      "pytest_suite": "53/53",
+      "is_identical": true
+    }
+  },
+  "latency_comparison": {
+    "overall_latency_ms": {
+      "avg_ms": 16518.3933,
+      "p50_ms": 5.0,
+      "p95_ms": 68480.289,
+      "is_identical_in_reports": true
+    },
+    "hook_bypass_latency_ms": {
+      "cases_count": 21,
+      "avg_ms": 5.0,
+      "p50_ms": 5.0,
+      "p95_ms": 5.0,
+      "is_identical_in_reports": true
+    },
+    "dmr_llm_latency_ms": {
+      "cases_count": 9,
+      "avg_ms": 55049.64,
+      "p50_ms": 55663.81,
+      "p95_ms": 69124.17,
+      "is_identical_in_reports": true
+    },
+    "infrastructure_params": {
+      "timeout_ms": 200000,
+      "retries": 0,
+      "model": "ai/gemma4:E4B",
+      "quantization": "MOSTLY_Q4_K_M",
+      "backend": "Docker Model Runner (llama.cpp)"
+    }
+  },
+  "ebdi_governance_invariants": {
+    "runtime_compatible": "unknown",
+    "simulation_execution_status": "not_executed",
+    "unresolved_conflict_yaml_generation": "blocked_http_409",
+    "approved_conflict_yaml_generation": "permitted_with_sha256",
+    "autonomous_llm_resolution": "strictly_prohibited",
+    "alternatives_schema": [
+      "alt_01",
+      "alt_02",
+      "alt_03"
+    ],
+    "initial_selected_alternative": null,
+    "initial_lifecycle_state": "Requiere_Revision"
+  },
+  "methodological_caveats": {
+    "preliminary_nature": "Confirmed in both ES Section 19 and EN Section 19",
+    "overfitting_risk_declaration": "Confirmed in both ES Section 19 and EN Section 19",
+    "holdout_requirement": "Confirmed in both ES Section 20 and EN Section 20",
+    "hallucination_declaration_es": "No se observaron datos inventados según los invariantes implementados en los 30 casos evaluados.",
+    "hallucination_declaration_en": "No unsupported invented data were observed under the implemented invariants in the 30 evaluated cases.",
+    "prohibited_phrases_found": false
+  }
+}

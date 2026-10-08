@@ -1,0 +1,49 @@
+flowchart TD
+    %% Figure D4. Hybrid Classifier Flow (Deterministic Hooks + Micro-LLM)
+
+    START(["Start: Context Payload\n(POST /classifications:propose)"]):::impl --> NORM["1. Sensor Normalization & Enrichment\n(context_data with trace ID)"]:::impl
+
+    NORM --> HOOKS{"2. Physical/Agronomic Invariant\nViolated in validate_invariants?"}:::impl
+
+    %% Bypass Branch
+    HOOKS -- "YES: Conflict or Ambiguity\n(21 of 30 cases in dev set)" --> BYPASS["3a. Deterministic In-Memory Bypass\n(Fixed Latency: 5.0 ms | Zero LLM calls)"]:::impl
+    BYPASS --> EXT_SRC["Extract Colliding Sources\n(extract_conflict_sources)"]:::impl
+    EXT_SRC --> OUT_HOOK["Build CasoConflictivo / CasoAmbiguo\n(requiere_humano: true, confidence: 1.0)"]:::impl
+
+    %% LLM Branch
+    HOOKS -- "NO: Nominal or Uncertain\n(9 of 30 cases in dev set)" --> PROMPT_SEL{"3b. Conditional Prompt Selection\n(should_use_conflict_prompt)"}:::impl
+
+    PROMPT_SEL -- "Conflict indicators" --> P_CONF["Load case_conflict_v1.txt"]:::impl
+    PROMPT_SEL -- "Pure/standard scenario" --> P_PURE["Load case_pure_v1.txt"]:::impl
+
+    P_CONF --> DIGEST["4. Zero-Trust Injection & Digest\n(Prompt SHA-256 Hash)"]:::impl
+    P_PURE --> DIGEST
+
+    DIGEST --> DMR["5. Local Micro-LLM Inference\n(ai/gemma4:E4B via DMR on :11434)\n[temperature: 0.0, json_object, semaphore=1]\nAverage LLM Latency: 55,049.64 ms"]:::impl
+
+    DMR --> PYD_VAL{"6. Syntactic & Schema Validation\n(Pydantic V2 / JSON Schema)"}:::impl
+
+    PYD_VAL -- "Validation failure / Syntax error" --> REPAIR["Escalation / Inference Error\n(Recorded as structured failure)"]:::partial
+    PYD_VAL -- "Valid schema-compliant JSON" --> TYPE_DEC{"7. Returned Response Type"}:::impl
+
+    TYPE_DEC -->|"type: puro"| RES_PURE["CasoPuro\n(clasificacion, confidence, reasoning)\nrequires_human_review: false"]:::impl
+    TYPE_DEC -->|"type: conflicto"| RES_CONF["CasoConflictivo\n(fuentes_en_colision, opciones_resolucion)\nrequires_human_review: true"]:::impl
+    TYPE_DEC -->|"type: ambiguo"| RES_UNCLEAR["CasoAmbiguo\n(conflicto_detectado, missing data)\nrequires_human_review: true"]:::impl
+
+    OUT_HOOK --> FINAL_OUT
+    RES_PURE --> FINAL_OUT
+    RES_CONF --> FINAL_OUT
+    RES_UNCLEAR --> FINAL_OUT
+
+    FINAL_OUT(["Contract Output: PropuestaClasificacion\n(contexto_id, result, metadata:\ntrace_id, model, latency_ms, prompt_digest)"]):::impl
+
+    %% Legend
+    subgraph LEGEND["Status Legend"]
+        LEG_IMP["IMPLEMENTED"]:::impl
+        LEG_PAR["PARTIAL"]:::partial
+        LEG_PEN["PENDING"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

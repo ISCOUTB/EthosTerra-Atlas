@@ -1,0 +1,28 @@
+%%{init: {"flowchart": {"nodeSpacing": 15, "rankSpacing": 20}}}%%
+flowchart TD
+    %% Figura D4a. Flujo del Clasificador Híbrido — Evaluación Determinista y Bypass in-memory
+
+    START(["Inicio: Payload de Contexto<br/>(POST /classifications:propose)"]):::impl --> NORM["1. Normalización y Enriquecimiento<br/>(context_data con ID de traza)"]:::impl
+
+    NORM --> HOOKS{"2. ¿Invariante violado<br/>en validate_invariants?"}:::impl
+
+    %% Rama Bypass
+    HOOKS -- "SÍ: Conflicto o Ambigüedad<br/>(21/30 casos | 5,0 ms)" --> BYPASS["3a. Bypass Determinista In-Memory<br/>(Cero llamadas LLM | Latencia 5,0 ms)"]:::impl
+    BYPASS --> EXT_SRC["Extracción de Fuentes en Colisión<br/>(extract_conflict_sources)"]:::impl
+    EXT_SRC --> OUT_HOOK["Construcción CasoConflictivo / Ambiguo<br/>(requiere_humano: true, confidence: 1.0)"]:::impl
+    OUT_HOOK --> FINAL_HOOK(["Salida: PropuestaClasificacion<br/>(prompt_digest='deterministic_bypass')"]):::impl
+
+    %% Conexión a D4b
+    HOOKS -- "NO: Escenario Nominal<br/>(9/30 casos en dev set)" --> TO_D4B["Continúa en Figura D4b:<br/>Inferencia Semántica Micro-LLM DMR"]:::partial
+
+    %% Leyenda
+    subgraph LEYENDA["Leyenda de Estado"]
+        direction LR
+        LEG_IMP["IMPLEMENTADO"]:::impl
+        LEG_PAR["PARCIAL / CONEXIÓN"]:::partial
+        LEG_PEN["PENDIENTE"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

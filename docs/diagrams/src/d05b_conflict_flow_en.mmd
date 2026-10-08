@@ -1,0 +1,26 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figure D5b. Conflict Case — Principle of Non-Autonomous Decision, Escalation and Human Unlocking
+
+    FROM_D5A["From Figure D5a:<br/>Mitigation Alternatives from LLM<br/>(Identified trade-offs)"]:::partial --> LOCK_STATE["1. Non-Autonomous Decision Principle<br/>(eBDI Invariant: selected_alternative = null)<br/>Micro-LLM does NOT choose the alternative"]:::impl
+
+    LOCK_STATE --> ESCALA_HUM["2. Mandatory Escalation<br/>(status: 'Requiere_Revision',<br/>requires_human_review: true)"]:::impl
+
+    ESCALA_HUM --> BLOCK_403["3. Preventive Lock at Approval Gate<br/>(YAML generation rejected with HTTP 403)"]:::impl
+
+    BLOCK_403 --> HUMAN_CHOICE["4. Human Arbitration in React UI<br/>(Evaluates socio-agronomic trade-offs,<br/>selects alternative and justifies)"]:::impl
+
+    HUMAN_CHOICE --> GATE_UNLOCK["5. Cryptographic Unlocking and Authorization<br/>(selected_alternative ≠ null,<br/>Approval Gate authorizes transition to 'Aprobado')"]:::impl
+
+    NOTE_DEV["Methodological Note: 10 agronomic cases are dev set.<br/>100% metrics are not generalizable."]:::partial
+
+    subgraph LEGEND["Status Legend"]
+        direction LR
+        LEG_IMP["IMPLEMENTED"]:::impl
+        LEG_PAR["PARTIAL / DEV SET"]:::partial
+        LEG_PEN["PENDING"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

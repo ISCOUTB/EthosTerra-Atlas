@@ -1,0 +1,55 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figura D12. Frontera Arquitectónica Actual para la Integración de B5 (CRUD de Intenciones)
+
+    subgraph TIER1["1. Entrada y Registro Desacoplado B5 (Implementado)"]
+        direction LR
+        subgraph ROUTE["API y Acceso"]
+            API_R["v2_routes.py e intents_routes.py<br/>(Puntos de montaje)"]:::impl
+            API_SEC["Control Acceso y Lista Blanca<br/>(validate_identifier)"]:::impl
+            API_R --> API_SEC
+        end
+        subgraph STORE["Almacén Desacoplado (Implementado)"]
+            ST_ACT["Registro Intenciones<br/>(outputs/intents/ y auditoría)"]:::impl
+            ST_TRASH["Papelera 30 Días<br/>(Borrado lógico .trash/)"]:::impl
+            ST_ACT -.-> ST_TRASH
+        end
+        API_SEC --> ST_ACT
+    end
+
+    subgraph TIER2["2. Barreras Existentes y Zonas de Destino"]
+        direction TB
+        subgraph PROT["Mecanismos de Protección Operativos"]
+            direction LR
+            GATE["Approval Gate<br/>(assert_allowed)"]:::impl
+            HASH["Canonical Hasher<br/>(SHA-256 canónico)"]:::impl
+            SAND_SVC["Sandbox Service<br/>(validate_target)"]:::impl
+            GATE --- HASH --- SAND_SVC
+        end
+
+        subgraph ZONES["Zonas de Almacenamiento"]
+            direction LR
+            subgraph FORBIDDEN["ZONA PROTEGIDA (0 Escrituras)"]
+                ORIG_CORE["EthosTerra_original/ (Python BESA)<br/>[SOLO LECTURA - BLOQUEO TOTAL]<br/>InstallationSecurityError ante mutación"]:::impl
+            end
+            subgraph ALLOWED["Sandbox Experimental"]
+                EXP_EBDI["EthosTerra_experiment/<br/>data/ebdi/goals/ y plans/<br/>[Destino simulador permitido]"]:::impl
+            end
+        end
+        PROT --> ZONES
+    end
+
+    TIER1 --> TIER2
+    GATE -.->|"Bloqueo absoluto"| FORBIDDEN
+    SAND_SVC -->|"Permitido tras aprobación"| ALLOWED
+
+    subgraph LEYENDA["Leyenda de Estado"]
+        direction LR
+        LEG_IMP["IMPLEMENTADO (B5 y Barreras)"]:::impl
+        LEG_PAR["EN PLANIFICACIÓN (B6)"]:::partial
+        LEG_PEN["PENDIENTE (Integración B7)"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

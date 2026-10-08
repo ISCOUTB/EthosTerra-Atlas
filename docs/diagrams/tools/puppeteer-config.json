@@ -1,0 +1,4 @@
+{
+  "args": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+  "executablePath": "/tmp/puppeteer-cache/chrome-headless-shell/mac_arm-154.0.8037.57/chrome-headless-shell-mac-arm64/chrome-headless-shell"
+}

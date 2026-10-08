@@ -1,0 +1,40 @@
+%%{init: {"flowchart": {"nodeSpacing": 15, "rankSpacing": 20}}}%%
+flowchart TD
+    %% Figura D1. Arquitectura General por Capas del Sistema Híbrido eBDI
+
+    subgraph TIER1["1. Capa de Presentación y Exposición (UI React y FastAPI)"]
+        direction LR
+        UI["UI React 19 / TypeScript<br/>(DocumentPipelineView)"]:::impl --> API["FastAPI RouterV2<br/>(/v2/documents, :8000)"]:::impl
+    end
+
+    subgraph TIER2["2. Capa de Aplicación, Dominio e Inferencia Híbrida"]
+        direction LR
+        APP["Servicios de Aplicación<br/>(Approval Gate, Hasher SHA-256,<br/>YAML Generator & Validator)"]:::impl
+        DOM["Dominio y Contratos<br/>(Pydantic V2 Schemas,<br/>Catálogo 17 Acciones)"]:::impl
+        INF["Inferencia Híbrida<br/>(Hooks Deterministas bypass 5ms<br/>+ Micro-LLM Gemma 4 E4B DMR)"]:::impl
+        APP <--> DOM
+        APP <--> INF
+    end
+
+    subgraph TIER3["3. Almacenamiento Local, Sandbox y Frontera del Simulador"]
+        direction LR
+        SANDBOX["Sandbox y Almacenamiento<br/>(exp_vertical_001, Backups .tar.gz)"]:::impl
+        ORIG["EthosTerra_original<br/>(SOLO LECTURA - 0 escrituras al núcleo)"]:::impl
+        EXT["Simulador Externo WellProdSim<br/>(Python BESA - Desacoplado S6-S7)"]:::pending
+        SANDBOX -.->|"Lectura sin mutación"| ORIG
+        SANDBOX -.->|"Enlace diferido a B7"| EXT
+    end
+
+    TIER1 --> TIER2
+    TIER2 --> TIER3
+
+    subgraph LEYENDA["Leyenda de Estado"]
+        direction LR
+        LEG_IMP["IMPLEMENTADO"]:::impl
+        LEG_PAR["PARCIAL"]:::partial
+        LEG_PEN["PENDIENTE"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

@@ -27,6 +27,18 @@ services:
       api:
         condition: service_healthy
 
+  playwright:
+    image: mcr.microsoft.com/playwright:focal
+    container_name: playwright-tests
+    volumes:
+      - ./apps/ui:/app:ro
+    environment:
+      - API_BASE_URL=http://api:8000/v2
+      - CHROMIUM_FLAGS=--no-sandbox --disable-dev-shm-usage
+    depends_on:
+      api:
+        condition: service_healthy
+
 models:
   gemma4:
     model: ai/gemma4:E4B

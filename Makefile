@@ -77,6 +77,9 @@ test: canary
 
 test-verbose: canary
 	$(PYTHON_CMD) evals/runner.py --verbose
+
+playwright:
+	docker compose up --build playwright
 dev:
 	@if docker compose ps -q 2>/dev/null | grep -q . ; then \
 		echo "Aviso: Contenedores Docker activos detectados. Deteniendo para liberar puertos 8000 y 5173..."; \

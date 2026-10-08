@@ -65,3 +65,19 @@ def test_validate_emit_episode_valid():
     )
     assert ok is True
     assert len(errors) == 0
+
+
+def test_action_catalog_format_summary_for_prompt():
+    summary = ActionCatalogService.format_catalog_summary_for_prompt()
+    assert "CATÁLOGO DE ACCIONES VÁLIDAS DE ETHOSTERRA" in summary
+    assert "agro_ecosystem_operation" in summary
+    assert "send_marketplace_event" in summary
+
+
+def test_action_catalog_list_available_and_reset():
+    catalogs = ActionCatalogService.list_available_catalogs()
+    assert "actions_catalog_v1.json" in catalogs
+    current_path = ActionCatalogService.get_catalog_path()
+    assert current_path.name == "actions_catalog_v1.json"
+    ActionCatalogService.reset_catalog()
+    assert ActionCatalogService.get_catalog_path().name == "actions_catalog_v1.json"

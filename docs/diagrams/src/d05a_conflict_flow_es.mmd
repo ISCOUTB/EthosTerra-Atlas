@@ -1,0 +1,49 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figura D5a. Caso Conflictivo — Detección de Colisión, Incompatibilidad y Trazabilidad de Fuentes
+
+    DETONANTE["1. Detonante Común (Ambiente / Economía)<br/>(Ej. Sequía severa, deuda, precio crítico)"]:::impl --> EVAL_COLLISION{"2. Detección de Colisión<br/>(≥2 Intenciones Incompatibles)"}:::impl
+
+    subgraph INTENCIONES["3. Intenciones en Colisión Mutuamente Excluyentes"]
+        direction LR
+        INT_A["Intención A: Venta Total de Grano<br/>(Liquidez inmediata, agota reserva)"]:::impl
+        INT_B["Intención B: Preservación Semilla<br/>(Seguridad ciclo, déficit de caja)"]:::impl
+    end
+
+    EVAL_COLLISION --> INT_A
+    EVAL_COLLISION --> INT_B
+
+    subgraph FUENTES["4. Trazabilidad Formal de Fuentes (fuentes_en_colision)"]
+        direction LR
+        SRC_CTX["Fuente 1 (context_field):<br/>Variable sensada reserva crítica"]:::impl
+        SRC_DOC["Fuente 2 (document):<br/>Norma comunitaria / sustento"]:::impl
+    end
+
+    INT_A --> SRC_CTX
+    INT_B --> SRC_DOC
+
+    subgraph PROPUESTA["5. Alternativas de Mitigación Propuestas por LLM"]
+        direction LR
+        ALT_A["Alt. A: Venta parcial (50%)"]:::impl
+        ALT_B["Alt. B: Crédito solidario"]:::impl
+        ALT_C["Alt. C: Priorizar subsistencia"]:::impl
+    end
+
+    SRC_CTX --> ALT_A
+    SRC_DOC --> ALT_B
+    SRC_DOC --> ALT_C
+
+    ALT_A & ALT_B & ALT_C --> TO_D5B["Conecta con Figura D5b:<br/>No-Decisión, Escalamiento y Desbloqueo"]:::partial
+
+    NOTE_DEV["Nota Metodológica: 10 casos agronómicos son dev set.<br/>Métricas de 100% no generalizables."]:::partial
+
+    subgraph LEYENDA["Leyenda de Estado"]
+        direction LR
+        LEG_IMP["IMPLEMENTADO"]:::impl
+        LEG_PAR["PARCIAL / DEV SET"]:::partial
+        LEG_PEN["PENDIENTE"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

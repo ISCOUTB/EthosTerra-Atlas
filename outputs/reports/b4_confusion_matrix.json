@@ -1,0 +1,17 @@
+{
+  "pure": {
+    "pure": 8,
+    "conflict": 0,
+    "unclear": 0
+  },
+  "conflict": {
+    "pure": 0,
+    "conflict": 12,
+    "unclear": 0
+  },
+  "unclear": {
+    "pure": 0,
+    "conflict": 0,
+    "unclear": 10
+  }
+}

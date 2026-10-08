@@ -1,0 +1,61 @@
+flowchart TB
+    %% Figure D5. Conflict Case Flow (Block B4)
+
+    DETONANTE["Common Environmental or Economic Trigger\n(e.g., Severe drought, bank debt, critical price)"]:::impl --> EVAL_COLLISION{"Intention Collision Detection\n(≥2 Incompatible Intentions given the Trigger)"}:::impl
+
+    subgraph INTENCIONES["Mutually Exclusive Colliding Intentions"]
+        INT_A["Intention A: Complete Grain Sale\n(Effect: Immediate cash, exhaustion of reserves)"]:::impl
+        INT_B["Intention B: Seed Preservation\n(Effect: Security for next cycle, cash deficit)"]:::impl
+    end
+
+    EVAL_COLLISION --> INT_A
+    EVAL_COLLISION --> INT_B
+
+    subgraph FUENTES["Formal Source Traceability (fuentes_en_colision)"]
+        SRC_CTX["Source 1 (context_field):\nSensed critical reserve variable"]:::impl
+        SRC_DOC["Source 2 (document):\nCommunity norm or supporting agronomic rule"]:::impl
+    end
+
+    INT_A --> SRC_CTX
+    INT_B --> SRC_DOC
+
+    subgraph PROPUESTA["Mitigation Alternatives Proposal (LLM)"]
+        ALT_A["Alternative A: Partial emergency sale (50%)"]:::impl
+        ALT_B["Alternative B: Solidarity credit search"]:::impl
+        ALT_C["Alternative C: Strict subsistence prioritization"]:::impl
+    end
+
+    SRC_CTX --> ALT_A
+    SRC_DOC --> ALT_B
+    SRC_DOC --> ALT_C
+
+    subgraph DECISION_LOCK["Autonomous Non-Decision Principle (eBDI Invariant)"]
+        LOCK_STATE["selected_alternative = null\n(Micro-LLM DOES NOT choose the alternative)"]:::impl
+        ESCALA_HUM["Mandatory Escalation:\nstatus = 'Requiere_Revision'\nrequires_human_review = true\nreview_status = 'pending'"]:::impl
+    end
+
+    ALT_A --> LOCK_STATE
+    ALT_B --> LOCK_STATE
+    ALT_C --> LOCK_STATE
+    LOCK_STATE --> ESCALA_HUM
+
+    subgraph GATE_ACTION["Human Investigator Action in UI"]
+        HUMAN_CHOICE["Investigator selects Alternative B and provides rationale"]:::impl
+        GATE_UNLOCK["Unlock YAML Generation in Approval Gate\n(selected_alternative ≠ null)"]:::impl
+    end
+
+    ESCALA_HUM -->|"HTTP 403 block if attempting YAML generation"| HUMAN_CHOICE
+    HUMAN_CHOICE --> GATE_UNLOCK
+
+    NOTE_DEV["Methodological Caveat: 10 agronomic cases belong to\nthe development set (dev set). 100% metrics are not generalizable."]:::partial
+
+    %% Legend
+    subgraph LEGEND["Status Legend"]
+        LEG_IMP["IMPLEMENTED"]:::impl
+        LEG_PAR["PARTIAL / DEV SET"]:::partial
+        LEG_PEN["PENDING"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

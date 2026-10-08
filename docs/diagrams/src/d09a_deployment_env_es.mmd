@@ -1,0 +1,39 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figura D9a. Entorno de Despliegue Físico y Host Local (Apple Silicon M4)
+
+    subgraph HOST["1. Host Físico (Apple Silicon M4 | 16 GB RAM Unificada)"]
+        direction TB
+        OS["macOS Local (100% Offline-first)"]:::impl
+
+        subgraph BACKEND["Backend FastAPI (:8000)"]
+            direction LR
+            UV["uv (Python 3.12)"]:::impl
+            API_PROC["FastAPI RouterV2<br/>(docs, contracts, gate)"]:::impl
+            UV --> API_PROC
+        end
+
+        subgraph FRONTEND["Frontend React (:5173)"]
+            direction LR
+            NODE["Node.js / pnpm"]:::impl
+            UI_PROC["React 19 + Vite + TS<br/>(PipelineView)"]:::impl
+            NODE --> UI_PROC
+        end
+
+        OS --> BACKEND
+        OS --> FRONTEND
+    end
+
+    FRONTEND -->|"HTTP REST :8000"| BACKEND
+    BACKEND --> TO_D9B["Conecta con Figura D9b:<br/>Runtime DMR y Aislamiento Docker"]:::partial
+
+    subgraph LEYENDA["Leyenda de Estado"]
+        direction LR
+        LEG_IMP["IMPLEMENTADO"]:::impl
+        LEG_PAR["PARCIAL / CONEXIÓN"]:::partial
+        LEG_PEN["PENDIENTE"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

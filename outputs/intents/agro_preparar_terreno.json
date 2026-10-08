@@ -1,0 +1,17 @@
+{
+  "id": "agro_preparar_terreno",
+  "intent": {
+    "tipo": "puro",
+    "clasificacion": "ejecutar_accion",
+    "confianza": 0.92,
+    "razonamiento": "Humedad del suelo y calendario lunar favorables para inicio de labranza mínima."
+  },
+  "metadata": {
+    "created_at": "2026-10-02T10:46:14.335981Z",
+    "created_by": "agronomo_campo",
+    "updated_at": "2026-10-02T10:52:41.752612Z",
+    "updated_by": "agronomo_campo",
+    "canonical_hash": "f561c369ab959cf370b1407a1404ff4128715bfd1479bb9569c2ddfc15c26474",
+    "version": 2
+  }
+}

@@ -11,6 +11,7 @@ from typing import Any
 from src.domain.v2.intent_schemas import (
     validate_identifier,
     IntentPayload,
+    HumanReviewMetadata,
     CreateIntentRequest,
     UpdateIntentRequest,
     IntentResponse,
@@ -193,10 +194,19 @@ class ManualIntentService:
             version=1,
         )
 
+        review = req.human_review or HumanReviewMetadata(
+            status="pendiente",
+            reviewer=req.author,
+            reviewed_at=now,
+        )
+        if review.reviewed_at is None and review.status != "pendiente":
+            review.reviewed_at = now
+
         response_obj = IntentResponse(
             id=req.id,
             intent=req.intent,
             metadata=metadata,
+            human_review=review,
         )
 
         record_data = response_obj.model_dump(mode="json")
@@ -206,7 +216,7 @@ class ManualIntentService:
             intent_id=req.id,
             user=req.author,
             canonical_hash=chash,
-            details={"tipo": req.intent.tipo},
+            details={"tipo": req.intent.tipo, "review_status": review.status},
         )
         return response_obj
 
@@ -261,10 +271,18 @@ class ManualIntentService:
             version=existing_obj.metadata.version + 1,
         )
 
+        if req.human_review is not None:
+            updated_review = req.human_review
+            if updated_review.reviewed_at is None and updated_review.status != "pendiente":
+                updated_review.reviewed_at = now
+        else:
+            updated_review = existing_obj.human_review
+
         updated_obj = IntentResponse(
             id=intent_id,
             intent=req.intent,
             metadata=new_metadata,
+            human_review=updated_review,
         )
 
         record_data = updated_obj.model_dump(mode="json")
@@ -274,7 +292,7 @@ class ManualIntentService:
             intent_id=intent_id,
             user=req.author,
             canonical_hash=chash,
-            details={"version": new_metadata.version, "tipo": req.intent.tipo},
+            details={"version": new_metadata.version, "tipo": req.intent.tipo, "review_status": updated_review.status},
         )
         return updated_obj
 
@@ -311,6 +329,7 @@ class ManualIntentService:
             intent=active_obj.intent,
             metadata=active_obj.metadata,
             trash_metadata=trash_meta,
+            human_review=active_obj.human_review,
         )
 
         trash_path = self._resolve_and_validate_path(intent_id, is_trash=True)
@@ -387,6 +406,7 @@ class ManualIntentService:
             id=trash_obj.id,
             intent=trash_obj.intent,
             metadata=new_metadata,
+            human_review=trash_obj.human_review,
         )
 
         # Escribir atómicamente a activo y eliminar de papelera

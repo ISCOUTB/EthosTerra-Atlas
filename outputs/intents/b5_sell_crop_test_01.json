@@ -1,0 +1,17 @@
+{
+  "id": "b5_sell_crop_test_01",
+  "intent": {
+    "tipo": "puro",
+    "clasificacion": "sell_crop",
+    "confianza": 0.92,
+    "razonamiento": "La intención corresponde a vender parte de la cosecha de frijol en el mercado local para comprar alimentos y pagar transporte escolar. Requiere validación posterior en sandbox antes de modificar configuraciones persistentes."
+  },
+  "metadata": {
+    "created_at": "2026-10-05T21:03:18.688859Z",
+    "created_by": "investigador_principal",
+    "updated_at": "2026-10-05T21:03:18.688859Z",
+    "updated_by": "investigador_principal",
+    "canonical_hash": "905607902b0f9403985ded3f665166f54915bc7ad68505770dc3f95b0b2c3b5a",
+    "version": 1
+  }
+}

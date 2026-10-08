@@ -1,0 +1,49 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figure D5a. Conflict Case — Collision Detection, Incompatibility and Source Traceability
+
+    DETONANTE["1. Common Trigger (Environment / Economy)<br/>(e.g., Severe drought, debt, critical price)"]:::impl --> EVAL_COLLISION{"2. Collision Detection<br/>(≥2 Incompatible Intentions)"}:::impl
+
+    subgraph INTENCIONES["3. Mutually Exclusive Colliding Intentions"]
+        direction LR
+        INT_A["Intention A: Total Grain Sale<br/>(Immediate liquidity, depletes reserves)"]:::impl
+        INT_B["Intention B: Seed Preservation<br/>(Next cycle security, cash deficit)"]:::impl
+    end
+
+    EVAL_COLLISION --> INT_A
+    EVAL_COLLISION --> INT_B
+
+    subgraph FUENTES["4. Formal Source Traceability (fuentes_en_colision)"]
+        direction LR
+        SRC_CTX["Source 1 (context_field):<br/>Sensed critical reserve variable"]:::impl
+        SRC_DOC["Source 2 (document):<br/>Community norm / livelihood rule"]:::impl
+    end
+
+    INT_A --> SRC_CTX
+    INT_B --> SRC_DOC
+
+    subgraph PROPUESTA["5. Mitigation Alternatives Proposed by LLM"]
+        direction LR
+        ALT_A["Alt. A: Partial sale (50%)"]:::impl
+        ALT_B["Alt. B: Solidarity credit"]:::impl
+        ALT_C["Alt. C: Prioritize subsistence"]:::impl
+    end
+
+    SRC_CTX --> ALT_A
+    SRC_DOC --> ALT_B
+    SRC_DOC --> ALT_C
+
+    ALT_A & ALT_B & ALT_C --> TO_D5B["Connects to Figure D5b:<br/>No-Decision, Escalation and Unlocking"]:::partial
+
+    NOTE_DEV["Methodological Note: 10 agronomic cases are dev set.<br/>100% metrics are not generalizable."]:::partial
+
+    subgraph LEGEND["Status Legend"]
+        direction LR
+        LEG_IMP["IMPLEMENTED"]:::impl
+        LEG_PAR["PARTIAL / DEV SET"]:::partial
+        LEG_PEN["PENDING"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

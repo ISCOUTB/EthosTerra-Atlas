@@ -1,0 +1,61 @@
+flowchart TB
+    %% Figura D5. Flujo del Caso Conflictivo (Bloque B4)
+
+    DETONANTE["Detonante Común Ambiental o Económico\n(Ej. Sequía severa, deuda bancaria, precio crítico)"]:::impl --> EVAL_COLLISION{"Detección de Colisión de Intenciones\n(≥2 Intenciones Incompatibles ante el Detonante)"}:::impl
+
+    subgraph INTENCIONES["Intenciones en Colisión Mutuamente Excluyentes"]
+        INT_A["Intención A: Venta Total de Grano\n(Efecto: Liquidez inmediata, agotamiento de reserva)"]:::impl
+        INT_B["Intención B: Preservación de Semilla\n(Efecto: Seguridad del próximo ciclo, déficit de caja)"]:::impl
+    end
+
+    EVAL_COLLISION --> INT_A
+    EVAL_COLLISION --> INT_B
+
+    subgraph FUENTES["Trazabilidad Formal de Fuentes (fuentes_en_colision)"]
+        SRC_CTX["Fuente 1 (context_field):\nVariable sensada de reserva crítica"]:::impl
+        SRC_DOC["Fuente 2 (document):\nNorma comunitaria o regla agronómica de sustento"]:::impl
+    end
+
+    INT_A --> SRC_CTX
+    INT_B --> SRC_DOC
+
+    subgraph PROPUESTA["Propuesta de Alternativas de Mitigación (LLM)"]
+        ALT_A["Alternativa A: Venta parcial de emergencia (50%)"]:::impl
+        ALT_B["Alternativa B: Búsqueda de crédito solidario"]:::impl
+        ALT_C["Alternativa C: Priorización estricta de subsistencia"]:::impl
+    end
+
+    SRC_CTX --> ALT_A
+    SRC_DOC --> ALT_B
+    SRC_DOC --> ALT_C
+
+    subgraph DECISION_LOCK["Principio de No-Decisión Autónoma (Invariante eBDI)"]
+        LOCK_STATE["selected_alternative = null\n(El micro-LLM NO elige la alternativa)"]:::impl
+        ESCALA_HUM["Escalamiento Obligatorio:\nstatus = 'Requiere_Revision'\nrequires_human_review = true\nreview_status = 'pending'"]:::impl
+    end
+
+    ALT_A --> LOCK_STATE
+    ALT_B --> LOCK_STATE
+    ALT_C --> LOCK_STATE
+    LOCK_STATE --> ESCALA_HUM
+
+    subgraph GATE_ACTION["Acción del Investigador Humano en la UI"]
+        HUMAN_CHOICE["Investigador selecciona Alternativa B y justifica"]:::impl
+        GATE_UNLOCK["Desbloqueo de Generación YAML en Approval Gate\n(selected_alternative ≠ null)"]:::impl
+    end
+
+    ESCALA_HUM -->|"Bloqueo HTTP 403 si intenta generar YAML"| HUMAN_CHOICE
+    HUMAN_CHOICE --> GATE_UNLOCK
+
+    NOTE_DEV["Nota Metodológica: 10 casos agronómicos corresponden\nal conjunto de desarrollo (dev set). Métricas 100% no generalizables."]:::partial
+
+    %% Leyenda
+    subgraph LEYENDA["Leyenda de Estado"]
+        LEG_IMP["IMPLEMENTADO"]:::impl
+        LEG_PAR["PARCIAL / DEV SET"]:::partial
+        LEG_PEN["PENDIENTE"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

@@ -1,0 +1,66 @@
+stateDiagram-v2
+    %% Figure D6. Operational Document State Machine & Cryptographic Gates
+
+    [*] --> Borrador: Ingest raw text<br/>(POST /v2/documents/ingest)
+    note right of Borrador
+        Canonicalized text and SHA-256 hash
+        stored in outputs/experiments/.../sources/
+    end note
+
+    Borrador --> Analizado: Epistemic extraction<br/>(POST /v2/documents/{id}/extract)
+
+    Analizado --> EvaluatingType: Operational structuring<br/>(POST /v2/documents/{id}/structure)
+
+    state EvaluatingType <<choice>>
+    EvaluatingType --> ApprovalPending: tipo_caso == 'puro'
+    EvaluatingType --> Requiere_Revision: tipo_caso == 'conflicto' or ambiguity
+
+    state Requiere_Revision {
+        [*] --> HumanReview: review_status = 'pending'<br/>requires_human_review = true<br/>selected_alternative = null
+        HumanReview --> Resolution: Investigator selects alternative and notes rationale
+        HumanReview --> Rechazado: Investigator rejects proposal
+    }
+
+    state ApprovalPending {
+        [*] --> AwaitingSignature: review_status = 'not_required'<br/>Syntactic validation OK
+    }
+
+    AwaitingSignature --> Aprobado: Human approval<br/>(POST /v2/documents/{id}/approve)
+    Resolution --> Aprobado: Approval with alternative<br/>(POST /v2/documents/{id}/approve)
+
+    note right of Aprobado
+        Immutable Cryptographic Seal:
+        Canonical SHA-256 hash (11 fields) computed
+        and recorded in approval_metadata.approved_json_hash
+    end note
+
+    Aprobado --> Generado_YAML: Generate YAMLs<br/>(POST /v2/documents/{id}/generate-yaml)<br/>assert_yaml_generation_allowed verification
+    note right of Generado_YAML
+        GoalSpec and PlanSpec YAMLs
+        written to outputs/.../yaml/
+        with traceability header
+    end note
+
+    Generado_YAML --> Instalado_Sandbox: Install in Sandbox<br/>(POST /v2/experiments/{id}/install)
+    note right of Instalado_Sandbox
+        Creates .tar.gz backup in backups/
+        Installs into EthosTerra_experiment
+        (EthosTerra_original remains untouched)
+    end note
+
+    Instalado_Sandbox --> [*]
+    Rechazado --> [*]
+
+    %% Blocking Transitions
+    Borrador --> Block_403: Direct attempt to generate YAML<br/>[Document not approved]
+    Analizado --> Block_403: Direct attempt to generate YAML<br/>[Document not approved]
+    Requiere_Revision --> Block_403: Attempt without selected alternative<br/>[selected_alternative == null]
+    Aprobado --> Block_Tampering_403: Post-approval JSON tampering<br/>[current_hash ≠ approved_json_hash]
+
+    state Block_403 {
+        [*] --> HTTP_403_Forbidden: YAMLGenerationBlocked<br/>Security gate denies generation
+    }
+
+    state Block_Tampering_403 {
+        [*] --> HTTP_403_Tamper: Cryptographic Integrity Violation<br/>Recalculated hash mismatches signature
+    }

@@ -1,0 +1,39 @@
+%%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 15}}}%%
+flowchart TD
+    %% Figure D9a. Physical Deployment Environment and Local Host (Apple Silicon M4)
+
+    subgraph HOST["1. Physical Host (Apple Silicon M4 | 16 GB Unified RAM)"]
+        direction TB
+        OS["Local macOS (100% Offline-first)"]:::impl
+
+        subgraph BACKEND["FastAPI Backend (:8000)"]
+            direction LR
+            UV["uv (Python 3.12)"]:::impl
+            API_PROC["FastAPI RouterV2<br/>(docs, contracts, gate)"]:::impl
+            UV --> API_PROC
+        end
+
+        subgraph FRONTEND["React Frontend (:5173)"]
+            direction LR
+            NODE["Node.js / pnpm"]:::impl
+            UI_PROC["React 19 + Vite + TS<br/>(PipelineView)"]:::impl
+            NODE --> UI_PROC
+        end
+
+        OS --> BACKEND
+        OS --> FRONTEND
+    end
+
+    FRONTEND -->|"HTTP REST :8000"| BACKEND
+    BACKEND --> TO_D9B["Connects to Figure D9b:<br/>DMR Runtime and Docker Isolation"]:::partial
+
+    subgraph LEGEND["Status Legend"]
+        direction LR
+        LEG_IMP["IMPLEMENTED"]:::impl
+        LEG_PAR["PARTIAL / CONNECTION"]:::partial
+        LEG_PEN["PENDING"]:::pending
+    end
+
+    classDef impl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef partial fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#b78103;
+    classDef pending fill:#f1f5f9,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5,color:#334155;

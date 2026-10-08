@@ -1,0 +1,24 @@
+# PlanSpec: necesidad_de_planificacion_integral_plan_v1
+# Documento de Origen: adr_pidaret_bolivar_ordenanza_323_2021
+# Hash de Aprobación: 712636c7c7d4b0f6ef251b385bb0629fd903cdd39bf37043d28e808283e1c106
+
+id: necesidad_de_planificacion_integral_plan_v1
+version: '1.0'
+description: 'Plan de acción territorial: Actualiza su conocimiento sobre la existencia
+  de un plan de desarrollo integral que guía las acciones.'
+steps:
+  - id: update_belief_op
+    action: update_belief
+    args:
+      key: necesidad_de_planificacion_integral
+      value: true
+  - id: emit_territorial_episode
+    action: emit_episode
+    args:
+      text: Actualiza su conocimiento sobre la existencia de un plan de desarrollo
+        integral que guía las acciones.
+      tags:
+        - territorial_policy
+        - reactivacion_economica_agropecuaria
+on_timeout: []
+on_failure: []

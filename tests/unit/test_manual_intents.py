@@ -608,3 +608,105 @@ def test_audit_log_records_operations(isolated_sandbox):
     assert "CREATE" in ops
     assert "UPDATE" in ops
     assert "DELETE_SOFT" in ops
+
+
+def test_human_review_metadata_persistence_and_update(isolated_sandbox):
+    """Verifica que el bloque de revisión humana se persista, se actualice y se audite explícitamente."""
+    client: TestClient = isolated_sandbox["client"]
+
+    # 1. Crear intención con metadatos de revisión humana explícitos
+    create_payload = {
+        "id": "intent_with_review_01",
+        "author": "agronomo_junior",
+        "intent": {
+            "tipo": "puro",
+            "clasificacion": "ejecutar_accion",
+            "confianza": 0.88,
+            "razonamiento": "Aplicación de abono orgánico en lote experimental.",
+        },
+        "human_review": {
+            "status": "observado",
+            "reviewer": "investigador_pedro",
+            "comments": "Requiere ajustar dosis conforme a conductividad eléctrica.",
+            "decision_rationale": "Falta evidencia edáfica complementaria en el informe.",
+            "requires_additional_review": True,
+        },
+    }
+    r = client.post("/v2/intents", json=create_payload)
+    assert r.status_code == 201
+    data = r.json()
+    assert "human_review" in data
+    assert data["human_review"]["status"] == "observado"
+    assert data["human_review"]["reviewer"] == "investigador_pedro"
+    assert data["human_review"]["comments"] == "Requiere ajustar dosis conforme a conductividad eléctrica."
+    assert data["human_review"]["requires_additional_review"] is True
+    assert data["human_review"]["reviewed_at"] is not None
+
+    # 2. Consultar por GET y verificar persistencia
+    r_get = client.get("/v2/intents/intent_with_review_01")
+    assert r_get.status_code == 200
+    get_data = r_get.json()
+    assert get_data["human_review"]["status"] == "observado"
+    assert get_data["human_review"]["decision_rationale"] == "Falta evidencia edáfica complementaria en el informe."
+
+    # 3. Actualizar la revisión a "aprobado"
+    update_payload = {
+        "author": "investigador_pedro",
+        "intent": {
+            "tipo": "puro",
+            "clasificacion": "ejecutar_accion",
+            "confianza": 0.94,
+            "razonamiento": "Dosis corregida a 1.5 kg/m2 según conductividad.",
+        },
+        "human_review": {
+            "status": "aprobado",
+            "reviewer": "investigador_pedro",
+            "comments": "Dosis corregida y verificada con análisis edáfico.",
+            "decision_rationale": "Parámetros físico-químicos dentro de umbrales seguros.",
+            "requires_additional_review": False,
+        },
+    }
+    r_up = client.put("/v2/intents/intent_with_review_01", json=update_payload)
+    assert r_up.status_code == 200
+    up_data = r_up.json()
+    assert up_data["metadata"]["version"] == 2
+    assert up_data["human_review"]["status"] == "aprobado"
+    assert up_data["human_review"]["requires_additional_review"] is False
+    assert up_data["human_review"]["comments"] == "Dosis corregida y verificada con análisis edáfico."
+
+
+def test_human_review_backward_compatibility_with_legacy_json(isolated_sandbox):
+    """Verifica que archivos JSON antiguos sin human_review se deserialicen con defaults seguros."""
+    intents_dir: Path = isolated_sandbox["intents_dir"]
+    client: TestClient = isolated_sandbox["client"]
+
+    # Simular un archivo legacy escrito antes de la introducción de human_review
+    legacy_file = intents_dir / "legacy_intent_001.json"
+    legacy_content = {
+        "id": "legacy_intent_001",
+        "intent": {
+            "tipo": "puro",
+            "clasificacion": "observar_entorno",
+            "confianza": 0.90,
+            "razonamiento": "Caso legado sin metadatos de revisión humana.",
+        },
+        "metadata": {
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_by": "sistema_antiguo",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": "sistema_antiguo",
+            "canonical_hash": "legacy_hash_0001",
+            "version": 1,
+        },
+    }
+    legacy_file.write_text(json.dumps(legacy_content), encoding="utf-8")
+
+    # Leer vía endpoint
+    r = client.get("/v2/intents/legacy_intent_001")
+    assert r.status_code == 200
+    data = r.json()
+    assert "human_review" in data
+    assert data["human_review"]["status"] == "pendiente"
+    assert data["human_review"]["reviewer"] == "investigador_principal"
+    assert data["human_review"]["comments"] == ""
+    assert data["human_review"]["requires_additional_review"] is False

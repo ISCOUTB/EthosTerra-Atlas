@@ -1,0 +1,62 @@
+%%{init: {"sequence": {"actorFontSize": 13, "messageFontSize": 12, "noteFontSize": 12}}}%%
+sequenceDiagram
+    autonumber
+    actor Inv as Investigador
+    participant UI as UI React
+    participant API as FastAPI
+    participant Gate as Approval Gate
+    participant Hash as Hasher SHA-256
+    participant Gen as YAML Gen
+    participant SandSvc as Sandbox Svc
+    participant SandFS as Sandbox FS
+    participant OrigFS as Original FS (RO)
+
+    Note over Inv,OrigFS: CASO 1: Intento de generación sin aprobación previa
+    Inv->>UI: Solicita "Generar YAML" en doc 'Analizado'
+    UI->>API: POST /documents/{id}/generate-yaml
+    API->>Gate: assert_yaml_generation_allowed(doc)
+    Gate-->>API: YAMLGenerationBlocked (status != 'Aprobado')
+    API-->>UI: HTTP 403 Forbidden (Bloqueado)
+    UI-->>Inv: Alerta: Requiere aprobación previa
+
+    Note over Inv,OrigFS: CASO 2: Aprobación legítima y generación de YAMLs
+    Inv->>UI: Revisa análisis, elige alternativa y aprueba
+    UI->>API: POST /documents/{id}/approve
+    API->>Hash: compute_canonical_hash(doc) [11 campos]
+    Hash-->>API: Hash canónico generado
+    API->>API: doc.status = 'Aprobado', sella metadata
+    API-->>UI: Documento Aprobado en json/approved/
+
+    Inv->>UI: Solicita "Generar YAML"
+    UI->>API: POST /documents/{id}/generate-yaml
+    API->>Gate: assert_yaml_generation_allowed(doc)
+    Gate->>Hash: compute_canonical_hash(doc)
+    Hash-->>Gate: current_hash == approved_json_hash
+    Gate-->>API: Autorización concedida
+    API->>Gen: generate_artifact_yamls(artifacts)
+    Gen-->>API: YAMLs generados con hash en cabecera
+    API-->>UI: YAMLs listos en outputs/.../yaml/
+
+    Note over Inv,OrigFS: CASO 3: Instalación en Sandbox y Protección de Original
+    Inv->>UI: Solicita "Instalar en Sandbox"
+    UI->>API: POST /experiments/{id}/install
+    API->>SandSvc: validate_target_sandbox(target, exp, orig)
+    alt Intento en EthosTerra_original
+        SandSvc-->>API: InstallationSecurityError (Prohibido)
+        API-->>UI: HTTP 403/500 Intento mutar protegida
+    else Confinado en EthosTerra_experiment
+        SandSvc->>SandSvc: create_instance_backup(exp, backups)
+        SandSvc->>SandFS: Copia controlada de YAMLs
+        SandSvc-->>API: Éxito con backup .tar.gz
+        API-->>UI: HTTP 200 Instalado en sandbox
+    end
+
+    Note over Inv,OrigFS: CASO 4: Detección de alteración posterior (Tampering)
+    Inv->>UI: Solicita "Generar YAML" tras mutación no auditada
+    UI->>API: POST /documents/{id}/generate-yaml
+    API->>Gate: assert_yaml_generation_allowed(doc)
+    Gate->>Hash: compute_canonical_hash(doc)
+    Hash-->>Gate: current_hash != approved_json_hash
+    Gate-->>API: HTTP 403 YAMLGenerationBlocked (Tampering)
+    API-->>UI: Bloqueo: Hash no coincide
+    UI-->>Inv: Alerta: Modificación no autorizada

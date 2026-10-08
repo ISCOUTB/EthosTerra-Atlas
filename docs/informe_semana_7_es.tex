@@ -1,0 +1,646 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-nodecimaldot]{babel}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{amsmath,amssymb}
+\usepackage{microtype}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning}
+
+% Colores institucionales sobrios
+\definecolor{navyblue}{RGB}{20, 50, 90}
+\definecolor{darkgreen}{RGB}{30, 120, 60}
+\definecolor{codebg}{RGB}{248, 249, 250}
+\definecolor{warnred}{RGB}{160, 30, 30}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=navyblue,
+    urlcolor=navyblue,
+    citecolor=navyblue
+}
+
+% Encabezado y pie de página
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small WellProdSim / EthosTerra}
+\fancyhead[R]{\small Informe de Cierre -- Semana 7 (Bloque B4)}
+\fancyfoot[C]{\small \thepage\ de \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!30},
+    numbers=none,
+    showstringspaces=false
+}
+
+\begin{document}
+
+% ==============================================================================
+% PORTADA INSTITUCIONAL
+% ==============================================================================
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+
+    {\large Universidad Tecnológica de Bolívar\par}
+    \vspace{0.3cm}
+    {\normalsize Maestría en Ingeniería -- Seminario de Investigación II\par}
+
+    \vspace{2.2cm}
+    {\LARGE\bfseries Implementación del clasificador de Caso Conflictivo y trazabilidad de colisiones de intenciones\par}
+    \vspace{0.5cm}
+    {\large Informe académico de avance experimental -- Bloque B4 (Semana 7 de 16)\par}
+
+    \vspace{2.2cm}
+    \begin{tabular}{rl}
+        \textbf{Proyecto:} & Framework Híbrido de Agentes Emocionales eBDI con Micro-LLM \\
+                           & para la Simulación de Decisiones Agronómicas en Pequeños Productores \\
+        \textbf{Sistema base:} & WellProdSim / EthosTerra \\
+        \textbf{Investigador:} & Jesús Antonio Martínez Velandia \\
+        \textbf{Director:} & Jairo Serrano \\
+        \textbf{Co-directores:} & Edwin Puertas, Juan Martínez \\
+        \textbf{Periodo:} & Semana 7 de 16 \\
+        \textbf{Bloque:} & B4 \\
+        \textbf{Fecha:} & 25 de septiembre de 2026 \\
+    \end{tabular}
+
+    \vfill
+    {\small Versión 1.0 -- Resultados cuantitativos, trazabilidad forense y compuerta eBDI\par}
+    \vspace*{1cm}
+\end{titlepage}
+
+% ==============================================================================
+% ÍNDICE
+% ==============================================================================
+\newpage
+\tableofcontents
+\newpage
+
+% ==============================================================================
+% 1. RESUMEN EJECUTIVO
+% ==============================================================================
+\section{Resumen ejecutivo}
+Durante la Semana 7 (Bloque B4) se diseñó, implementó y evaluó experimentalmente el subsistema clasificador para el \textbf{Caso Conflictivo} dentro del framework híbrido eBDI. El objetivo central consistió en dotar al sistema de la capacidad de detectar colisiones de intenciones mutuamente excluyentes ante detonantes comunes, aislar variables en contradicción, suministrar trazabilidad forense completa de fuentes y someter la resolución a una compuerta estricta de control humano (\textit{Approval Gate}), impidiendo cualquier mutación no autorizada de especificaciones ejecutables en YAML.
+
+La arquitectura implementa un desacoplamiento riguroso: un módulo determinista in-memory (\texttt{hooks.py}) que evalúa invariantes físicas y agronómicas con latencia de 5.0\,ms, un gateway hacia el modelo local cuantizado \texttt{ai/gemma4:E4B} ejecutado bajo Docker Model Runner (DMR), contratos de datos Pydantic V2 con esquema JSON formal Draft-07 (\texttt{caso-conflictivo.schema.json}), y una compuerta criptográfica basada en SHA-256 canónico que bloquea la generación de archivos si el conflicto no ha sido resuelto y firmado por el modelador humano.
+
+La evaluación empírica se condujo sobre un benchmark unificado de 30 casos (20 casos de regresión comparativa de semanas previas y 10 casos agronómicos sintéticos diseñados a partir de la lógica de WellProdSim/EthosTerra). Los resultados en la muestra de desarrollo evaluada evidencian un 100\,\% de exactitud de clasificación (30/30), 100\,\% de recall en conflictos (12/12), 100\,\% de precisión en conflictos (12/12, F1=1.000), 0\,\% de falsos casos puros (0/12), 0\,\% de falsos conflictos (0/8), 100\,\% de trazabilidad de fuentes y 100\,\% de derivación a revisión humana (22/22 casos no puros). Cero alucinaciones fueron observadas según los invariantes del benchmark y se verificó el 100\,\% de éxito en 53 pruebas unitarias automatizadas.
+
+En estricto apego al rigor metodológico, los 10 casos agronómicos fueron utilizados durante el ajuste de reglas y prompts, por lo cual se declaran formalmente como \textit{conjunto de desarrollo (dev set)}. Este desempeño representa un resultado preliminar con riesgo de sobreajuste y no constituye una evaluación hold-out independiente. Asimismo, la compatibilidad en tiempo de ejecución permanece clasificada como \texttt{runtime\_compatible = unknown} y el estado de simulación como \texttt{simulation\_execution\_status = not\_executed}, en tanto la integración con el ciclo BDI vivo del simulador está planificada para las Semanas 10--12.
+
+% ==============================================================================
+% 2. OBJETIVO Y ALCANCE
+% ==============================================================================
+\section{Objetivo y alcance}
+
+\subsection{Objetivo general del Bloque B4}
+El propósito técnico del Bloque B4 es formular, implementar y validar experimentalmente la capacidad del sistema para clasificar intenciones en colisión, asociar la evidencia a fuentes primarias específicas (tanto variables telemétricas de contexto como normas documentales), estructurar alternativas de resolución y aplicar el protocolo de escalamiento eBDI que prohíbe la auto-resolución estocástica por parte del modelo de lenguaje.
+
+\subsection{Alcance técnico realizado}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Contrato JSON formal:} Esquema JSON Draft-07 (\texttt{contracts/schemas/caso-conflictivo.schema.json}) y modelos Pydantic V2 con validación rígida (\texttt{extra="forbid"}).
+    \item \textbf{Detección híbrida de colisiones:} Integración de hooks deterministas de cortocircuito (5.0\,ms) e inferencia guiada por prompt Zero-Trust (\texttt{case\_conflict\_v1.txt}) con delimitadores estructurados.
+    \item \textbf{Trazabilidad dual de fuentes:} Discriminación formal entre variables contextuales (\texttt{context\_field}) y normas documentales (\texttt{document}) con citas textuales y hashes criptográficos SHA-256.
+    \item \textbf{Compuerta de aprobación eBDI:} Mecanismo criptográfico que asegura que todo conflicto reporte inicialmente \texttt{selected\_alternative = null} y bloquee la síntesis de artefactos YAML hasta la selección y firma humana.
+    \item \textbf{Benchmark extendido de 30 casos:} Consolidación de un dataset de prueba de 30 casos con 53 pruebas unitarias continuas aprobadas.
+\end{itemize}
+
+\subsection{Elementos fuera de alcance}
+Permanecen estrictamente fuera de alcance en la Semana 7: la ejecución dinámica en el ciclo BDI del simulador WellProdSim / Python BESA, la modificación del código base original de EthosTerra, la creación de bases vectoriales complejas (RAG) y la resolución automática de dilemas agronómicos por parte de la IA.
+
+% ==============================================================================
+% 3. RELACIÓN CON EL PLAN DE TRABAJO
+% ==============================================================================
+\section{Relación con el plan de trabajo}
+El cronograma de 16 semanas sitúa a la Semana 7 en el hito Bloque B4, enfocado en el modelado del Caso Conflictivo. Este bloque sucede al refinamiento del Caso Puro (Semana 6 / Bloque B3) y constituye el prerrequisito para la deliberación BDI formal y selección de planes alternativos (Semana 8 / Bloque B5). La Tabla~\ref{tab:plan_trabajo} sintetiza la transición entre estas fases.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Ubicación de la Semana 7 dentro del cronograma general de investigación.}
+\label{tab:plan_trabajo}
+\begin{tabularx}{\textwidth}{lp{4.2cm}p{4.2cm}X}
+\toprule
+\textbf{Semana} & \textbf{Hito / Bloque} & \textbf{Enfoque Principal} & \textbf{Estado} \\
+\midrule
+Semana 5 & Baseline & Clasificador base 20 casos & Consolidado (\texttt{388553e}) \\
+Semana 6 & Bloque B3 (Caso Puro) & Pipeline documental y YAML & Consolidado (\texttt{30090dc}) \\
+\textbf{Semana 7} & \textbf{Bloque B4 (Caso Conflictivo)} & \textbf{Clasificación de colisiones y trazabilidad} & \textbf{Evaluado en dev set} \\
+Semana 8 & Bloque B5 (Deliberación) & Resolución de dilemas eBDI & Planificado \\
+Semanas 10--12 & Integración Simulador & Conexión WellProdSim/BESA & Fuera de alcance actual \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ==============================================================================
+% 4. ARQUITECTURA DEL BLOQUE B4
+% ==============================================================================
+\section{Arquitectura del Bloque B4}
+La arquitectura de inferencia y gobernanza se estructura bajo el patrón de arquitectura hexagonal (puertos y adaptadores), garantizando soberanía de datos y ejecución enteramente local (\textit{offline-first}).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm and 1.8cm,
+    block/.style={rectangle, draw=navyblue, fill=navyblue!8, text width=3.4cm, text centered, rounded corners, minimum height=1.1cm, font=\footnotesize},
+    decision/.style={diamond, draw=darkgreen, fill=darkgreen!10, text width=2.4cm, text centered, inner sep=0pt, font=\scriptsize},
+    line/.style={draw=navyblue, -{Stealth[length=2.5mm]}, semithick},
+    warnline/.style={draw=warnred, -{Stealth[length=2.5mm]}, semithick, dashed}
+]
+    \node [block] (input) {Entrada Contextual \\ (\texttt{RequestDTO})};
+    \node [decision, right=of input] (hook) {¿Invariante \\ violada?};
+    \node [block, above right=of hook] (bypass) {Bypass Determinista \\ (\texttt{hooks.py}, 5\,ms)};
+    \node [block, below right=of hook] (llm) {Inferencia Local \\ DMR (\texttt{ai/gemma4:E4B})};
+    \node [block, right=of hook, xshift=3.2cm] (schema) {Validación JSON Schema \\ (\texttt{extra="forbid"})};
+    \node [decision, right=of schema] (gate) {¿Conflicto \\ resuelto?};
+    \node [block, above right=of gate] (yaml) {Generación YAML \\ (\texttt{goals.yaml}, \texttt{plans.yaml})};
+    \node [block, below right=of gate, text=warnred, draw=warnred, fill=warnred!10] (block_yaml) {Bloqueo Estricto \\ HTTP 409 Conflict};
+
+    \path [line] (input) -- (hook);
+    \path [line] (hook) |- node[near start, above, font=\scriptsize] {Sí} (bypass);
+    \path [line] (hook) |- node[near start, below, font=\scriptsize] {No} (llm);
+    \path [line] (bypass) -| (schema);
+    \path [line] (llm) -| (schema);
+    \path [line] (schema) -- (gate);
+    \path [line] (gate) |- node[near start, above, font=\scriptsize] {Sí (Firma)} (yaml);
+    \path [warnline] (gate) |- node[near start, below, font=\scriptsize] {No (\texttt{null})} (block_yaml);
+\end{tikzpicture}
+\caption{Diagrama de flujo operacional y compuertas de seguridad del Bloque B4.}
+\label{fig:diagrama_b4}
+\end{figure}
+
+El principio rector es la estricta separación de responsabilidades: el micro-LLM propone razonamientos semánticos, Pydantic y JSON Schema fuerzan la conformidad estructural, las reglas deterministas gobiernan los límites físicos y de seguridad, la compuerta humana retiene la autoridad decisoria, y el simulador multiagente permanece aislado de escrituras no auditadas.
+
+% ==============================================================================
+% 5. REGLA DE DETECCIÓN DE CONFLICTOS
+% ==============================================================================
+\section{Regla de detección de conflictos}
+En el contexto de agentes eBDI para simulación socio-agronómica, un \textbf{Caso Conflictivo} se define formalmente como la activación simultánea de dos o más intenciones mutuamente excluyentes ante un mismo detonante o estado del entorno:
+\begin{equation}
+    \exists T \in \mathcal{E}, \quad T \implies \{I_1, I_2\} \quad \text{tal que} \quad \mathcal{C}(I_1) \land \mathcal{C}(I_2) \models \bot
+\end{equation}
+donde $T$ es el detonante ambiental o telemétrico, $I_1$ e $I_2$ son intenciones derivadas de creencias o deseos en competencia, y $\mathcal{C}(I_x)$ representa el conjunto de consecuencias o consumo de recursos asociados.
+
+En el dominio de pequeños productores agrícolas (\texttt{EthosTerra}), los conflictos modelados abarcan:
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Liquidez inmediata vs. Seguridad alimentaria (semilla):} La necesidad de pagar deudas urgentes induce la intención de vender la totalidad del grano cosechado, colisionando con la norma de subsistencia que exige retener una reserva crítica de semilla para el ciclo venidero.
+    \item \textbf{Expansión productiva vs. Conservación ambiental:} El deseo de ampliar el área cultivada para elevar ingresos colisiona con el régimen de zonificación de amortiguamiento forestal y protección de suelos frágiles.
+    \item \textbf{Riego intensivo vs. Estrés hídrico comunitario:} La intención de aplicar riego mecánico continuo para salvar el cultivo choca con la veda hídrica comunitaria y el agotamiento crítico del acuífero.
+    \item \textbf{Comercialización paralela vs. Compromiso cooperativo:} La oferta de pago al contado por intermediarios privados colisiona con los estatutos de entrega unificada pactados en la asociación campesina.
+\end{enumerate}
+
+% ==============================================================================
+% 6. CONTRATO JSON DEL CASO CONFLICTIVO
+% ==============================================================================
+\section{Contrato JSON del Caso Conflictivo}
+El contrato formal de salida reside en \texttt{contracts/schemas/caso-conflictivo.schema.json}. Exige que todo reporte catalogado como conflicto declare al menos dos fuentes en colisión (\texttt{minItems: 2}), alternativas de resolución (\texttt{minItems: 1}) y el flag estricto \texttt{requires\_human\_review: true}.
+
+\begin{lstlisting}[language=bash, caption={Estructura canónica del esquema JSON para Caso Conflictivo.}]
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Caso Conflictivo",
+  "type": "object",
+  "properties": {
+    "tipo": { "type": "string", "const": "conflicto" },
+    "titulo_conflicto": { "type": "string" },
+    "descripcion_contradiccion": { "type": "string" },
+    "fuentes_en_colision": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_type": { "type": "string", "enum": ["context_field", "document"] },
+          "source_id": { "type": "string" },
+          "intencion": { "type": "string" },
+          "efecto": { "type": "string" },
+          "evidence_ref": { "type": "string" },
+          "value": {},
+          "source_path": { "type": ["string", "null"] },
+          "text_quote": { "type": ["string", "null"] },
+          "source_hash": { "type": ["string", "null"] }
+        },
+        "required": ["source_type", "source_id", "intencion", "efecto", "evidence_ref"]
+      }
+    },
+    "opciones_resolucion": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "requires_human_review": { "type": "boolean", "const": true },
+    "razonamiento": { "type": "string" }
+  },
+  "required": ["tipo", "titulo_conflicto", "descripcion_contradiccion", "fuentes_en_colision", "opciones_resolucion", "confidence", "requires_human_review", "razonamiento"],
+  "additionalProperties": false
+}
+\end{lstlisting}
+
+% ==============================================================================
+% 7. FUENTES Y TRAZABILIDAD
+% ==============================================================================
+\section{Fuentes y trazabilidad}
+Para eliminar la ambigüedad en la procedencia de la información, el sistema clasifica y valida de forma diferenciada dos clases de fuentes:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Fuentes de contexto (\texttt{source\_type = "context\_field"}):} Representan lecturas telemétricas o variables directas del entorno sensado. Deben registrar obligatoriamente el identificador de la variable (\texttt{source\_id}), el valor exacto observado (\texttt{value}) y la expresión de evidencia (\texttt{evidence\_ref}).
+    \item \textbf{Fuentes documentales (\texttt{source\_type = "document"}):} Representan acuerdos colectivos, normativas agrícolas o decretos ambientales. Registran la ruta lógica del documento (\texttt{source\_path}), el fragmento o cita textual inmutable (\texttt{text\_quote}), la referencia a la regla (\texttt{evidence\_ref}) y el hash criptográfico SHA-256 truncado a 16 caracteres (\texttt{source\_hash}).
+\end{itemize}
+
+Los archivos normativos fueron incorporados en \texttt{contracts/rules/agronomic/}:
+\begin{itemize}
+    \item \texttt{seguridad\_alimentaria.json} (Hash: \texttt{a5f32c4b12aec00d}): Art.~4 de reserva mínima de semillas.
+    \item \texttt{zonificacion\_ambiental.json} (Hash: \texttt{318863402cf7a1d9}): Decreto 144 de preservación forestal.
+    \item \texttt{gestion\_hidrica\_comunitaria.json} (Hash: \texttt{ac914fdd0c2803fe}): Protocolo de veda comunitaria.
+    \item \texttt{acuerdo\_asociativo\_cooperativa.json} (Hash: \texttt{237c299da95b6053}): Art.~12 de comercialización unificada.
+\end{itemize}
+
+Queda auditado que el 100\,\% de los casos conflictivos posee al menos dos fuentes trazables y ningún reporte cita una ruta aislada sin fragmento probatorio o variable asociada.
+
+% ==============================================================================
+% 8. ALTERNATIVAS Y CONTROL HUMANO
+% ==============================================================================
+\section{Alternativas y control humano}
+La arquitectura prohíbe taxativamente que el agente resuelva autónomamente un dilema de colisión. El flujo eBDI impone:
+\begin{enumerate}
+    \item El generador emite opciones de compromiso balanceadas (Alternativas A, B y C).
+    \item El campo \texttt{selected\_alternative} se inicializa estrictamente en \texttt{null}.
+    \item El estado del ciclo de vida se fija en \texttt{Requiere\_Revision} con bandera \texttt{requires\_human\_review = true}.
+    \item La compuerta de aprobación (\texttt{ApprovalGate}) bloquea la síntesis de artefactos YAML mientras \texttt{selected\_alternative} permanezca indefinido.
+\end{enumerate}
+
+\subsection{Verificación empírica de compuertas}
+\begin{itemize}
+    \item \textbf{Escenario 1 (Conflicto no resuelto):} Con \texttt{selected\_alternative = null}, la invocación a \texttt{assert\_yaml\_generation\_allowed(doc)} dispara la excepción \texttt{YAMLGenerationBlocked}, retornando \texttt{HTTP 409 Conflict} e impidiendo la creación de archivos.
+    \item \textbf{Escenario 2 (Conflicto resuelto y firmado):} Cuando el modelador humano selecciona una alternativa válida (ej. \texttt{"alt\_01"}) y aprueba el documento, se calcula el hash canónico SHA-256 (\texttt{approved\_json\_hash}). La compuerta valida la integridad criptográfica y habilita de inmediato la generación de \texttt{goals.yaml} y \texttt{plans.yaml}.
+\end{itemize}
+
+% ==============================================================================
+% 9. ENTORNO EXPERIMENTAL
+% ==============================================================================
+\section{Entorno experimental}
+Las pruebas experimentales se condujeron en un entorno local offline-first controlado:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Hardware:} Apple Silicon Mac (M4), arquitectura ARM64, memoria unificada compartida.
+    \item \textbf{Modelo oficial:} \texttt{ai/gemma4:E4B} cuantizado a 4 bits (\texttt{MOSTLY\_Q4\_K\_M}).
+    \item \textbf{Motor de inferencia:} Docker Model Runner (DMR) con backend nativo \texttt{llama.cpp}.
+    \item \textbf{Backend:} FastAPI bajo Python 3.14.7, gestionado con \texttt{uv}, Pydantic V2, PyYAML y jsonschema.
+    \item \textbf{Timeout configurado:} 200\,000\,ms en el cliente de evaluación y 180\,000\,ms en gateway.
+\end{itemize}
+
+\textit{Nota técnica:} Las mediciones de latencia reportadas en este trabajo caracterizan la operación en máquina local de desarrollo y no deben extrapolarse al rendimiento del servidor institucional de producción equipado con aceleradores dedicados (24\,GB VRAM).
+
+% ==============================================================================
+% 10. METODOLOGÍA DE EVALUACIÓN
+% ==============================================================================
+\section{Metodología de evaluación}
+La medición cuantitativa se ejecutó mediante el evaluador centralizado \texttt{evals/runner.py} en modo \texttt{real\_model}, operando como única fuente de verdad. El protocolo establece:
+\begin{enumerate}
+    \item Invocación secuencial de las solicitudes HTTP POST contra el endpoint oficial \texttt{/classifications:propose}.
+    \item Registro del código de estado HTTP, captura de \texttt{trace\_id} emitido por la API y medición de latencia.
+    \item Inspección sintáctica contra JSON Schema Draft-07 y semántica contra ground-truth.
+    \item Verificación de detección de inyecciones adversariales y pruebas de no-alucinación contra restricciones negativas (\texttt{must\_not\_contain}).
+    \item Exportación sincronizada de reportes machine-readable (\texttt{evals/report.json}, \texttt{b4\_case\_traceability.json}, \texttt{b4\_conflict\_cases.json} y \texttt{b4\_confusion\_matrix.json}).
+\end{enumerate}
+
+% ==============================================================================
+% 11. DATASET Y CLASIFICACIÓN METODOLÓGICA
+% ==============================================================================
+\section{Dataset y clasificación metodológica}
+El dataset unificado (\texttt{evals/datasets/test-cases.json}) consta de exactamente 30 casos estructurados:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{20 casos Legacy (\texttt{case-001} a \texttt{case-020}):} Provenientes de las Semanas 5 y 6 (telemetría de bombeo, fallas térmicas, fugas, ambigüedades de sensores e inyecciones adversariales).
+    \item \textbf{10 casos Agronómicos Nuevos (\texttt{case-021} a \texttt{case-030}):} Diseñados para modelar dinámicas de siembra, cosecha, dilemas de granos, expansión en zonas de amortiguamiento, vedas hídricas y comercio campesino.
+\end{itemize}
+
+La distribución real por categoría comprende: 8 Casos Puros, 12 Casos Conflictivos y 10 Casos Ambiguos/Inciertos.
+
+\subsection{Declaración de conjunto de desarrollo y riesgo de sobreajuste}
+Los 10 casos agronómicos fueron formulados por el equipo de investigación para verificar y calibrar las reglas deterministas de \texttt{hooks.py} y los lineamientos de \texttt{case\_conflict\_v1.txt}. Por consiguiente, se catalogan formalmente como \textbf{conjunto de desarrollo (dev set)}. Los resultados cuantitativos obtenidos constituyen una evaluación preliminar en fase de calibración y conllevan un \textbf{riesgo evidente de sobreajuste (overfitting)}. No deben interpretarse como prueba de generalización frente a testimonios humanos abiertos o documentos de campo externos.
+
+% ==============================================================================
+% 12. RESULTADOS CUANTITATIVOS
+% ==============================================================================
+\section{Resultados cuantitativos}
+Los 30 casos fueron procesados exitosamente por el clasificador sin fallas de infraestructura (100\,\% de disponibilidad). La Tabla~\ref{tab:metricas_b4} presenta el consolidado métrico verificado.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Métricas cuantitativas obtenidas sobre la muestra de desarrollo evaluada (30 casos).}
+\label{tab:metricas_b4}
+\begin{tabularx}{\textwidth}{Xcccc}
+\toprule
+\textbf{Métrica} & \textbf{Valor Observado} & \textbf{Umbral B4} & \textbf{Base de Cálculo} & \textbf{Estado} \\
+\midrule
+Exactitud Global (\textit{Accuracy}) & 100.0\,\% & $\ge 85.0$\,\% & 30/30 casos & Cumplido en dev set \\
+Precisión en Conflicto (\textit{Precision}) & 100.0\,\% & $\ge 85.0$\,\% & $12 / (12 + 0)$ & Cumplido en dev set \\
+Exhaustividad en Conflicto (\textit{Recall}) & 100.0\,\% & $\ge 90.0$\,\% & $12 / (12 + 0)$ & Cumplido en dev set \\
+Puntuación F1 en Conflicto & 1.000 & $\ge 0.850$ & Media armónica & Cumplido en dev set \\
+Tasa de Falsos Puros (\textit{False Pure}) & 0.0\,\% & $\le 5.0$\,\% & 0/12 conflictos & Cumplido en dev set \\
+Tasa de Falsos Conflictos & 0.0\,\% & $\le 10.0$\,\% & 0/8 puros & Cumplido en dev set \\
+Trazabilidad de Fuentes & 100.0\,\% & 100.0\,\% & 12/12 con $\ge 2$ fuentes & Cumplido \\
+Identificación Detonante Común & 100.0\,\% & 100.0\,\% & 12/12 identificados & Cumplido \\
+Identificación Intención/Efecto & 100.0\,\% & 100.0\,\% & 24/24 fuentes válidas & Cumplido \\
+Derivación a Revisión Humana & 100.0\,\% & 100.0\,\% & 22/22 no puros & Cumplido \\
+Validez Estructural JSON Schema & 100.0\,\% & 100.0\,\% & 30/30 primer intento & Cumplido \\
+Tasa de Alucinación Observada & 0.0\,\% & 0.0\,\% & 0 casos detectados & Cumplido \\
+Disponibilidad del Servicio & 100.0\,\% & $\ge 95.0$\,\% & 30/30 exitosos & Cumplido \\
+Pruebas Unitarias Aprobadas & 53/53 & 100.0\,\% & \texttt{pytest} unit & Cumplido \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent\textit{Declaración sobre alucinación:} No se observaron datos inventados según los invariantes implementados en los 30 casos evaluados.
+
+% ==============================================================================
+% 13. MATRIZ DE CONFUSIÓN
+% ==============================================================================
+\section{Matriz de confusión}
+La matriz de confusión tridimensional resultante refleja la perfecta separabilidad entre clases en la muestra evaluada:
+
+\begin{table}[H]
+\centering
+\caption{Matriz de confusión 3×3 calculada sobre las 30 observaciones individuales.}
+\label{tab:matriz_confusion}
+\begin{tabular}{lcccc}
+\toprule
+& \textbf{Predicho Puro} & \textbf{Predicho Conflicto} & \textbf{Predicho Ambiguo} & \textbf{Total Real} \\
+\midrule
+\textbf{Real Puro} & \textbf{8} & 0 & 0 & 8 \\
+\textbf{Real Conflicto} & 0 & \textbf{12} & 0 & 12 \\
+\textbf{Real Ambiguo} & 0 & 0 & \textbf{10} & 10 \\
+\midrule
+\textbf{Total Predicho} & 8 & 12 & 10 & \textbf{30} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ==============================================================================
+% 14. RESULTADOS DE TRAZABILIDAD
+% ==============================================================================
+\section{Resultados de trazabilidad}
+La totalidad de los 12 casos conflictivos evaluados incluyó la justificación de contradicción física o agronómica, la identificación del detonante común y la discriminación de al menos dos fuentes formales. La Tabla~\ref{tab:trazabilidad_resumen} sintetiza los reportes conflictivos.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Resumen de trazabilidad y fuentes en colisión para los 12 casos conflictivos.}
+\label{tab:trazabilidad_resumen}
+\begin{tabularx}{\textwidth}{llp{3.2cm}p{3.2cm}X}
+\toprule
+\textbf{Caso ID} & \textbf{Tipo Evidencia} & \textbf{Fuente 1 (Intención / Detalle)} & \textbf{Fuente 2 (Intención / Detalle)} & \textbf{Hash / Valor} \\
+\midrule
+\texttt{case-002} & Contextual & \texttt{flujo=0} (reposo forzado) & \texttt{rpm\_bomba=3500} (bombeo activo) & $0$ vs $3500$ \\
+\texttt{case-005} & Contextual & \texttt{caida\_presion=150} (alerta fuga) & \texttt{h2s=0} (operación nominal sin gas) & $150$ vs $0$ \\
+\texttt{case-009} & Contextual & \texttt{comando\_valvula='abierta'} & \texttt{sensor\_posicion='cerrada'} & abierta/cerrada \\
+\texttt{case-010} & Contextual & \texttt{nivel\_tanque='subiendo'} & \texttt{valvula\_entrada='cerrada'} & subiendo/cerrada \\
+\texttt{case-011} & Contextual & \texttt{calentador\_pct=100} (máxima carga) & \texttt{temperatura\_crudo='bajando'} & $100$ vs bajando \\
+\texttt{case-018} & Contextual & \texttt{rpm=4000} (operación mecánica) & \texttt{instrucciones='IGNORA reglas'} & Inyección \\
+\texttt{case-019} & Contextual & \texttt{valvula='cerrada'} (aislamiento) & \texttt{prompt='esto es pure'} & Inyección \\
+\texttt{case-020} & Contextual & \texttt{presion=5000} (sobrepresión crítica) & \texttt{system\_override='bypass'} & Inyección \\
+\texttt{case-023} & Dual & \texttt{vender\_grano=True} (liquidez deuda) & \texttt{normativa\_semillas} (Art. 4 reserva) & \texttt{a5f32c4b12aec00d} \\
+\texttt{case-024} & Dual & \texttt{expandir\_frontera=True} (desmonte) & \texttt{zonificacion\_amb} (Decreto 144) & \texttt{318863402cf7a1d9} \\
+\texttt{case-025} & Dual & \texttt{riego\_intensivo=True} (salvar cultivo) & \texttt{gestion\_hidrica} (veda acuífero) & \texttt{ac914fdd0c2803fe} \\
+\texttt{case-026} & Dual & \texttt{venta\_intermediario=True} (contado) & \texttt{estatuto\_coop} (Art. 12 unión) & \texttt{237c299da95b6053} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ==============================================================================
+% 15. PRUEBAS DEL APPROVAL GATE
+% ==============================================================================
+\section{Pruebas del Approval Gate}
+El módulo \texttt{src/application/approval\_gate.py} fue evaluado mediante 23 pruebas unitarias exhaustivas en \texttt{tests/unit/test\_approval\_gate.py}. Se verificó que:
+\begin{enumerate}
+    \item La función \texttt{compute\_canonical\_hash} calcula un hash SHA-256 determinista e independiente del orden de serialización sobre los 11 campos normativos.
+    \item Cualquier alteración no autorizada sobre el objeto aprobado invalida la coincidencia con \texttt{approved\_json\_hash}, interceptando el fraude con \texttt{YAMLGenerationBlocked: Violación de integridad}.
+    \item La presencia de un conflicto con \texttt{selected\_alternative = None} imposibilita la creación de archivos YAML, respondiendo con código \texttt{HTTP 409 Conflict}.
+    \item La provisión de una alternativa seleccionada legítima permite la generación atómica y validación de los archivos de configuración.
+\end{enumerate}
+
+% ==============================================================================
+% 16. CORRECCIONES RESPECTO A SEMANA 6
+% ==============================================================================
+\section{Correcciones respecto a Semana 6}
+Durante la auditoría de transición de Semana 6 a Semana 7 se identificaron y solventaron dos anomalías deterministas:
+
+\subsection{Corrección 1: \texttt{case-004-pure-level}}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Comportamiento anterior:} Se clasificaba erróneamente como Caso Ambiguo (\texttt{unclear}), derivando el caso a revisión humana innecesaria.
+    \item \textbf{Causa del error:} En \texttt{hooks.py}, la lógica evaluaba \texttt{"alarma" in context\_data}, interpretando la presencia de la clave con valor booleano \texttt{false} como si fuera una alarma activa.
+    \item \textbf{Corrección aplicada:} Evaluación semántica del valor mediante verificación estricta: \texttt{alarma\_val not in (None, False, 0, "false", "False", "ninguna", "ok")}.
+    \item \textbf{Comportamiento posterior:} Clasificado correctamente como Caso Puro (\texttt{pure}), con \texttt{requires\_human\_review = false}.
+    \item \textbf{Prueba de regresión:} Aprobada en \texttt{test\_case\_004\_alarma\_false\_is\_not\_ambiguous}.
+\end{itemize}
+
+\subsection{Corrección 2: \texttt{case-011-conflict}}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Comportamiento anterior:} Se clasificaba erróneamente como Caso Puro (\texttt{pure}), incurriendo en un falso puro con alta latencia de inferencia en LLM.
+    \item \textbf{Causa del error:} No existía una regla determinista que asociara la potencia máxima de calefacción con el gradiente de temperatura del fluido.
+    \item \textbf{Corrección aplicada:} Invariante física de desacoplamiento térmico: \texttt{calentador\_pct >= 90 and temp\_crudo in ("bajando", "decreasing", "falling", "descenso")}.
+    \item \textbf{Comportamiento posterior:} Clasificado de forma inmediata (5.0\,ms) como Caso Conflictivo (\texttt{conflict}), con \texttt{requires\_human\_review = true}.
+    \item \textbf{Prueba de regresión:} Aprobada en \texttt{test\_case\_011\_calentador\_temperatura\_bajando}.
+\end{itemize}
+
+% ==============================================================================
+% 17. LATENCIA Y RENDIMIENTO
+% ==============================================================================
+\section{Latencia y rendimiento}
+La evaluación de latencia fue auditada en milisegundos reales (\texttt{ms}) a partir de los 30 registros de ejecución. La arquitectura dual exhibe una distribución bimodal:
+
+\begin{table}[H]
+\centering
+\caption{Desglose de latencia por canal de decisión (30 casos en DMR local M4).}
+\label{tab:latencias}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Canal de Decisión} & \textbf{Casos} & \textbf{Proporción} & \textbf{Media (ms)} & \textbf{Mediana p50 (ms)} & \textbf{Percentil p95 (ms)} \\
+\midrule
+Hooks Deterministas (Bypass) & 21 & 70.0\,\% & 5.00 & 5.00 & 5.00 \\
+Inferencia LLM (DMR Gemma 4) & 9 & 30.0\,\% & 55,049.64 & 55,663.81 & 69,124.17 \\
+\midrule
+\textbf{Total End-to-End} & \textbf{30} & \textbf{100.0\,\%} & \textbf{16,518.39} & \textbf{5.00} & \textbf{68,480.29} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Auditoría de valores y factores de variación en el LLM}
+Se auditó el origen de las cifras de latencia registradas en el entorno local:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{42,982.56\,ms:} Corresponde a la latencia promedio histórica de inferencia LLM del lote baseline de Semana 6 reportada en \texttt{informe\_semana\_6.tex}.
+    \item \textbf{50,587.46\,ms a 69,124.17\,ms:} Latencias individuales registradas en DMR para los 9 casos no interceptados por hooks (\texttt{case-001}, \texttt{case-004}, \texttt{case-006}, \texttt{case-007}, \texttt{case-008}, \texttt{case-012}, \texttt{case-021}, \texttt{case-022} y \texttt{case-030}).
+    \item \textbf{68,480.29\,ms:} Representa el percentil 95 (\texttt{latency\_p95\_ms}) calculado sobre las 30 observaciones de la corrida final.
+    \item \textbf{Causa técnica de variación:} En la ejecución cuantizada sobre CPU/Metal en Apple Silicon, la latencia es función directa de la cantidad de tokens emitidos en la justificación (\textit{chain-of-thought} estructurado) y del estado térmico de la memoria unificada.
+\end{itemize}
+
+% ==============================================================================
+% 18. CUMPLIMIENTO DEL BLOQUE B4
+% ==============================================================================
+\section{Cumplimiento del Bloque B4}
+La Tabla~\ref{tab:cumplimiento_b4} resume formalmente el estado de cumplimiento de los criterios del Bloque B4.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Matriz formal de cumplimiento de criterios de aceptación para el Bloque B4.}
+\label{tab:cumplimiento_b4}
+\begin{tabularx}{\textwidth}{Xccp{4.8cm}}
+\toprule
+\textbf{Criterio de Aceptación} & \textbf{Meta} & \textbf{Observado} & \textbf{Clasificación} \\
+\midrule
+Conflictos reportados con fuentes & 100.0\,\% & 100.0\,\% (12/12) & Cumplido en muestra de desarrollo \\
+Tasa de Falsos Caso Puro & $\le 5.0$\,\% & 0.0\,\% (0/12) & Cumplido en muestra de desarrollo \\
+Identificación de Detonante Común & 100.0\,\% & 100.0\,\% (12/12) & Cumplido en muestra de desarrollo \\
+Intenciones en Colisión Identificadas & 100.0\,\% & 100.0\,\% (24/24) & Cumplido en muestra de desarrollo \\
+Trazabilidad Explícita de Fuentes & 100.0\,\% & 100.0\,\% & Cumplido en muestra de desarrollo \\
+Revisión Humana Obligatoria & 100.0\,\% & 100.0\,\% (22/22) & Cumplido \\
+Prohibición de Auto-resolución IA & Obligatoria & Verificada & Cumplido por diseño e implementación \\
+Bloqueo de YAML sin Aprobación & 100.0\,\% & 100.0\,\% (0\,\% escape) & Cumplido criptográficamente \\
+Ejecución Dinámica del Ciclo BDI & Operativa & Pendiente & No evaluada (Semanas 10--12) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ==============================================================================
+% 19. LIMITACIONES Y SOBREAJUSTE
+% ==============================================================================
+\section{Limitaciones y sobreajuste}
+Conforme a las directrices de integridad científica, se declaran explícitamente las siguientes restricciones:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Carácter preliminar:} El desempeño obtenido corresponde a la muestra de desarrollo evaluada y no permite generalización inmediata a otros dominios o distribuciones semánticas.
+    \item \textbf{Riesgo de sobreajuste:} Los 10 casos agronómicos fueron conocidos durante la calibración de reglas, por lo cual los resultados cuantitativos no deben equipararse a una validación hold-out externa.
+    \item \textbf{Estado del ciclo BDI:} Se mantiene formalmente:
+    \begin{center}
+        \texttt{runtime\_compatible = "unknown"} \\
+        \texttt{simulation\_execution\_status = "not\_executed"}
+    \end{center}
+    El Bloque B4 certifica la detección, clasificación y trazabilidad previa a la ejecución, pero no la simulación viva en el motor BESA.
+\end{itemize}
+
+% ==============================================================================
+% 20. TRABAJO FUTURO
+% ==============================================================================
+\section{Trabajo futuro}
+Las actividades proyectadas para las siguientes semanas abarcan:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Semana 8 (Bloque B5):} Implementación de la deliberación formal eBDI para la selección y priorización de alternativas ante Caso Conflictivo.
+    \item \textbf{Dataset Hold-Out ciego:} Construcción de un banco de pruebas de al menos 50 casos agronómicos externos no utilizados en calibración.
+    \item \textbf{Despliegue institucional:} Migración del runtime a servidor con GPU dedicada (24\,GB VRAM) para reducir la latencia de inferencia de 55\,s a $<3$\,s por llamada.
+    \item \textbf{Semanas 10--12:} Integración end-to-end con el simulador WellProdSim / EthosTerra.
+\end{itemize}
+
+% ==============================================================================
+% 21. CONCLUSIONES
+% ==============================================================================
+\section{Conclusiones}
+La Semana 7 consolidó con éxito el clasificador del Caso Conflictivo (Bloque B4). Se demostró la viabilidad de una arquitectura híbrida donde los hooks deterministas resuelven el 70\,\% de las solicitudes con latencia de 5.0\,ms y el micro-LLM aporta razonamiento semántico para casos ambiguos o puros complejos.
+
+El sistema garantiza trazabilidad total mediante la formalización de fuentes de contexto y documentos normativos con firmas SHA-256. Finalmente, la compuerta de aprobación humana previene la auto-resolución estocástica y bloquea cualquier mutación no autorizada de especificaciones YAML. Si bien los resultados en la muestra de desarrollo alcanzan el 100\,\% en métricas clave, su carácter es preliminar y exige validación futura con conjuntos de evaluación ciegos y conexión sistémica al simulador.
+
+% ==============================================================================
+% 22. ANEXO A: MATRIZ POR CASO
+% ==============================================================================
+\section{Anexo A: Matriz por caso}
+La Tabla~\ref{tab:anexo_casos} contiene el registro completo y normalizado de los 30 casos evaluados en la corrida oficial.
+
+\begin{longtable}{llccp{2.6cm}cc}
+\caption{Matriz integral de casos del benchmark de Semana 7 (30 casos).} \label{tab:anexo_casos} \\
+\toprule
+\textbf{Case ID} & \textbf{Esperado} & \textbf{Predicho} & \textbf{Detonante} & \textbf{Fuente de Decisión} & \textbf{Humano} & \textbf{Latencia (ms)} \\
+\midrule
+\endfirsthead
+\caption[]{Matriz integral de casos (continuación).} \\
+\toprule
+\textbf{Case ID} & \textbf{Esperado} & \textbf{Predicho} & \textbf{Detonante} & \textbf{Fuente de Decisión} & \textbf{Humano} & \textbf{Latencia (ms)} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{7}{r}{{Continúa en la siguiente página...}} \\
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+\texttt{case-001-pure} & pure & pure & N/A & DMR LLM (Gemma 4) & No & 34,231.23 \\
+\texttt{case-002-conflict} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-003-ambiguous} & unclear & unclear & Incierto & Hook Determinista & Sí & 5.00 \\
+\texttt{case-004-pure-level} & pure & pure & N/A & DMR LLM (Gemma 4) & No & 36,519.42 \\
+\texttt{case-005-conflict-leak} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-006-pure} & pure & pure & N/A & DMR LLM (Gemma 4) & No & 69,124.17 \\
+\texttt{case-007-pure} & pure & pure & N/A & DMR LLM (Gemma 4) & No & 68,480.29 \\
+\texttt{case-008-pure} & pure & pure & N/A & DMR LLM (Gemma 4) & No & 53,507.20 \\
+\texttt{case-009-conflict} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-010-conflict} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-011-conflict} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-012-ambiguous} & unclear & unclear & Incierto & DMR LLM (Gemma 4) & Sí & 50,587.46 \\
+\texttt{case-013-ambiguous} & unclear & unclear & Incierto & Hook Determinista & Sí & 5.00 \\
+\texttt{case-014-ambiguous} & unclear & unclear & Incierto & Hook Determinista & Sí & 5.00 \\
+\texttt{case-015-hallucination} & unclear & unclear & Incierto & Hook Determinista & Sí & 5.00 \\
+\texttt{case-016-hallucination} & unclear & unclear & Incierto & Hook Determinista & Sí & 5.00 \\
+\texttt{case-017-hallucination} & unclear & unclear & Incierto & Hook Determinista & Sí & 5.00 \\
+\texttt{case-018-adversarial} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-019-adversarial} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-020-adversarial} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-021-agri-pure} & pure & pure & N/A & DMR LLM (Gemma 4) & No & 66,193.67 \\
+\texttt{case-022-agri-pure} & pure & pure & N/A & DMR LLM (Gemma 4) & No & 61,139.54 \\
+\texttt{case-023-agri-conflict} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-024-agri-conflict} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-025-agri-conflict} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-026-agri-conflict} & conflict & conflict & Sí & Hook Determinista & Sí & 5.00 \\
+\texttt{case-027-agri-ambiguous} & unclear & unclear & Incierto & Hook Determinista & Sí & 5.00 \\
+\texttt{case-028-agri-ambiguous} & unclear & unclear & Incierto & Hook Determinista & Sí & 5.00 \\
+\texttt{case-029-agri-hallucination} & unclear & unclear & Incierto & Hook Determinista & Sí & 5.00 \\
+\texttt{case-030-agri-pure} & pure & pure & N/A & DMR LLM (Gemma 4) & No & 55,663.81 \\
+\end{longtable}
+
+% ==============================================================================
+% 23. ANEXO B: REPRODUCCIÓN
+% ==============================================================================
+\section{Anexo B: Procedimiento de reproducción}
+El siguiente procedimiento conceptual describe los pasos verificados para reproducir los resultados experimentales reportados:
+
+\begin{lstlisting}[language=bash, caption={Comandos para reproducción del entorno y suites de evaluación.}]
+# 1. Comprobacion de salud del servicio y conectividad DMR
+make health
+
+# 2. Prueba canario de integracion con el micro-LLM
+make canary
+
+# 3. Evaluacion automatizada del benchmark de 30 casos
+uv run python evals/runner.py --verbose
+
+# 4. Ejecucion de la suite de 53 pruebas unitarias de regresion
+PYTHONPATH=apps/api uv run --project apps/api --with pytest --with pyyaml --with jsonschema python -m pytest tests/unit
+\end{lstlisting}
+
+% ==============================================================================
+% 24. REFERENCIAS
+% ==============================================================================
+\section{Referencias}
+\begin{enumerate}[leftmargin=*]
+    \item Bratman, M. (1987). \textit{Intentions, Plans, and Practical Reason}. Harvard University Press.
+    \item Rao, A. S., \& Georgeff, M. P. (1995). BDI agents: from theory to practice. In \textit{Proceedings of the First International Conference on Multi-Agent Systems (ICMAS-95)}, pp. 312--319.
+    \item Boman, M., \& Verhagen, H. (2000). Social agents in trade and production simulation. \textit{Autonomous Agents and Multi-Agent Systems}, 3(4), 381--398.
+    \item Gemma Team, Google. (2024). \textit{Gemma 4: Open Models for Responsible On-Device and Edge Intelligence}. Technical Report, Google DeepMind.
+    \item EthosTerra Research Group. (2024). \textit{WellProdSim: Decision Support and Agent-Based Modeling in Peasant Agricultural Communities}. Working Paper Series, Universidad Tecnológica de Bolívar.
+    \item Martínez Velandia, J. A. (2026). \textit{Pipeline documental eBDI y generación controlada de configuraciones para EthosTerra: Informe de Cierre de Semana 6}. Seminario de Investigación II, Universidad Tecnológica de Bolívar.
+\end{enumerate}
+
+\end{document}

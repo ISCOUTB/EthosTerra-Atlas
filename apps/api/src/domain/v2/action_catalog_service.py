@@ -11,7 +11,35 @@ class ActionValidationError(ValueError):
 
 class ActionCatalogService:
     _catalog: dict[str, Any] | None = None
-    _catalog_path: Path = Path(__file__).parent / "catalogs" / "actions_catalog_v1.json"
+    _default_catalog_path: Path = Path(__file__).parent / "catalogs" / "actions_catalog_v1.json"
+    _catalog_path: Path = _default_catalog_path
+
+    @classmethod
+    def set_catalog_path(cls, path: Path | str) -> None:
+        """Permite configurar un catálogo de acciones variable o específico para un escenario de simulación."""
+        p = Path(path)
+        if not p.is_file():
+            raise FileNotFoundError(f"Catálogo de acciones variable no encontrado en: {p}")
+        cls._catalog_path = p
+        cls._catalog = None  # Invalida caché para recarga inmediata
+
+    @classmethod
+    def reset_catalog(cls) -> None:
+        """Restaura el catálogo por defecto de EthosTerra v1."""
+        cls._catalog_path = cls._default_catalog_path
+        cls._catalog = None
+
+    @classmethod
+    def get_catalog_path(cls) -> Path:
+        return cls._catalog_path
+
+    @classmethod
+    def list_available_catalogs(cls) -> list[str]:
+        """Lista los nombres de archivos de catálogo disponibles en el directorio oficial."""
+        catalogs_dir = cls._default_catalog_path.parent
+        if not catalogs_dir.is_dir():
+            return []
+        return sorted([f.name for f in catalogs_dir.glob("*.json")])
 
     @classmethod
     def load_catalog(cls) -> dict[str, Any]:
@@ -21,6 +49,27 @@ class ActionCatalogService:
             with open(cls._catalog_path, "r", encoding="utf-8") as f:
                 cls._catalog = json.load(f)
         return cls._catalog
+
+    @classmethod
+    def format_catalog_summary_for_prompt(cls) -> str:
+        """Genera dinámicamente el resumen de acciones y operaciones permitidas para el prompt Zero-Trust."""
+        cat = cls.load_catalog()
+        version = cat.get("catalog_version", "1.0.0")
+        actions = cat.get("actions", {})
+
+        lines = [f"CATÁLOGO DE ACCIONES VÁLIDAS DE ETHOSTERRA (Versión activa: {version}):"]
+        for action_name, spec in actions.items():
+            arg_specs = spec.get("arg_specs", {})
+            sub_ops = []
+            for arg_name, aspec in arg_specs.items():
+                allowed = aspec.get("allowed_values")
+                if allowed:
+                    sub_ops.append(f"{arg_name}: {allowed}")
+            if sub_ops:
+                lines.append(f"- '{action_name}' ({', '.join(sub_ops)})")
+            else:
+                lines.append(f"- '{action_name}'")
+        return "\n".join(lines)
 
     @classmethod
     def get_actions(cls) -> dict[str, Any]:

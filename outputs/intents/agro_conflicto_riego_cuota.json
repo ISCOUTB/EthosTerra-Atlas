@@ -1,0 +1,28 @@
+{
+  "id": "agro_conflicto_riego_cuota",
+  "intent": {
+    "tipo": "conflicto",
+    "conflicto_detectado": "Incompatibilidad entre límite comunal de consumo hídrico y estrés severo en cultivo de hortalizas.",
+    "opciones_resolucion": [
+      "Respetar turno comunal y posponer riego a horas nocturnas",
+      "Riego de socorro localizado por goteo",
+      "Solicitar ampliación temporal de cuota ante junta de regantes, detalles del tejido social"
+    ],
+    "requiere_humano": true,
+    "titulo_conflicto": null,
+    "descripcion_contradiccion": "Incompatibilidad entre límite comunal de consumo hídrico y estrés severo en cultivo de hortalizas.",
+    "ubicacion": null,
+    "ruta_archivo_colisionado": null,
+    "fuentes_en_colision": [],
+    "confidence": 1.0,
+    "razonamiento": ""
+  },
+  "metadata": {
+    "created_at": "2026-10-02T10:46:14.355624Z",
+    "created_by": "revisor_normativo",
+    "updated_at": "2026-10-02T11:02:36.433028Z",
+    "updated_by": "revisor_normativo",
+    "canonical_hash": "132b0140b352140e71952fcfcaaa2f806174577645efe9a63256f2eb50f160b8",
+    "version": 2
+  }
+}
