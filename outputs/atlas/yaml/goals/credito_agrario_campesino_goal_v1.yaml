@@ -1,14 +1,14 @@
-# GoalSpec: credito_agropecuario_campesino_goal_v1
+# GoalSpec: credito_agrario_campesino_goal_v1
 # Documento de Origen: src_test_api_flow
 # Hash de Aprobación: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 
-id: credito_agropecuario_campesino_goal_v1
+id: credito_agrario_campesino_goal_v1
 version: '1.0'
-display_name: Microcrédito Agropecuario Campesino Editado
+display_name: Microcrédito Agrario Campesino Editado
 description: Acceso a microcrédito campesino en El Carmen de Bolívar.
 pyramid_level: OPPORTUNITY
 sub_level: L3_PRODUCTIVE_DEVELOPMENT
-plan_ref: credito_agropecuario_campesino_plan_v1
+plan_ref: credito_agrario_campesino_plan_v1
 activation_when: belief.get('money') < 100000
 contribution_rules:
   fixed_value: 0.92

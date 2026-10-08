@@ -212,14 +212,14 @@ def test_api_endpoints_update_and_compile(tmp_path: Path):
         belief_id="bel_api_01",
         source_id=test_src,
         pillar="desarrollo_agrario_y_rural",
-        topic="Crédito agropecuario campesino",
-        belief_key="credito_agropecuario_campesino",
+        topic="Crédito agrario campesino",
+        belief_key="credito_agrario_campesino",
         trigger_condition="Falta de liquidez para insumos.",
         executable_action="agro_ecosystem_operation",
         action_operation_type="PREPARE",
         behavioral_effect="Solicita línea de microcrédito municipal.",
         activation_rule_template="belief.get('money') < 100000",
-        raw_excerpt="Línea especial de microcrédito agropecuario subsidiado por el municipio.",
+        raw_excerpt="Línea especial de microcrédito agrario subsidiado por el municipio.",
         ebdi_belief_assertion="Acceso a microcrédito campesino en El Carmen de Bolívar.",
         target_municipalities=["El Carmen de Bolívar"],
         applicable_divipolas=["13244"],
@@ -245,14 +245,14 @@ def test_api_endpoints_update_and_compile(tmp_path: Path):
         # 1. Human Edit (PUT)
         edit_payload = {
             "editor_id": "investigador_juan",
-            "topic": "Microcrédito Agropecuario Campesino Editado",
+            "topic": "Microcrédito Agrario Campesino Editado",
             "trigger_condition": "Cuando el campesino no cuenta con capital de trabajo para comprar semillas.",
             "edit_notes": "Ajuste de condición para mayor claridad operativa.",
         }
         res_put = client.put(f"/v2/atlas/artifacts/{test_src}/beliefs/bel_api_01", json=edit_payload)
         assert res_put.status_code == 200, res_put.text
         data_put = res_put.json()
-        assert data_put["topic"] == "Microcrédito Agropecuario Campesino Editado"
+        assert data_put["topic"] == "Microcrédito Agrario Campesino Editado"
         assert "investigador_juan" in data_put["curator_id"]
 
         # 2. Human Curation (PATCH to admit)

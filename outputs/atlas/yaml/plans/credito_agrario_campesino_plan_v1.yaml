@@ -1,8 +1,8 @@
-# PlanSpec: credito_agropecuario_campesino_plan_v1
+# PlanSpec: credito_agrario_campesino_plan_v1
 # Documento de Origen: src_test_api_flow
 # Hash de Aprobación: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 
-id: credito_agropecuario_campesino_plan_v1
+id: credito_agrario_campesino_plan_v1
 version: '1.0'
 description: 'Plan de acción territorial: Solicita línea de microcrédito municipal.'
 steps:

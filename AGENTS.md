@@ -14,31 +14,24 @@
 
 ---
 
-## 2. Skills: Núcleo Activo para Semana 6
+## 2. Skills: Núcleo Activo para Semana 9 (Bloque B6)
 Para cualquier tarea en la fase actual, el agente debe activar como máximo las skills pertinentes de este núcleo estricto:
 
-1. **`domain-peas-ebdi`**: Gobierno del modelo PEAS, invariantes del proyecto, frontera de autonomía y definiciones operativas de Caso Puro vs. Conflictivo.
-2. **`backend-fastapi-engineer`**: Implementación de contratos Pydantic V2 en `apps/api/src/domain/`, endpoints REST delgados, control de asincronía, timeouts y observabilidad.
-3. **`llm-prompt-engineer`**: Diseño, versionado y optimización de prompts estructurados con delimitadores Zero-Trust para Gemma 4 E4B, salida JSON Schema estricta y mitigación de alucinación.
-4. **`llm-evaluation-engineer`**: Medición cuantitativa mediante `evals/runner.py` en modo `real_model`, matrices de confusión, trazas completas y comparación estricta contra el baseline.
-5. **`senior-software-engineer`**: Estándar de cambios mínimos, reutilización de código existente, tipado estático, refactorización limpia y preservación de contratos.
-6. **`senior-code-reviewer`**: Revisión crítica del diff, verificación de seguridad, ausencia de secretos o firmas de IA, y emisión de veredictos (`APPROVE`, `REQUEST_CHANGES`, `NEEDS_DISCUSSION`) antes de proponer commits.
+1. **`domain-peas-ebdi`**: Gobierno del modelo PEAS, invariantes del proyecto, frontera de autonomía y definiciones operativas del Atlas Territorial y Perfil eBDI.
+2. **`backend-fastapi-engineer`**: Implementación de contratos Pydantic V2 en `apps/api/` y `apps/atlas/`, endpoints REST de cuarentena y compilación YAML.
+3. **`llm-prompt-engineer`**: Diseño y optimización de prompts delimitados para Gemma 4 E4B, salida JSON estricta y mitigación de alucinación en extracción epistémica.
+4. **`llm-evaluation-engineer`**: Medición cuantitativa del pipeline de extracción, matrices de verificación verbatim vs. alucinación y trazabilidad.
+5. **`senior-software-engineer`**: Estándar de cambios mínimos, tipado estático, refactorización limpia y preservación de contratos.
+6. **`documentation-engineer`**: Redacción y compilación de informes técnicos en LaTeX con estándar /humanizer y evidencia empírica.
+7. **`senior-code-reviewer`**: Revisión crítica del diff, verificación de seguridad, ausencia de secretos o firmas de IA, y emisión de veredictos antes de proponer commits.
 
 ---
 
 ## 3. Skills Disponibles pero Diferidas
 Las siguientes skills residen en `.agents/skills/` pero **no deben activarse automáticamente** hasta que la fase o el requerimiento lo justifique:
 
-- **`agent-systems-engineer`**: Diferida hasta Semanas 7–8 o 10–12 (Semana 6 es un clasificador determinista asistido por LLM, no un sistema multiagente).
-- **`frontend-react-engineer`**: Diferida hasta que los contratos de API y endpoints de Semana 6 estén congelados y probados.
+- **`agent-systems-engineer`**: Diferida hasta Semanas 10–12 (integración con simulación multiagente).
 - **`docker-devops-engineer`**: Diferida hasta que se requieran modificaciones reales en `compose.yaml`, `Dockerfile` o límites de hardware.
-- **`test-automation-engineer`**: Diferida; activar solo si se requieren pruebas de software complejas no cubiertas por las suites existentes.
-- **`static-analysis-engineer`**: Diferida hasta la configuración formal del quality gate automatizado.
-- **`technical-researcher`**: Diferida; activar solo si surge una necesidad de investigación documental o evaluación de nuevas dependencias.
-- **`documentation-engineer`**: Diferida hasta el cierre del incremento para la redacción final de manuales o reportes.
-- **`task-orchestrator`**: Activada solo si el agente principal requiere delegación formal en subagentes aislados.
-- **`case-conflict-analyzer`**: Reservada para Semanas 7–8 (Caso Conflictivo).
-- **`pdf-document-engineer`**: Reservada solo si se incorpora ingesta de documentos PDF al sistema.
 - **`besa-integration-engineer`**: Reservada para Semanas 10–12 (integración con el simulador real).
 
 ---
@@ -46,13 +39,8 @@ Las siguientes skills residen en `.agents/skills/` pero **no deben activarse aut
 ## 4. Reglas de Selección de Skills
 - **Principio de Mínima Activación**: Seleccionar únicamente la skill mínima indispensable para la tarea.
 - **Límite de Concurrencia**: No activar más de **dos skills simultáneamente** para una tarea normal de desarrollo o mantenimiento.
-- **Revisión Cruzada**: Emplear revisión cruzada (ej. `backend-fastapi-engineer` + `senior-code-reviewer`) exclusivamente en cambios de arquitectura, seguridad, contratos de API, esquemas de datos o resultados experimentales.
-- **Cero Creación Injustificada**: Prohibido crear skills nuevas si la necesidad puede resolverse con las existentes. La creación de una nueva skill exige:
-  1. Necesidad recurrente demostrada.
-  2. Frontera funcional no cubierta por las 17 skills auditadas.
-  3. Ausencia total de solapamiento.
-  4. Propuesta documentada en `docs/`.
-  5. Confirmación humana explícita previa.
+- **Revisión Cruzada**: Emplear revisión cruzada exclusivamente en cambios de arquitectura, seguridad, contratos de API o resultados experimentales.
+- **Cero Creación Injustificada**: Prohibido crear skills nuevas si la necesidad puede resolverse con las existentes.
 
 ---
 
@@ -60,37 +48,27 @@ Las siguientes skills residen en `.agents/skills/` pero **no deben activarse aut
 Antes de crear cualquier archivo, módulo, clase, función, componente, endpoint, schema, prompt, script, test, Dockerfile, configuración o dependencia:
 
 1. **Inspección Previa**: Inspeccionar el repositorio de forma no destructiva para mapear implementaciones, utilidades, schemas, fixtures o scripts existentes.
-2. **Clasificación Obligatoria de la Acción**:
-   - *Reutilizar:* Si el componente existente cumple con el requerimiento.
-   - *Extender:* Si una clase o schema puede ampliarse preservando compatibilidad.
-   - *Refactorizar mínimamente:* Si se requiere un ajuste cohesivo en el componente más cercano al dominio.
-   - *Crear nuevo:* Exclusivamente si no existe equivalente útil, justificando formalmente por qué no basta extender o reutilizar.
-3. **Única Fuente de Verdad (Single Source of Truth)**: Prohibido duplicar reglas de negocio, contratos, esquemas JSON/Pydantic, constantes, validadores, prompts versionados o fixtures de prueba.
+2. **Clasificación Obligatoria de la Acción**: Reutilizar, Extender, Refactorizar mínimamente o Crear nuevo.
+3. **Única Fuente de Verdad (Single Source of Truth)**: Prohibido duplicar reglas de negocio, contratos, esquemas JSON/Pydantic, constantes, validadores o fixtures de prueba.
 4. **Prohibición de Carpetas Ambiguas**: Prohibido crear directorios como `utils`, `helpers`, `common`, `shared` o `generic` sin una responsabilidad de dominio específica y autorización humana.
-5. **Regla de Tres contra Abstracción Prematura**: No abstraer solo porque dos fragmentos se parecen; abstraer únicamente ante tres o más instancias que compartan la misma semántica, razón de cambio e interfaz clara.
 
 ---
 
-## 6. Alcance Estricto de Semana 6
-El objetivo único de la Semana 6 es **refinar el experimento aislado de Semana 5 para el Caso Puro**:
-- Contrato de entrada estricto (`RequestDTO`).
-- Contrato de salida estructurado (`ResponseDTO` validado contra JSON Schema).
-- Prompt especializado, delimitado (Zero-Trust) y versionado como artefacto de primer nivel.
-- Inferencia real con `ai/gemma4:E4B` mediante Docker Model Runner.
-- Validación sintáctica y semántica determinista (Pydantic V2).
-- Trazabilidad forense (`trace_id`, latencia, prompt digest, modelo).
-- Comparación cuantitativa contra el baseline de 20 casos de Semana 5.
+## 6. Alcance del Bloque B6 (Semana 9)
+El objetivo de la Semana 9 es consolidar el **Corpus Agrario de Campo, Atlas Territorial (AT-1), Cuarentena Documental y Extracción Epistémica con Compilación YAML**:
+- Fichas territoriales geoespaciales de los 15 municipios PDET de Montes de María (DANE MGN 2024, DIVIPOLA, IDEAM, UPRA).
+- Cuarentena de documentos PDF con hash SHA-256 y bloqueo preventivo de motores locales.
+- Extracción estructurada de creencias eBDI con `ai/gemma4:E4B` bajo verificación textual verbatim.
+- Compilación determinista a especificaciones ejecutables `GoalSpec` y `PlanSpec` en `outputs/atlas/yaml/`.
+- Protocolo Human-in-the-Loop: semillas oficiales autorizadas, justificativo técnico del agente, retroalimentación obligatoria al descartar y re-búsqueda adaptativa de hasta 6 intentos con filtro anti-redundancia.
+- Ergonomía de interfaz: tabs sticky y sub-vistas segmentadas sin scroll innecesario.
 
-### Lo que NO se debe hacer en Semana 6:
-- **NO** tocar el simulador WellProdSim / EthosTerra / Python BESA.
-- **NO** modificar el núcleo del simulador.
-- **NO** escribir archivos YAML reales de configuración de producción.
-- **NO** ejecutar acciones físicas o mutaciones no auditadas.
-- **NO** implementar el CRUD de intenciones todavía (reservado a Semanas 8–9).
-- **NO** crear herramientas MCP productivas adicionales.
-- **NO** implementar bases vectoriales, LangChain, LangGraph ni RAG innecesario.
-- **NO** desplegar enjambres multiagente (el clasificador es un monolito modular asistido).
-- **NO** cambiar el modelo Gemma 4 E4B ni su configuración de cuantización sin autorización.
+### Lo que NO se debe hacer en Semana 9:
+- **NO** tocar el simulador WellProdSim / EthosTerra / Python BESA (reservado para Semanas 10–12).
+- **NO** modificar el núcleo original del simulador.
+- **NO** escribir en directorios de simulación de producción sin pasar por el sandbox y la compuerta humana.
+- **NO** desplegar enjambres multiagente autónomos sin control determinista.
+- **NO** cambiar el modelo Gemma 4 E4B ni su cuantización sin autorización.
 
 ---
 
