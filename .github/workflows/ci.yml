@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  backend-ci:
+    name: Backend Tests (FastAPI + uv)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Run unit tests
+        run: |
+          PYTHONPATH=".:apps/api" uv run --project apps/api \
+            --with pytest --with pydantic --with jsonschema --with pyyaml --with fastapi --with httpx \
+            pytest tests/unit -v
+
+  frontend-ci:
+    name: Frontend Build (React + Vite)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+          cache-dependency-path: "pnpm-lock.yaml"
+
+      - name: Install dependencies
+        run: pnpm --dir apps/ui install --frozen-lockfile
+
+      - name: Build and typecheck frontend
+        run: pnpm --dir apps/ui build
+
+  governance-guard:
+    name: Repository Governance and Security Guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for trailing whitespace and merge artifacts
+        run: git diff --check
+
+      - name: Verify forbidden local agent files are untracked
+        run: |
+          if git ls-files | grep -E "^\.agents/|hooks\.json|skills-lock\.json"; then
+            echo "Error: Local agent configuration files found in tracked Git index."
+            exit 1
+          fi
+          echo "Repository governance checks passed."
