@@ -50,8 +50,14 @@ app.include_router(atlas_router)
 
 
 def get_model_gateway() -> ModelGateway:
-    model_url = os.environ.get("MODEL_BASE_URL", "http://host.docker.internal:11434/")
-    if not model_url.endswith('/'): model_url += '/'
+    model_url = os.environ.get("MODEL_BASE_URL")
+    if not model_url:
+        from apps.atlas.extractors.belief_extractor import resolve_inference_endpoint
+        url, _ = resolve_inference_endpoint()
+        model_url = url if url.endswith('/') else url + '/'
+    else:
+        if not model_url.endswith('/'):
+            model_url += '/'
     model_name = os.environ.get("MODEL_NAME", "ai/gemma4:E4B")
     return DMRGateway(model_name=model_name, base_url=model_url)
 

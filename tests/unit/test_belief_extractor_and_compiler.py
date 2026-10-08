@@ -281,3 +281,71 @@ def test_api_endpoints_update_and_compile(tmp_path: Path):
     finally:
         if file_path.exists():
             file_path.unlink()
+
+
+def test_collision_detection_chemical_vs_agroecology():
+    extractor = TerritorialBeliefExtractor()
+    b_chem = TerritorialBeliefItem(
+        belief_id="bel_chem",
+        source_id="doc_a",
+        pillar="reactivacion_economica_agropecuaria",
+        topic="Manejo químico intensivo",
+        belief_key="agroquimico_sintetico_plagas",
+        trigger_condition="Ataque de insectos plaga en cultivo de ñame.",
+        executable_action="agro_ecosystem_operation",
+        action_operation_type="PREPARE",
+        behavioral_effect="Aplica plaguicida químico sintético en la parcela.",
+        activation_rule_template="state.pestSeverity > 0.5",
+        raw_excerpt="Fomento al uso de agroquímicos y plaguicidas de síntesis para control de plagas en San Jacinto.",
+        ebdi_belief_assertion="Uso de plaguicidas químicos sintéticos en cultivos.",
+        target_municipalities=["San Jacinto"],
+        applicable_divipolas=["13654"],
+        confidence=0.88,
+        verification_status="verified_verbatim",
+    )
+    b_organic = TerritorialBeliefItem(
+        belief_id="bel_org",
+        source_id="doc_b",
+        pillar="ambiente_y_agua",
+        topic="Transición agroecológica y bioinsumos",
+        belief_key="transicion_agroecologica_comunitaria",
+        trigger_condition="Pacto territorial de manejo orgánico sin venenos.",
+        executable_action="agro_ecosystem_operation",
+        action_operation_type="PREPARE",
+        behavioral_effect="Sustituye venenos por bioinsumos orgánicos.",
+        activation_rule_template="state.agroecology == 1",
+        raw_excerpt="Zona de reserva campesina promueve la transición agroecológica y prohíbe plaguicidas de síntesis.",
+        ebdi_belief_assertion="Transición agroecológica comunitaria en San Jacinto.",
+        target_municipalities=["San Jacinto"],
+        applicable_divipolas=["13654"],
+        confidence=0.96,
+        verification_status="verified_verbatim",
+    )
+
+    result = extractor.deduplicate_and_detect_collisions([b_chem], [b_organic])
+    assert len(result) == 1
+    assert result[0].collision_detected is True
+    assert "Inconsistencia agroecológica" in (result[0].collision_reason or "")
+
+
+def test_normative_chunking_detection():
+    extractor = TerritorialBeliefExtractor()
+    sample_text = """
+    INTRODUCCIÓN Y GENERALIDADES
+    Este documento presenta las líneas del plan.
+
+    Artículo 14. Reactivación económica y cadenas productivas
+    El municipio priorizará el apoyo a pequeños productores agropecuarios con semillas y asistencia técnica.
+
+    Artículo 15. Adecuación de tierras y distritos de riego
+    Se realizarán inversiones en el distrito de riego comunal para abastecer las parcelas de los campesinos en épocas secas.
+
+    Artículo 16. Finanzas públicas
+    Gastos de funcionamiento ordinarios de la alcaldía.
+    """
+    chunks = extractor.slice_agricultural_excerpts(sample_text)
+    assert len(chunks) >= 2
+    # Comprobar que los chunks contienen los artículos relevantes de reactivación y riego
+    combined = " ".join(chunks)
+    assert "Artículo 14" in combined or "reactivación económica" in combined.lower()
+    assert "Artículo 15" in combined or "distrito de riego" in combined.lower()

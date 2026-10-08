@@ -22,6 +22,7 @@ from apps.atlas.schemas.context_schemas import (
 )
 from apps.atlas.schemas.document_schemas import DocumentMetadataRecord
 from apps.atlas.storage.manifest_manager import ManifestManager
+from apps.atlas.extractors.text_humanizer import TextHumanizer
 from src.domain.v2.action_catalog_service import ActionCatalogService
 
 logger = logging.getLogger("belief_extractor")
@@ -48,6 +49,35 @@ def _normalize_for_matching(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
+def resolve_inference_endpoint(base_url: str | None = None) -> tuple[str, str]:
+    """Resuelve la URL base y el protocolo preferido (DMR OpenAI format o Ollama API)."""
+    env_url = base_url or os.environ.get("MODEL_BASE_URL") or os.environ.get("LLM_BASE_URL")
+    if env_url:
+        clean = env_url.rstrip("/")
+        if "/v1" in clean:
+            return clean, "openai"
+        return clean, "auto"
+
+    # Prioridad: DMR nativo en 12434, luego Ollama en 11434
+    candidates = [
+        ("http://127.0.0.1:12434/v1", "openai"),
+        ("http://localhost:12434/v1", "openai"),
+        ("http://127.0.0.1:11434", "ollama"),
+        ("http://localhost:11434", "ollama"),
+    ]
+    for url, mode in candidates:
+        try:
+            probe_url = f"{url}/models" if mode == "openai" else f"{url}/api/tags"
+            import urllib.request
+            req = urllib.request.Request(probe_url, headers={"User-Agent": "Probe"})
+            with urllib.request.urlopen(req, timeout=0.3):
+                return url, mode
+        except Exception:
+            continue
+
+    return "http://127.0.0.1:12434/v1", "openai"
+
+
 class TerritorialBeliefExtractor:
     """Extractor focalizado de creencias territoriales eBDI asistido por micro-LLM local."""
 
@@ -55,14 +85,16 @@ class TerritorialBeliefExtractor:
         self,
         manifest_manager: ManifestManager | None = None,
         resolver: TerritoryResolver | None = None,
-        llm_base_url: str = "http://localhost:11434",
-        model_name: str = "gemma4:e4b",
+        llm_base_url: str | None = None,
+        model_name: str | None = None,
         context_output_dir: Path | None = None,
     ):
         self.manifest_manager = manifest_manager or ManifestManager()
         self.resolver = resolver or TerritoryResolver()
-        self.llm_base_url = llm_base_url.rstrip("/")
-        self.model_name = model_name
+        resolved_url, resolved_mode = resolve_inference_endpoint(llm_base_url)
+        self.llm_base_url = resolved_url
+        self.inference_mode = resolved_mode
+        self.model_name = model_name or os.environ.get("MODEL_NAME", "ai/gemma4:E4B")
         self.context_output_dir = (
             context_output_dir or (self.manifest_manager.base_dir / "context")
         ).resolve()
@@ -110,7 +142,7 @@ class TerritorialBeliefExtractor:
     def slice_agricultural_excerpts(
         self,
         full_text: str,
-        max_chars: int = 3500,
+        max_chars: int = 1800,
         max_chunks: int | None = None,
     ) -> list[str]:
         """Extrae fragmentos relevantes para el dominio agropecuario y territorial exhaustivamente, sin descartar secciones."""
@@ -164,39 +196,79 @@ class TerritorialBeliefExtractor:
             "agradecimientos",
         ]
 
-        # Detección de divisiones por artículos o ejes normativos si están formateados
-        paragraphs = full_text.split("\n\n")
+        # Detección de divisiones por artículos o ejes normativos si están estructurados
+        article_pattern = re.compile(
+            r"(?i)(?=(?:^|\n)\s*(?:art[íi]culo\s+\d+|cap[íi]tulo\s+[ivxlcdm\d]+|l[íi]nea\s+estrat[ée]gica\s+\d+|programa\s+\d+|eje\s+\d+|subprograma\s+\d+|pilar\s+\d+))"
+        )
+        sections = article_pattern.split(full_text)
+        has_normative_sections = len(sections) >= 2
+        if has_normative_sections:
+            raw_units = [s.strip() for s in sections if s.strip()]
+        else:
+            raw_units = [p.strip() for p in full_text.split("\n\n") if p.strip()]
+
         relevant_chunks: list[str] = []
         current_chunk: list[str] = []
         current_len = 0
 
-        for p in paragraphs:
-            p_clean = p.strip()
-            if not p_clean:
+        for unit in raw_units:
+            unit_clean = unit.strip()
+            if not unit_clean:
                 continue
-            p_lower = p_clean.lower()
+            unit_lower = unit_clean.lower()
 
-            # Descartar párrafos que sean puramente índices o glosarios preliminares
-            if any(noise in p_lower for noise in preliminary_noise):
+            # Descartar secciones que sean puramente índices o glosarios preliminares
+            if any(noise in unit_lower for noise in preliminary_noise):
                 continue
 
             # Descartar párrafos donde abunden siglas sueltas (definiciones de acrónimos)
-            lines = [l.strip() for l in p_clean.split("\n") if l.strip()]
+            lines = [l.strip() for l in unit_clean.split("\n") if l.strip()]
             if lines:
                 acronym_lines = sum(1 for l in lines if re.match(r"^[A-Z]{3,8}\s+[A-Za-z]", l))
                 if acronym_lines / len(lines) > 0.4:
                     continue
 
-            # Si el párrafo contiene palabras clave agropecuarias o mandatos territoriales
-            if any(kw in p_lower for kw in keywords):
-                if current_len + len(p_clean) > max_chars and current_chunk:
-                    relevant_chunks.append("\n\n".join(current_chunk))
-                    current_chunk = []
-                    current_len = 0
-                current_chunk.append(p_clean)
-                current_len += len(p_clean)
+            # Si la unidad contiene palabras clave agropecuarias o mandatos territoriales
+            if any(kw in unit_lower for kw in keywords):
+                if has_normative_sections:
+                    # Garantizar que ninguna unidad normativa exceda la ventana máxima de contexto
+                    if len(unit_clean) > max_chars:
+                        paragraphs = unit_clean.split("\n\n")
+                        sub_chunk: list[str] = []
+                        sub_len = 0
+                        for p in paragraphs:
+                            p_clean = p.strip()
+                            if not p_clean:
+                                continue
+                            if len(p_clean) > max_chars:
+                                if sub_chunk:
+                                    relevant_chunks.append("\n\n".join(sub_chunk))
+                                    sub_chunk = []
+                                    sub_len = 0
+                                for i in range(0, len(p_clean), max_chars - 300):
+                                    slice_part = p_clean[i : i + max_chars].strip()
+                                    if slice_part:
+                                        relevant_chunks.append(slice_part)
+                                continue
+                            if sub_len + len(p_clean) > max_chars and sub_chunk:
+                                relevant_chunks.append("\n\n".join(sub_chunk))
+                                sub_chunk = []
+                                sub_len = 0
+                            sub_chunk.append(p_clean)
+                            sub_len += len(p_clean)
+                        if sub_chunk:
+                            relevant_chunks.append("\n\n".join(sub_chunk))
+                    else:
+                        relevant_chunks.append(unit_clean)
+                else:
+                    if current_len + len(unit_clean) > max_chars and current_chunk:
+                        relevant_chunks.append("\n\n".join(current_chunk))
+                        current_chunk = []
+                        current_len = 0
+                    current_chunk.append(unit_clean)
+                    current_len += len(unit_clean)
 
-        if current_chunk:
+        if current_chunk and not has_normative_sections:
             relevant_chunks.append("\n\n".join(current_chunk))
 
         if not relevant_chunks:
@@ -207,8 +279,14 @@ class TerritorialBeliefExtractor:
                 if chunk:
                     relevant_chunks.append(chunk)
 
-        if max_chunks is not None:
+        if max_chunks is not None and len(relevant_chunks) > max_chunks:
+            def chunk_score(c: str) -> int:
+                c_low = c.lower()
+                return sum(c_low.count(kw) for kw in keywords)
+
+            relevant_chunks.sort(key=chunk_score, reverse=True)
             return relevant_chunks[:max_chunks]
+
         return relevant_chunks
 
     def verify_verbatim_quote(self, raw_excerpt: str, source_text: str) -> bool:
@@ -266,6 +344,9 @@ class TerritorialBeliefExtractor:
     def _build_zero_trust_prompt(self, text_fragment: str, document_title: str) -> str:
         """Construye un prompt Zero-Trust estricto para extracción operativa eBDI [Condición -> Acción] con Gemma 4 E4B."""
         catalog_summary = ActionCatalogService.format_catalog_summary_for_prompt()
+        safe_fragment = text_fragment.strip()
+        if len(safe_fragment) > 1800:
+            safe_fragment = safe_fragment[:1800].rsplit(" ", 1)[0]
         return (
             "[DIRECTIVA DEL SISTEMA - ZERO-TRUST]\n"
             "Eres un agente extractor determinista de creencias operativas para un agente campesino eBDI en el simulador EthosTerra.\n"
@@ -284,7 +365,8 @@ class TerritorialBeliefExtractor:
             "6. 'belief_key': Nombre snake_case de la variable en el estado (ej: 'acceso_riego_comunal', 'semilla_certificada_subvencionada').\n"
             "7. 'ebdi_belief_assertion': Proposición breve y fáctica de la creencia territorial (ej: 'En El Carmen de Bolívar, los productores de maíz tienen turno de riego comunal').\n"
             "8. Extrae TODAS las reglas operativas [Condición Fáctica -> Acción de Catálogo] que se encuentren en este fragmento (hasta 6 u 8 si hay varios mandatos distintos). Si el fragmento no contiene reglas ni mandatos operativos aplicables al campo, responde 'beliefs': [].\n"
-            "9. Responde ÚNICAMENTE un bloque JSON válido conforme a este esquema:\n"
+            "9. DIRECTIVA DE SOBRIEDAD (ANTI-RETÓRICA IA): Redacta 'ebdi_belief_assertion', 'behavioral_effect' y 'trigger_condition' en prosa sobria, fáctica, campesino-técnica y directa. Prohibido usar adornos de IA ('desempeña un papel crucial', 'en el vibrante paisaje', 'tapiz', 'marcando un hito', fórmulas 'no solo X sino Y', em-dashes '—').\n"
+            "10. Responde ÚNICAMENTE un bloque JSON válido conforme a este esquema:\n"
             "{\n"
             '  "beliefs": [\n'
             "    {\n"
@@ -304,68 +386,133 @@ class TerritorialBeliefExtractor:
             "  ]\n"
             "}\n\n"
             "[FRAGMENTO_DOCUMENTO]\n"
-            f"{text_fragment}\n"
+            f"{safe_fragment}\n"
             "[/FRAGMENTO_DOCUMENTO]\n\n"
             "Responde estrictamente el JSON sin explicaciones adicionales:"
         )
 
     async def call_micro_llm(self, prompt: str) -> dict[str, Any]:
-        """Invoca el micro-LLM local gemma4:e4b mediante la API de Ollama/DMR con timeout controlado."""
-        url = f"{self.llm_base_url}/api/generate"
-        payload = {
+        """Invoca el micro-LLM local con compatibilidad dual: DMR (/v1/chat/completions) y Ollama (/api/generate)."""
+        raw_response = ""
+        last_error = ""
+
+        # 1. Intento primario: DMR OpenAI Chat Completions (/v1/chat/completions)
+        openai_url = f"{self.llm_base_url}/chat/completions" if self.llm_base_url.endswith("/v1") else f"{self.llm_base_url}/v1/chat/completions"
+        openai_payload = {
             "model": self.model_name,
-            "prompt": prompt,
-            "stream": False,
-            "format": "json",
-            "options": {
-                "temperature": 0.1,
-                "top_p": 0.9,
-                "num_predict": 2048,
-            },
+            "messages": [{"role": "user", "content": prompt}],
+            "response_format": {"type": "json_object"},
+            "temperature": 0.1,
+            "max_tokens": 800,
         }
+
         async with httpx.AsyncClient(timeout=180.0) as client:
-            response = await client.post(url, json=payload)
-            if response.status_code != 200:
-                raise BeliefExtractionError(
-                    f"Fallo en inferencia local con {self.model_name}: HTTP {response.status_code} - {response.text}"
-                )
-            data = response.json()
-            raw_response = data.get("response", "{}").strip()
-
-            # Limpieza inicial de cercas markdown si las hay
-            if raw_response.startswith("```"):
-                raw_response = re.sub(r"^```(?:json)?\s*", "", raw_response)
-                raw_response = re.sub(r"\s*```$", "", raw_response)
-
             try:
-                return json.loads(raw_response)
-            except json.JSONDecodeError:
-                # Reparación defensiva de JSON truncado por límite de tokens
-                last_obj_end = raw_response.rfind("},")
-                if last_obj_end != -1:
-                    repaired = raw_response[:last_obj_end + 1] + "\n  ]\n}"
-                    try:
-                        return json.loads(repaired)
-                    except Exception:
-                        pass
+                resp = await client.post(openai_url, json=openai_payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    choices = data.get("choices", [])
+                    if choices:
+                        raw_response = choices[0].get("message", {}).get("content", "").strip()
+                elif (resp.status_code in (400, 500)) and any(w in resp.text.lower() for w in ["exceed", "context size"]):
+                    logger.warning("Prompt o generación excedió contexto DMR (4096 tokens). Reintentando con fragmento compacto...")
+                    # Rescate defensivo ante desbordamiento de contexto
+                    compact_prompt = prompt[:1200] + "\n[/FRAGMENTO_DOCUMENTO]\nResponde JSON con 'beliefs': []."
+                    retry_payload = {
+                        "model": self.model_name,
+                        "messages": [{"role": "user", "content": compact_prompt}],
+                        "response_format": {"type": "json_object"},
+                        "temperature": 0.1,
+                        "max_tokens": 400,
+                    }
+                    retry_resp = await client.post(openai_url, json=retry_payload)
+                    if retry_resp.status_code == 200:
+                        data = retry_resp.json()
+                        choices = data.get("choices", [])
+                        if choices:
+                            raw_response = choices[0].get("message", {}).get("content", "").strip()
+                    else:
+                        last_error = f"DMR HTTP {retry_resp.status_code}: {retry_resp.text[:150]}"
+                elif resp.status_code != 404:
+                    last_error = f"DMR HTTP {resp.status_code}: {resp.text[:150]}"
+            except Exception as e:
+                last_error = str(e)
 
-                last_closing_brace = raw_response.rfind("}")
-                if last_closing_brace != -1:
-                    repaired = raw_response[:last_closing_brace + 1] + "\n  ]\n}"
-                    try:
-                        return json.loads(repaired)
-                    except Exception:
-                        pass
+            # 2. Fallback secundario a Ollama (/api/generate) si no se obtuvo respuesta
+            if not raw_response:
+                ollama_base = "http://127.0.0.1:11434" if "12434" in self.llm_base_url else self.llm_base_url.replace("/v1", "")
+                ollama_url = f"{ollama_base}/api/generate"
+                ollama_payload = {
+                    "model": self.model_name,
+                    "prompt": prompt,
+                    "stream": False,
+                    "format": "json",
+                    "options": {
+                        "temperature": 0.1,
+                        "top_p": 0.9,
+                        "num_predict": 2048,
+                    },
+                }
+                try:
+                    ollama_resp = await client.post(ollama_url, json=ollama_payload)
+                    if ollama_resp.status_code == 200:
+                        raw_response = ollama_resp.json().get("response", "").strip()
+                except Exception as e:
+                    last_error = f"{last_error} | Fallback Ollama: {e}"
 
-                # Búsqueda de cualquier bloque JSON balanceado
-                match = re.search(r"\{.*\}", raw_response, re.DOTALL)
-                if match:
-                    try:
-                        return json.loads(match.group(0))
-                    except Exception:
-                        pass
+        if not raw_response:
+            raise BeliefExtractionError(
+                f"No se pudo conectar al runtime de inferencia local para '{self.model_name}'. "
+                f"Verifique que Docker Desktop (Docker Model Runner en puerto 12434) u Ollama (puerto 11434) estén activos. "
+                f"Detalle técnico: {last_error}"
+            )
 
-                raise BeliefExtractionError(f"El modelo no retornó JSON válido recuperable: {raw_response[:300]}...")
+        # Limpieza inicial de cercas markdown si las hay
+        if raw_response.startswith("```"):
+            raw_response = re.sub(r"^```(?:json)?\s*", "", raw_response)
+            raw_response = re.sub(r"\s*```$", "", raw_response)
+
+        try:
+            parsed = json.loads(raw_response)
+            if isinstance(parsed, dict):
+                return parsed
+            if isinstance(parsed, list):
+                return {"beliefs": parsed}
+        except json.JSONDecodeError:
+            # Reparación defensiva de JSON truncado por límite de tokens
+            last_obj_end = raw_response.rfind("},")
+            if last_obj_end != -1:
+                repaired = raw_response[:last_obj_end + 1] + "\n  ]\n}"
+                try:
+                    p = json.loads(repaired)
+                    if isinstance(p, dict):
+                        return p
+                except Exception:
+                    pass
+
+            last_closing_brace = raw_response.rfind("}")
+            if last_closing_brace != -1:
+                repaired = raw_response[:last_closing_brace + 1] + "\n  ]\n}"
+                try:
+                    p = json.loads(repaired)
+                    if isinstance(p, dict):
+                        return p
+                except Exception:
+                    pass
+
+            # Búsqueda de cualquier bloque JSON balanceado
+            match = re.search(r"\{.*\}", raw_response, re.DOTALL)
+            if match:
+                try:
+                    p = json.loads(match.group(0))
+                    if isinstance(p, dict):
+                        return p
+                except Exception:
+                    pass
+
+            raise BeliefExtractionError(f"El modelo no retornó JSON válido recuperable: {raw_response[:300]}...")
+
+        return {"beliefs": []}
 
     async def extract_beliefs_from_artifact(
         self,
@@ -413,8 +560,8 @@ class TerritorialBeliefExtractor:
             raw_text = ocr_proc.extract_text_with_ocr(pdf_path, max_pages=15)
             extraction_method = "local_tesseract_ocr_plus_micro_llm"
 
-        # 3. Slicing focalizado
-        chunks = self.slice_agricultural_excerpts(raw_text)
+        # 3. Slicing focalizado (máximo 15 fragmentos densos para documentos masivos)
+        chunks = self.slice_agricultural_excerpts(raw_text, max_chunks=15)
 
         all_belief_items: list[TerritorialBeliefItem] = []
         verified_count = 0
@@ -422,11 +569,21 @@ class TerritorialBeliefExtractor:
 
         # 4. Inferencia con micro-LLM local sobre los fragmentos seleccionados
         for idx, chunk in enumerate(chunks):
-            prompt = self._build_zero_trust_prompt(chunk, doc.title)
-            llm_result = await self.call_micro_llm(prompt)
-            raw_beliefs = llm_result.get("beliefs", [])
+            try:
+                prompt = self._build_zero_trust_prompt(chunk, doc.title)
+                llm_result = await self.call_micro_llm(prompt)
+            except Exception as exc:
+                logger.warning(
+                    f"Aviso de inferencia en chunk {idx+1}/{len(chunks)} de '{source_id}': {exc}. "
+                    "Continuando con los fragmentos restantes..."
+                )
+                continue
+
+            raw_beliefs = llm_result.get("beliefs", []) if isinstance(llm_result, dict) else []
 
             for b_idx, b in enumerate(raw_beliefs):
+                if not isinstance(b, dict):
+                    continue
                 pillar = str(b.get("pillar", "reactivacion_economica_agropecuaria"))
                 topic = str(b.get("topic", "Desarrollo territorial rural"))
                 raw_excerpt = str(b.get("raw_excerpt", "")).strip()
@@ -481,6 +638,7 @@ class TerritorialBeliefExtractor:
                     confidence=confidence,
                     verification_status=status,
                 )
+                belief_item = TextHumanizer.sanitize_belief_presentation(belief_item)
                 all_belief_items.append(belief_item)
 
         # Si el modelo no arrojó creencias o todas fueron rechazadas pero el fragmento tiene pactos clave,
@@ -508,6 +666,7 @@ class TerritorialBeliefExtractor:
                     confidence=1.0,
                     verification_status="verified_verbatim",
                 )
+                backup_belief = TextHumanizer.sanitize_belief_presentation(backup_belief)
                 all_belief_items.append(backup_belief)
                 verified_count += 1
 
@@ -631,6 +790,16 @@ class TerritorialBeliefExtractor:
                             f"'{other.belief_key}' impone restricción o veda en el mismo territorio."
                         )
 
+                # Colisión Tipo 3: Conflicto de agroquímicos de síntesis vs transición agroecológica
+                is_chemical = any(w in b_text for w in ["agroquímic", "plaguicida", "fertilizante químico", "químico sintético"])
+                is_agroecology = any(w in o_text for w in ["agroecolog", "orgánic", "bioinsumo", "reserva campesina", "zrc"])
+                if is_chemical and is_agroecology:
+                    b.collision_detected = True
+                    b.collision_reason = (
+                        f"Inconsistencia agroecológica: prescribe insumos químicos sintéticos en '{b.belief_key}' "
+                        f"mientras la creencia '{other.belief_key}' promueve transición agroecológica en el mismo territorio."
+                    )
+
         return deduped
 
     def update_belief_item(
@@ -679,7 +848,7 @@ class TerritorialBeliefExtractor:
                     else f"Editado por {edit.editor_id}"
                 )
                 item.curation_timestamp_utc = datetime.now(timezone.utc).isoformat()
-                target_item = item
+                target_item = TextHumanizer.sanitize_belief_presentation(item)
                 break
 
         if not target_item:

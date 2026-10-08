@@ -51,6 +51,7 @@ outputs/corpus/**/sources/
 # Atlas raw documents and downloads (AT-1)
 outputs/atlas/**/sources/
 outputs/atlas/raw/
+outputs/atlas/ocr/
 
 # Ephemeral artifacts & test results
 scratch/

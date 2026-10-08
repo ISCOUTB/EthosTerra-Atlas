@@ -2,26 +2,26 @@
   "source_id": "pdm_san_jacinto_2024_2027",
   "instrument_title": "Plan de Desarrollo Municipal de San Jacinto 2024-2027: Desarrollo Productivo, Agroforestería y Paz Territorial",
   "document_sha256": "15f04e62f8bb9ae8939494563d3ecc7516e72ad3706fe9acea23f4724e4fa83d",
-  "extraction_timestamp_utc": "2026-10-07T23:01:03.508427+00:00",
-  "model_used": "gemma4:e4b",
+  "extraction_timestamp_utc": "2026-10-08T15:31:31.496074+00:00",
+  "model_used": "ai/gemma4:E4B",
   "extraction_method": "poppler_pdftotext_plus_micro_llm",
   "total_beliefs_extracted": 1,
   "verified_beliefs_count": 1,
   "rejected_hallucinations_count": 0,
   "beliefs": [
     {
-      "belief_id": "bel_15f04e62_0_0_4d26",
+      "belief_id": "bel_15f04e62_1_0_b485",
       "source_id": "pdm_san_jacinto_2024_2027",
       "pillar": "reactivacion_economica_agropecuaria",
-      "topic": "Cultivo de café bajo sombra",
-      "belief_key": "prelacion_cafe_sombra_platanos",
-      "trigger_condition": "Cuando el productor desea establecer o renovar una parcela de café bajo sombra con plátano y árboles maderables.",
+      "topic": "Café bajo sombra y sistemas agroforestales",
+      "belief_key": "prioridad_agroforesteria_san_jacinto",
+      "trigger_condition": "Cuando el productor ha establecido o renovado parcelas de café bajo sombra asociadas con plátano y árboles maderables nativos en la zona alta o media de San Jacinto.",
       "executable_action": "agro_ecosystem_operation",
       "action_operation_type": "PLANT",
-      "behavioral_effect": "Busca plántulas de viveros comunitarios y solicita asistencia técnica especializada.",
-      "activation_rule_template": "true",
+      "behavioral_effect": "El agente puede solicitar prioridad en la entrega de plántulas de viveros comunitarios y asistencia técnica especializada en manejo integrado de plagas y fertilización orgánica.",
+      "activation_rule_template": "land_crop_type == 'cafe' && has_agroforestry_system == true",
       "raw_excerpt": "Los pequeños productores de la zona alta y media de San Jacinto que establezcan o renueven parcelas de café bajo sombra asociado con plátano y árboles maderables nativos tendrán prelación en la entrega de plántulas de viveros comunitarios y en la asistencia técnica especializada en manejo integrado de plagas y fertilización orgánica.",
-      "ebdi_belief_assertion": "Los pequeños productores de la zona alta y media de San Jacinto que establezcan o renueven parcelas de café bajo sombra asociado con plátano y árboles maderables nativos tienen prelación en la entrega de plántulas y asistencia técnica.",
+      "ebdi_belief_assertion": "Los productores de San Jacinto que implementan café bajo sombra con plátano y maderables tienen derecho a prioridad en insumos y asistencia técnica.",
       "target_municipalities": [
         "San Jacinto"
       ],
@@ -30,10 +30,12 @@
       ],
       "confidence": 0.95,
       "verification_status": "verified_verbatim",
-      "curation_status": "pending",
-      "curation_notes": null,
-      "curator_id": null,
-      "curation_timestamp_utc": null
+      "collision_detected": false,
+      "collision_reason": null,
+      "curation_status": "admitted_ebdi",
+      "curation_notes": "Curación manual del investigador: admitted_ebdi",
+      "curator_id": "investigador_ebdi_01",
+      "curation_timestamp_utc": "2026-10-08T16:22:58.537618+00:00"
     }
   ]
 }

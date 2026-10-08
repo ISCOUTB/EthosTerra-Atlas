@@ -1,0 +1,25 @@
+# PlanSpec: alta_demanda_ganado_bovino_internacional_plan_v1
+# Documento de Origen: adr_pidaret_bolivar_ordenanza_323_2021
+# Hash de Aprobación: 712636c7c7d4b0f6ef251b385bb0629fd903cdd39bf37043d28e808283e1c106
+
+id: alta_demanda_ganado_bovino_internacional_plan_v1
+version: '1.0'
+description: 'Plan de acción territorial: Busca oportunidades de venta o colaboración
+  con mercados internacionales para el ganado bovino.'
+steps:
+  - id: send_society_collaboration_op
+    action: send_society_collaboration
+    args:
+      flag: community_aid
+      amount: 5
+      guard: offer
+  - id: emit_territorial_episode
+    action: emit_episode
+    args:
+      text: Busca oportunidades de venta o colaboración con mercados internacionales
+        para el ganado bovino.
+      tags:
+        - territorial_policy
+        - reactivacion_economica_agropecuaria
+on_timeout: []
+on_failure: []

@@ -1,0 +1,19 @@
+# GoalSpec: alta_demanda_ganado_bovino_internacional_goal_v1
+# Documento de Origen: adr_pidaret_bolivar_ordenanza_323_2021
+# Hash de Aprobación: 712636c7c7d4b0f6ef251b385bb0629fd903cdd39bf37043d28e808283e1c106
+
+id: alta_demanda_ganado_bovino_internacional_goal_v1
+version: '1.0'
+display_name: Ganadería y mercados internacionales
+description: El ganado bovino de Bolívar tiene alta demanda en mercados internacionales.
+pyramid_level: OPPORTUNITY
+sub_level: L3_PRODUCTIVE_DEVELOPMENT
+plan_ref: alta_demanda_ganado_bovino_internacional_plan_v1
+activation_when: is_in_region('Bolívar') and has_livestock() and market_demand('bovino')
+  > 0.8
+contribution_rules:
+  fixed_value: 0.9
+normative_tags:
+  - source_adr_pidaret_bolivar_ordenanza_323_2021
+  - pillar_reactivacion_economica_agropecuaria
+  - muni_bol_var
