@@ -50,7 +50,7 @@ def test_sanitize_belief_presentation_preserves_immutable_fields():
     belief = TerritorialBeliefItem(
         belief_id="bel_test_001",
         source_id="doc_test",
-        pillar="reactivacion_economica_agropecuaria",
+        pillar="desarrollo_agrario_y_rural",
         topic="Crédito rural",
         belief_key="acceso_credito_rural_robusto",
         trigger_condition="Cuando el campesino requiere insumos — según la temporada.",

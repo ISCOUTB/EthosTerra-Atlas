@@ -33,6 +33,7 @@ OFFICIAL_DOMAIN_SUFFIXES = (
 # Mapeo determinista de fuentes registradas a tipos de instrumentos
 SOURCE_TO_INSTRUMENTS: dict[str, list[InstrumentType]] = {
     "art_patr_montes_de_maria": ["PATR"],
+    "art_patr_montes_de_maria_2026": ["PATR"],
     "adr_pidaret_bolivar_ordenanza_323_2021": ["PIDARET", "ordenanza"],
     "adr_pidaret_sucre_ordenanza": ["PIDARET", "ordenanza"],
     "pnd_colombia_2022_2026": ["PDT"],

@@ -52,7 +52,7 @@ def _map_pillar_to_pyramid(pillar: str) -> tuple[str, str]:
         return "NEED", "L4_SKILLS_AND_RESOURCES"
     if "comunitari" in p or "social" in p or "asociat" in p:
         return "DUTY", "L5_SOCIAL"
-    # Por defecto para reactivación económica agropecuaria
+    # Por defecto para desarrollo agrario y rural (reactivación productiva)
     return "OPPORTUNITY", "L3_PRODUCTIVE_DEVELOPMENT"
 
 

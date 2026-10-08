@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "last_updated": "2026-10-07T23:00:00.596103+00:00",
+  "last_updated": "2026-10-08T19:32:49.726434+00:00",
   "documents": {
     "adr_pidaret_bolivar_ordenanza_323_2021": {
       "source_id": "adr_pidaret_bolivar_ordenanza_323_2021",
@@ -326,6 +326,35 @@
           "is_valid_human_approval": true
         }
       ],
+      "review_history_recovery": null
+    },
+    "cand_patr_montes_de_maria": {
+      "source_id": "cand_patr_montes_de_maria",
+      "entity": "Agencia de Renovación del Territorio (ART)",
+      "title": "PATR Revisado y Actualizado 2026 (Montes de María)",
+      "level": "subregional_pdet",
+      "territory_scope": "PDET_01_MONTES_DE_MARIA",
+      "pipeline_type": "documental",
+      "document_format": "pdf",
+      "canonical_url": "https://www.renovacionterritorio.gov.co/sites/default/files/2026-08/patr-montes-de-maria.pdf",
+      "download_date": "2026-10-08T19:32:49.718171+00:00",
+      "sha256": "0d01b89216c7c722e83c23c439b6ec6282894c1c065ae480bc8116b49b3dbb62",
+      "byte_size": 7395539,
+      "content_path": "sources/0d01b89216c7c722e83c23c439b6ec6282894c1c065ae480bc8116b49b3dbb62.pdf",
+      "source_type": "document_context",
+      "provenance_class": "official_government",
+      "consent_status": "not_applicable",
+      "allowed_for_training": false,
+      "usage_state": "context_only",
+      "approval_status": "pending_review",
+      "status": null,
+      "instrument_type": null,
+      "previous_source_id": null,
+      "approval_notes": "",
+      "approval_timestamp": null,
+      "reviewer_id": null,
+      "reviewer_auth_mode": null,
+      "review_events": [],
       "review_history_recovery": null
     }
   }

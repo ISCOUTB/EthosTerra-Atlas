@@ -9,7 +9,6 @@ import {
   Layers,
   Database,
   UserCheck,
-  Lock,
   RefreshCw,
   Send,
   FileText,
@@ -29,9 +28,28 @@ import {
   FileCode,
   Activity,
   Cpu,
+  Upload,
+  Plus,
+  Trash2,
+  Globe,
+  FileUp,
 } from 'lucide-react'
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000/v2'
+
+export interface AuthorizedSeed {
+  seed_id: string
+  url: string
+  entity: string
+  title: string
+  territory_scope: string
+  instrument_type: string
+  pipeline_type: string
+  document_format: string
+  added_by: string
+  added_at: string
+  is_active: boolean
+}
 
 export interface TerritorialBeliefItem {
   belief_id: string
@@ -116,7 +134,7 @@ export interface RegisteredCandidate {
   status: string
   approval_status: string
   previous_source_id?: string | null
-  approval_notes: string
+  approval_notes?: string | null
   canonical_url: string
   sha256?: string | null
   byte_size?: number | null
@@ -126,14 +144,25 @@ export interface RegisteredCandidate {
   reviewer_id?: string | null
   is_downloaded: boolean
   notes?: string
+  selection_reason?: string | null
+  review_notes?: string | null
+  instruction_feedback?: string | null
+  retry_count?: number
+  max_retries?: number
+  search_status?: string
 }
 
 export function QuarantineReviewView() {
   const [documents, setDocuments] = useState<QuarantineDocument[]>([])
   const [candidates, setCandidates] = useState<RegisteredCandidate[]>([])
+  const [activeSectionTab, setActiveSectionTab] = useState<'candidates' | 'downloaded' | 'all'>('candidates')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  const pendingCandidatesCount = candidates.filter(
+    (c) => !c.is_downloaded && c.status !== 'rejected'
+  ).length
 
   // Modal de revisión
   const [selectedDoc, setSelectedDoc] = useState<QuarantineDocument | null>(null)
@@ -143,6 +172,13 @@ export function QuarantineReviewView() {
   const [reviewerId, setReviewerId] = useState('investigador_ebdi_01')
   const [reviewNotes, setReviewNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  // Modal de Descarte con Retroalimentación Adaptativa HITL
+  const [rejectingCandidate, setRejectingCandidate] = useState<RegisteredCandidate | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [rejectRequestSearch, setRejectRequestSearch] = useState(true)
+  const [rejectInstruction, setRejectInstruction] = useState('')
+  const [submittingReject, setSubmittingReject] = useState(false)
 
   // Modal de visualización y extracción de Creencias eBDI
   const [beliefsDoc, setBeliefsDoc] = useState<QuarantineDocument | null>(null)
@@ -155,6 +191,31 @@ export function QuarantineReviewView() {
   const [extractionPhase, setExtractionPhase] = useState<1 | 2 | 3 | 4>(1)
   const [extractionStageText, setExtractionStageText] = useState('')
   const [beliefsError, setBeliefsError] = useState<string | null>(null)
+
+  // Estados de Adquisición y Candidatos HITL
+  const [acquiringId, setAcquiringId] = useState<string | null>(null)
+
+  // Modal de Carga Manual de PDF
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadTitle, setUploadTitle] = useState('')
+  const [uploadEntity, setUploadEntity] = useState('')
+  const [uploadScope, setUploadScope] = useState('Montes de María')
+  const [uploadInstrument, setUploadInstrument] = useState('PDM')
+  const [uploadReviewer, setUploadReviewer] = useState('investigador_ebdi_01')
+  const [uploading, setUploading] = useState(false)
+
+  // Panel de Semillas Autorizadas para Rastreo
+  const [showSeedsPanel, setShowSeedsPanel] = useState(false)
+  const [seeds, setSeeds] = useState<AuthorizedSeed[]>([])
+  const [loadingSeeds, setLoadingSeeds] = useState(false)
+  const [scanningSeeds, setScanningSeeds] = useState(false)
+  const [newSeedUrl, setNewSeedUrl] = useState('')
+  const [newSeedEntity, setNewSeedEntity] = useState('')
+  const [newSeedTitle, setNewSeedTitle] = useState('')
+  const [newSeedScope, setNewSeedScope] = useState('Montes de María')
+  const [newSeedInstrument, setNewSeedInstrument] = useState('PDM')
+  const [addingSeed, setAddingSeed] = useState(false)
 
   const handleOpenBeliefs = async (doc: QuarantineDocument) => {
     setBeliefsDoc(doc)
@@ -438,9 +499,239 @@ export function QuarantineReviewView() {
     }
   }
 
+  const fetchSeeds = async () => {
+    setLoadingSeeds(true)
+    try {
+      const res = await fetch(`${API_BASE}/atlas/seeds`)
+      if (res.ok) {
+        const data = await res.json()
+        setSeeds(data.seeds || [])
+      }
+    } catch {
+      // Ignorar error silenciosamente
+    } finally {
+      setLoadingSeeds(false)
+    }
+  }
+
   useEffect(() => {
     fetchArtifacts()
+    fetchSeeds()
   }, [])
+
+  const handleAddSeed = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newSeedUrl.trim()) return
+    setAddingSeed(true)
+    try {
+      const res = await fetch(`${API_BASE}/atlas/seeds`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: newSeedUrl.trim(),
+          entity: newSeedEntity.trim() || 'Entidad Oficial Territorial',
+          title: newSeedTitle.trim() || 'Instrumento Territorial',
+          territory_scope: newSeedScope.trim() || 'Montes de María',
+          instrument_type: newSeedInstrument,
+          added_by: 'investigador_ebdi_01',
+        }),
+      })
+      if (res.ok) {
+        setNewSeedUrl('')
+        setNewSeedEntity('')
+        setNewSeedTitle('')
+        fetchSeeds()
+        setFeedback({
+          type: 'success',
+          message: 'Semilla oficial de rastreo autorizada registrada exitosamente.',
+        })
+      } else {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.detail || 'Error registrando semilla')
+      }
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err.message })
+    } finally {
+      setAddingSeed(false)
+    }
+  }
+
+  const handleDeleteSeed = async (seedId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/atlas/seeds/${seedId}`, { method: 'DELETE' })
+      if (res.ok) {
+        fetchSeeds()
+        setFeedback({ type: 'success', message: 'Semilla eliminada.' })
+      }
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err.message })
+    }
+  }
+
+  const handleScanSeeds = async () => {
+    setScanningSeeds(true)
+    try {
+      const res = await fetch(`${API_BASE}/atlas/seeds/scan`, { method: 'POST' })
+      if (res.ok) {
+        const data = await res.json()
+        fetchArtifacts()
+        setFeedback({
+          type: 'success',
+          message: `Rastreo completado: ${data.count} fuentes propuestas para validación humana (cero auto-aprobación).`,
+        })
+      } else {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.detail || 'Error escaneando semillas')
+      }
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err.message })
+    } finally {
+      setScanningSeeds(false)
+    }
+  }
+
+  const handleApproveAndAcquireCandidate = async (cand: RegisteredCandidate) => {
+    setAcquiringId(cand.source_id)
+    try {
+      if (cand.status !== 'approved_for_acquisition') {
+        const revRes = await fetch(`${API_BASE}/atlas/candidates/review`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source_id: cand.source_id,
+            reviewer_id: 'investigador_ebdi_01',
+            decision: 'approve',
+            review_notes: 'Aprobado formalmente tras inspección humana del enlace oficial.',
+          }),
+        })
+        if (!revRes.ok && revRes.status !== 409) {
+          const err = await revRes.json().catch(() => ({}))
+          throw new Error(err.detail || 'Error al autorizar candidato')
+        }
+      }
+
+      const acqRes = await fetch(`${API_BASE}/atlas/acquire`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source_id: cand.source_id,
+          requester_id: 'investigador_ebdi_01',
+        }),
+      })
+
+      if (!acqRes.ok) {
+        const err = await acqRes.json().catch(() => ({}))
+        throw new Error(err.detail || `Error en descarga: HTTP ${acqRes.status}`)
+      }
+
+      setFeedback({
+        type: 'success',
+        message: `Documento '${cand.title}' adquirido exitosamente al almacenamiento local soberano.`,
+      })
+      fetchArtifacts()
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: `Fallo adquiriendo candidato: ${err.message}` })
+    } finally {
+      setAcquiringId(null)
+    }
+  }
+
+  const handleOpenRejectModal = (cand: RegisteredCandidate) => {
+    setRejectingCandidate(cand)
+    setRejectReason('')
+    setRejectRequestSearch(true)
+    setRejectInstruction('')
+  }
+
+  const handleSubmitRejectFeedback = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!rejectingCandidate) return
+    if (!rejectReason.trim()) {
+      setFeedback({ type: 'error', message: 'El motivo del descarte es obligatorio (mínimo 5 caracteres).' })
+      return
+    }
+
+    setSubmittingReject(true)
+    try {
+      const revRes = await fetch(`${API_BASE}/atlas/candidates/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source_id: rejectingCandidate.source_id,
+          reviewer_id: reviewerId || 'investigador_ebdi_01',
+          decision: 'reject',
+          review_notes: rejectReason.trim(),
+          request_alternative_search: rejectRequestSearch,
+          instruction_feedback: rejectInstruction.trim() || undefined,
+        }),
+      })
+
+      if (!revRes.ok) {
+        const err = await revRes.json().catch(() => ({}))
+        throw new Error(err.detail || 'Error al descartar candidato')
+      }
+
+      const reviewData = await revRes.json()
+      const msg = reviewData.adaptive_message || `Candidato '${rejectingCandidate.title}' descartado exitosamente.`
+      setFeedback({ type: 'success', message: msg })
+      setRejectingCandidate(null)
+      fetchArtifacts()
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: `Error procesando descarte: ${err.message}` })
+    } finally {
+      setSubmittingReject(false)
+    }
+  }
+
+  const handleUploadFileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!uploadFile) return
+    setUploading(true)
+
+    try {
+      const reader = new FileReader()
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = reject
+      })
+      reader.readAsDataURL(uploadFile)
+      const b64 = await base64Promise
+
+      const res = await fetch(`${API_BASE}/atlas/artifacts/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: uploadFile.name,
+          file_base64: b64,
+          title: uploadTitle.trim() || undefined,
+          entity: uploadEntity.trim() || undefined,
+          territory_scope: uploadScope.trim() || 'Montes de María',
+          instrument_type: uploadInstrument,
+          reviewer_id: uploadReviewer.trim() || 'investigador_ebdi_01',
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.detail || `HTTP ${res.status}`)
+      }
+
+      const created = await res.json()
+      setFeedback({
+        type: 'success',
+        message: `Documento '${created.title}' (${created.source_id}) cargado exitosamente a cuarentena con SHA-256 verificado.`,
+      })
+      setShowUploadModal(false)
+      setUploadFile(null)
+      setUploadTitle('')
+      setUploadEntity('')
+      fetchArtifacts()
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: `Error al cargar documento: ${err.message}` })
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const handleOpenReview = (doc: QuarantineDocument) => {
     setSelectedDoc(doc)
@@ -551,15 +842,170 @@ export function QuarantineReviewView() {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={fetchArtifacts}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-black/[0.08] text-[#1d1d1f] hover:bg-gray-50 shadow-xs"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setShowUploadModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#0066cc] text-white hover:bg-[#0052a3] shadow-xs transition-all cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Cargar PDF Manualmente
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowSeedsPanel(!showSeedsPanel)}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              showSeedsPanel
+                ? 'bg-[#5856d6] text-white border-[#5856d6]'
+                : 'bg-white border-black/[0.08] text-[#1d1d1f] hover:bg-gray-50'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            Semillas Autorizadas ({seeds.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              fetchArtifacts()
+              fetchSeeds()
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-black/[0.08] text-[#1d1d1f] hover:bg-gray-50 shadow-xs cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </button>
+        </div>
       </div>
+
+      {/* Panel Desplegable de Semillas Autorizadas para Rastreo */}
+      {showSeedsPanel && (
+        <div className="bg-white p-5 rounded-2xl border border-[#5856d6]/30 shadow-sm flex flex-col gap-4 animate-in fade-in duration-150">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-black/[0.06]">
+            <div>
+              <h3 className="text-sm font-semibold text-[#1d1d1f] flex items-center gap-2">
+                <Globe className="w-4 h-4 text-[#5856d6]" />
+                Enlaces y Repositorios Institucionales Autorizados para Rastreo
+              </h3>
+              <p className="text-xs text-[#6e6e73] mt-0.5">
+                Defina los dominios o enlaces oficiales donde el agente está autorizado a buscar documentos. Los documentos descubiertos requerirán validación humana previa antes de su incorporación.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleScanSeeds}
+              disabled={scanningSeeds}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#5856d6] text-white hover:bg-[#4846c4] shadow-xs transition-all disabled:opacity-50 shrink-0 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${scanningSeeds ? 'animate-spin' : ''}`} />
+              {scanningSeeds ? 'Rastreando semillas...' : 'Escanear Semillas Ahora'}
+            </button>
+          </div>
+
+          {/* Formulario para registrar nueva semilla */}
+          <form onSubmit={handleAddSeed} className="grid grid-cols-1 md:grid-cols-6 gap-2.5 bg-[#fafafc] p-3.5 rounded-xl border border-black/[0.06] text-xs">
+            <div className="md:col-span-2 flex flex-col gap-1">
+              <label className="font-semibold text-[#1d1d1f]">URL Semilla Oficial (.gov.co):</label>
+              <input
+                type="url"
+                value={newSeedUrl}
+                onChange={(e) => setNewSeedUrl(e.target.value)}
+                placeholder="https://www.renovacionterritorio.gov.co/..."
+                required
+                className="px-3 py-2 rounded-lg border border-black/[0.1] bg-white focus:outline-none focus:border-[#5856d6]"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-[#1d1d1f]">Entidad:</label>
+              <input
+                type="text"
+                value={newSeedEntity}
+                onChange={(e) => setNewSeedEntity(e.target.value)}
+                placeholder="ej. ART, ADR, Alcaldía"
+                className="px-3 py-2 rounded-lg border border-black/[0.1] bg-white focus:outline-none focus:border-[#5856d6]"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-[#1d1d1f]">Instrumento:</label>
+              <select
+                value={newSeedInstrument}
+                onChange={(e) => setNewSeedInstrument(e.target.value)}
+                className="px-3 py-2 rounded-lg border border-black/[0.1] bg-white focus:outline-none focus:border-[#5856d6]"
+              >
+                <option value="PDM">PDM</option>
+                <option value="PDT">PDT</option>
+                <option value="PATR">PATR</option>
+                <option value="PIDARET">PIDARET</option>
+                <option value="OTRO">Otro</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-[#1d1d1f]">Ámbito Territorial:</label>
+              <input
+                type="text"
+                value={newSeedScope}
+                onChange={(e) => setNewSeedScope(e.target.value)}
+                placeholder="ej. Montes de María"
+                className="px-3 py-2 rounded-lg border border-black/[0.1] bg-white focus:outline-none focus:border-[#5856d6]"
+              />
+            </div>
+            <div className="flex flex-col justify-end">
+              <button
+                type="submit"
+                disabled={addingSeed || !newSeedUrl.trim()}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-[#1d1d1f] text-white hover:bg-black shadow-xs transition-all disabled:opacity-50 cursor-pointer h-[34px]"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                {addingSeed ? 'Guardando...' : 'Autorizar'}
+              </button>
+            </div>
+          </form>
+
+          {/* Lista de semillas activas */}
+          <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
+            {loadingSeeds ? (
+              <p className="text-xs text-[#86868b] italic py-2 flex items-center gap-1.5">
+                <RefreshCw className="w-3 h-3 animate-spin" /> Cargando semillas autorizadas...
+              </p>
+            ) : seeds.length === 0 ? (
+              <p className="text-xs text-[#86868b] italic py-2">No hay semillas adicionales registradas.</p>
+            ) : (
+              seeds.map((s) => (
+                <div
+                  key={s.seed_id}
+                  className="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-black/[0.05] bg-white hover:bg-gray-50 text-xs"
+                >
+                  <div className="flex flex-col gap-0.5 truncate">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-[#1d1d1f]">{s.title || s.seed_id}</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-black/[0.05] text-gray-600 font-mono">
+                        {s.instrument_type}
+                      </span>
+                      <span className="text-[11px] text-[#5856d6] font-medium">{s.territory_scope}</span>
+                    </div>
+                    <a
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#0066cc] hover:underline font-mono text-[11px] truncate flex items-center gap-1"
+                    >
+                      <ExternalLink className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{s.url}</span>
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteSeed(s.seed_id)}
+                    className="p-1.5 rounded-md text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors shrink-0 cursor-pointer"
+                    title="Eliminar semilla"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {feedback && (
         <div
@@ -581,17 +1027,254 @@ export function QuarantineReviewView() {
         </div>
       )}
 
-      {/* Lista de Artefactos en Cuarentena */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-[#1d1d1f] flex items-center gap-2">
-            <Database className="w-4 h-4 text-[#0066cc]" />
-            Artefactos en Cuarentena Descargados ({documents.length})
-          </h3>
-          <span className="text-[11px] text-[#86868b]">
-            Direccionados por SHA-256 en almacenamiento aislado fuera de Git
+      {/* Selector de Sub-Navegación de Cuarentena (Sticky debajo de las pestañas principales) */}
+      <div className="sticky top-[162px] z-20 bg-white/95 backdrop-blur-md p-2.5 rounded-2xl border border-black/[0.08] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all">
+        <div className="bg-[#f5f5f7] p-1 rounded-xl border border-black/[0.04] inline-flex items-center gap-1 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setActiveSectionTab('candidates')}
+            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeSectionTab === 'candidates'
+                ? 'bg-white text-[#1d1d1f] shadow-xs'
+                : 'text-[#6e6e73] hover:text-[#1d1d1f]'
+            }`}
+          >
+            <Layers className={`w-3.5 h-3.5 ${activeSectionTab === 'candidates' ? 'text-[#5856d6]' : 'text-gray-400'}`} />
+            <span>Candidatos para Validación</span>
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                pendingCandidatesCount > 0
+                  ? 'bg-[#5856d6] text-white'
+                  : 'bg-black/[0.06] text-[#6e6e73]'
+              }`}
+            >
+              {candidates.length}
+            </span>
+            {pendingCandidatesCount > 0 && (
+              <span className="text-[10px] text-amber-800 font-semibold bg-amber-100 px-1.5 py-0.5 rounded-md">
+                {pendingCandidatesCount} por revisar
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSectionTab('downloaded')}
+            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeSectionTab === 'downloaded'
+                ? 'bg-white text-[#1d1d1f] shadow-xs'
+                : 'text-[#6e6e73] hover:text-[#1d1d1f]'
+            }`}
+          >
+            <Database className={`w-3.5 h-3.5 ${activeSectionTab === 'downloaded' ? 'text-[#0066cc]' : 'text-gray-400'}`} />
+            <span>Artefactos en Cuarentena Descargados</span>
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                activeSectionTab === 'downloaded'
+                  ? 'bg-[#0066cc] text-white'
+                  : 'bg-black/[0.06] text-[#6e6e73]'
+              }`}
+            >
+              {documents.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSectionTab('all')}
+            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeSectionTab === 'all'
+                ? 'bg-white text-[#1d1d1f] shadow-xs'
+                : 'text-[#6e6e73] hover:text-[#1d1d1f]'
+            }`}
+          >
+            <span>Ver Ambos</span>
+          </button>
+        </div>
+
+        <div className="text-[11px] text-[#6e6e73] flex items-center gap-2 px-2">
+          <span>
+            {activeSectionTab === 'candidates'
+              ? 'Enfoque HITL: Audite justificativos del agente y decida adquisición o descarte.'
+              : activeSectionTab === 'downloaded'
+              ? 'Inspección de artefactos locales descargados con hash criptográfico SHA-256.'
+              : 'Vista consolidada simultánea de candidatos y artefactos adquiridos.'}
           </span>
         </div>
+      </div>
+
+      {/* Sección 1: Candidatos Oficiales y Descubiertos para Validación Humana (HITL) */}
+      {(activeSectionTab === 'candidates' || activeSectionTab === 'all') && (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-1 border-b border-black/[0.06]">
+            <div>
+              <h3 className="text-sm font-semibold text-[#1d1d1f] flex items-center gap-2">
+                <Layers className="w-4 h-4 text-[#5856d6]" />
+                Candidatos Oficiales y Descubiertos para Validación Humana ({candidates.length})
+              </h3>
+              <p className="text-[11px] text-[#6e6e73]">
+                Human-in-the-Loop: Ningún documento se adquiere automáticamente. Haga clic en el enlace para verificar el documento oficial y decida si aprueba la adquisición al almacenamiento local soberano o lo descarta.
+              </p>
+            </div>
+            <span className="text-[11px] text-[#5856d6] font-semibold bg-[#5856d6]/10 px-2.5 py-1 rounded-full shrink-0">
+              Validación Humana Obligatoria
+            </span>
+          </div>
+
+          {candidates.length === 0 ? (
+            <div className="bg-white p-8 rounded-2xl border border-dashed border-black/[0.1] text-center flex flex-col items-center justify-center gap-3">
+              <Layers className="w-8 h-8 text-gray-300" />
+              <div className="flex flex-col gap-1 max-w-md">
+                <span className="font-semibold text-sm text-[#1d1d1f]">No hay candidatos registrados para validación</span>
+                <p className="text-xs text-[#6e6e73]">
+                  Actualmente no se han descubierto nuevos candidatos para validación humana. Puede registrar nuevas URLs o repositorios semilla arriba o cargar un documento PDF directamente.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {candidates.map((cand) => (
+                <div
+                  key={cand.source_id}
+                  className="bg-white p-4 rounded-xl border border-[#5856d6]/25 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs"
+                >
+                  <div className="flex flex-col gap-1 max-w-2xl flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono font-bold text-[#5856d6] bg-[#5856d6]/10 px-2 py-0.5 rounded">
+                        {cand.source_id}
+                      </span>
+                      {getStatusBadge(cand.status)}
+                      <span className="text-gray-500 font-medium">({cand.instrument_type})</span>
+                      <span className="text-gray-400 text-[11px]">{cand.territory_scope}</span>
+                      {cand.retry_count && cand.retry_count > 0 ? (
+                        <span className="text-[10px] font-semibold text-[#5856d6] bg-[#5856d6]/10 px-2 py-0.5 rounded border border-[#5856d6]/25">
+                          Intento {cand.retry_count}/6
+                        </span>
+                      ) : null}
+                    </div>
+                    <span className="font-medium text-[#1d1d1f] text-sm">{cand.title}</span>
+                    <span className="text-gray-500 text-[11px]">{cand.entity}</span>
+
+                    {/* Justificación Técnica del Agente de por qué seleccionó este documento */}
+                    <div className="bg-[#5856d6]/[0.05] p-2.5 rounded-lg border border-[#5856d6]/20 flex flex-col gap-1 mt-1">
+                      <span className="text-[10px] font-bold text-[#5856d6] uppercase tracking-wider flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3" /> Justificación del Agente para Selección:
+                      </span>
+                      <p className="text-[#1d1d1f] text-[11px] leading-relaxed">
+                        {cand.selection_reason || 'Fuente oficial institucional con cobertura territorial compatible.'}
+                      </p>
+                    </div>
+
+                    {/* Alerta de agotamiento de intentos adaptativos */}
+                    {cand.search_status === 'exhausted_no_alternative' && (
+                      <div className="bg-amber-50 p-2 rounded-lg border border-amber-200 mt-1 flex items-center gap-1.5 text-amber-900 text-[11px]">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span>El agente agotó los 6 intentos de búsqueda adaptativa sin hallar alternativas no redundantes. Sugerencia: cargue el PDF manualmente o agregue una nueva semilla oficial.</span>
+                      </div>
+                    )}
+
+                    {/* Motivo de descarte previo si ya fue revisado */}
+                    {cand.status === 'rejected' && cand.review_notes && (
+                      <div className="bg-red-50 p-2 rounded-lg border border-red-200 mt-1">
+                        <span className="text-[10px] font-bold text-red-700 uppercase">Motivo del Descarte Humano:</span>
+                        <p className="text-red-900 text-[11px] mt-0.5">{cand.review_notes}</p>
+                        {cand.instruction_feedback && (
+                          <p className="text-red-700 text-[10px] mt-0.5 italic">
+                            Indicación dada al agente: "{cand.instruction_feedback}"
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Enlace auditable oficial */}
+                    {cand.canonical_url ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <a
+                          href={cand.canonical_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-[#0066cc] hover:text-[#004499] hover:underline font-mono text-[11px] bg-[#0066cc]/5 px-2.5 py-1 rounded-md border border-[#0066cc]/20 transition-all cursor-pointer"
+                          title="Abrir en pestaña nueva para validar contenido"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                          <span>Inspeccionar Documento Oficial</span>
+                        </a>
+                        <span className="text-[#86868b] text-[10px] font-mono truncate max-w-xs">{cand.canonical_url}</span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 italic text-[11px]">Sin URL canónica registrada</span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-row md:flex-col items-center md:items-end gap-2 shrink-0">
+                    {cand.is_downloaded ? (
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Adquirido en Cuarentena
+                      </span>
+                    ) : cand.status === 'rejected' ? (
+                      <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
+                        <XCircle className="w-3.5 h-3.5" /> Descartado por Revisor
+                      </span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleApproveAndAcquireCandidate(cand)}
+                          disabled={acquiringId === cand.source_id}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-[#34c759] text-white hover:bg-[#2fb350] shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                          title="Aprobar para adquisición y descargar al almacenamiento local de cuarentena"
+                        >
+                          {acquiringId === cand.source_id ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          )}
+                          <span>{acquiringId === cand.source_id ? 'Adquiriendo...' : 'Aprobar y Adquirir'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenRejectModal(cand)}
+                          disabled={acquiringId === cand.source_id}
+                          className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-semibold bg-white border border-red-300 text-red-600 hover:bg-red-50 transition-all disabled:opacity-50 cursor-pointer"
+                          title="Descartar con retroalimentación para el agente"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>Descartar</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sección 2: Lista de Artefactos en Cuarentena Descargados */}
+      {(activeSectionTab === 'downloaded' || activeSectionTab === 'all') && (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between pb-1 border-b border-black/[0.06]">
+            <h3 className="text-sm font-semibold text-[#1d1d1f] flex items-center gap-2">
+              <Database className="w-4 h-4 text-[#0066cc]" />
+              Artefactos en Cuarentena Descargados ({documents.length})
+            </h3>
+            <span className="text-[11px] text-[#86868b]">
+              Direccionados por SHA-256 en almacenamiento aislado fuera de Git
+            </span>
+          </div>
+
+          {documents.length === 0 ? (
+            <div className="bg-white p-8 rounded-2xl border border-dashed border-black/[0.1] text-center flex flex-col items-center justify-center gap-3">
+              <Database className="w-8 h-8 text-gray-300" />
+              <div className="flex flex-col gap-1 max-w-md">
+                <span className="font-semibold text-sm text-[#1d1d1f]">No hay artefactos en cuarentena descargados</span>
+                <p className="text-xs text-[#6e6e73]">
+                  Aún no se han descargado artefactos al almacenamiento local. Apruebe un candidato oficial o utilice el botón de carga manual de PDF arriba.
+                </p>
+              </div>
+            </div>
+          ) : (
 
         <div className="flex flex-col gap-4">
           {documents.map((doc) => (
@@ -794,46 +1477,275 @@ export function QuarantineReviewView() {
             </div>
           ))}
         </div>
-      </div>
+          )}
+        </div>
+      )}
 
-      {/* Sección Candidatos Registrados Oficiales (No Descargados) */}
-      {candidates.length > 0 && (
-        <div className="flex flex-col gap-3 mt-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-[#1d1d1f] flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#5856d6]" />
-              Candidatos Oficiales Registrados (No Descargados - Opción A) ({candidates.length})
-            </h3>
-            <span className="text-[11px] text-[#86868b] flex items-center gap-1 font-semibold text-amber-700">
-              <Lock className="w-3 h-3" /> Descarga y promoción bloqueadas en esta ejecución
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            {candidates.map((cand) => (
-              <div
-                key={cand.source_id}
-                className="bg-[#fafafc] p-4 rounded-xl border border-[#5856d6]/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs"
+      {/* Modal de Carga Manual de Documento PDF */}
+      {showUploadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white w-full max-w-lg rounded-2xl border border-black/[0.1] shadow-2xl p-6 flex flex-col gap-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start justify-between pb-3 border-b border-black/[0.06]">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0066cc]">
+                  Almacenamiento Local Soberano
+                </span>
+                <h3 className="text-base font-semibold text-[#1d1d1f]">Carga Manual de Documento PDF</h3>
+                <span className="text-xs text-[#6e6e73]">
+                  El archivo será validado (%PDF-), se calculará su SHA-256 e ingresará aprobado directamente a cuarentena.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUploadModal(false)
+                  setUploadFile(null)
+                }}
+                className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                aria-label="Cerrar modal"
               >
-                <div className="flex flex-col gap-1 max-w-2xl">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-[#5856d6] bg-[#5856d6]/10 px-2 py-0.5 rounded">
-                      {cand.source_id}
-                    </span>
-                    {getStatusBadge(cand.status)}
-                    <span className="text-gray-500 font-medium">({cand.instrument_type})</span>
-                  </div>
-                  <span className="font-medium text-[#1d1d1f]">{cand.title}</span>
-                  <span className="text-[#86868b] text-[11px] font-mono truncate">{cand.canonical_url}</span>
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-200 text-gray-700 cursor-not-allowed">
-                    <Lock className="w-3 h-3" /> Promoción Bloqueada
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUploadFileSubmit} className="flex flex-col gap-4 text-xs">
+              <div className="flex flex-col gap-1.5">
+                <label className="font-semibold text-[#1d1d1f]">Archivo PDF (*.pdf):</label>
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  required
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      const f = e.target.files[0]
+                      setUploadFile(f)
+                      if (!uploadTitle) {
+                        setUploadTitle(f.name.replace('.pdf', '').replace(/[-_]/g, ' '))
+                      }
+                    }
+                  }}
+                  className="px-3 py-2 rounded-xl border border-dashed border-black/[0.2] bg-[#fafafc] hover:bg-gray-50 cursor-pointer"
+                />
+                {uploadFile && (
+                  <span className="text-[11px] text-gray-500 font-mono">
+                    Seleccionado: {uploadFile.name} ({(uploadFile.size / 1024 / 1024).toFixed(2)} MB)
                   </span>
-                  <span className="text-[10px] text-[#86868b]">Solo referencia normativa 2026</span>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-semibold text-[#1d1d1f]">Título del Instrumento:</label>
+                <input
+                  type="text"
+                  value={uploadTitle}
+                  onChange={(e) => setUploadTitle(e.target.value)}
+                  placeholder="ej. Plan de Desarrollo Municipal 2024-2027"
+                  required
+                  className="px-3.5 py-2.5 rounded-xl border border-black/[0.1] focus:outline-none focus:border-[#0066cc]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-semibold text-[#1d1d1f]">Entidad Territorial:</label>
+                  <input
+                    type="text"
+                    value={uploadEntity}
+                    onChange={(e) => setUploadEntity(e.target.value)}
+                    placeholder="ej. Alcaldía Municipal"
+                    className="px-3.5 py-2.5 rounded-xl border border-black/[0.1] focus:outline-none focus:border-[#0066cc]"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-semibold text-[#1d1d1f]">Ámbito Territorial:</label>
+                  <input
+                    type="text"
+                    value={uploadScope}
+                    onChange={(e) => setUploadScope(e.target.value)}
+                    placeholder="ej. Montes de María"
+                    required
+                    className="px-3.5 py-2.5 rounded-xl border border-black/[0.1] focus:outline-none focus:border-[#0066cc]"
+                  />
                 </div>
               </div>
-            ))}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-semibold text-[#1d1d1f]">Tipo de Instrumento:</label>
+                  <select
+                    value={uploadInstrument}
+                    onChange={(e) => setUploadInstrument(e.target.value)}
+                    className="px-3.5 py-2.5 rounded-xl border border-black/[0.1] bg-white focus:outline-none focus:border-[#0066cc]"
+                  >
+                    <option value="PDM">PDM (Plan de Desarrollo Municipal)</option>
+                    <option value="PDT">PDT (Plan de Desarrollo Territorial)</option>
+                    <option value="PATR">PATR (Transformación Regional PDET)</option>
+                    <option value="PIDARET">PIDARET (Desarrollo Rural Departamental)</option>
+                    <option value="EOT">EOT (Esquema de Ordenamiento)</option>
+                    <option value="POT">POT (Plan de Ordenamiento)</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-semibold text-[#1d1d1f]">Revisor Responsable:</label>
+                  <input
+                    type="text"
+                    value={uploadReviewer}
+                    onChange={(e) => setUploadReviewer(e.target.value)}
+                    required
+                    className="px-3.5 py-2.5 rounded-xl border border-black/[0.1] focus:outline-none focus:border-[#0066cc]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-black/[0.06]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUploadModal(false)
+                    setUploadFile(null)
+                  }}
+                  className="px-4 py-2.5 rounded-xl font-semibold text-[#6e6e73] hover:text-[#1d1d1f] hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading || !uploadFile}
+                  className="px-5 py-2.5 rounded-xl font-semibold bg-[#0066cc] text-white hover:bg-[#0052a3] shadow-xs transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                >
+                  {uploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileUp className="w-4 h-4" />}
+                  <span>{uploading ? 'Cargando y Verificando...' : 'Cargar a Cuarentena'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Descarte y Retroalimentacion Adaptativa de Candidato */}
+      {rejectingCandidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white w-full max-w-xl rounded-2xl border border-black/[0.1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between pb-3 border-b border-black/[0.06]">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#d97706]">
+                  Retroalimentacion del Investigador
+                </span>
+                <h3 className="text-base font-semibold text-[#1d1d1f]">
+                  Descartar Candidato y Guiar al Agente
+                </h3>
+                <span className="font-mono text-xs text-[#6e6e73]">{rejectingCandidate.source_id}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setRejectingCandidate(null);
+                  setRejectReason('');
+                  setRejectInstruction('');
+                  setRejectRequestSearch(true);
+                }}
+                className="text-[#86868b] hover:text-[#1d1d1f] p-1 rounded-lg hover:bg-black/[0.04] cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitRejectFeedback} className="flex flex-col gap-4">
+              <div className="bg-[#f5f5f7] rounded-xl p-3 text-xs flex flex-col gap-1.5 border border-black/[0.04]">
+                <div className="font-semibold text-[#1d1d1f]">{rejectingCandidate.title}</div>
+                <div className="text-[#6e6e73] flex items-center gap-2">
+                  <span>Entidad: {rejectingCandidate.entity}</span>
+                  <span>•</span>
+                  <span>Instrumento: {rejectingCandidate.instrument_type}</span>
+                </div>
+                {rejectingCandidate.selection_reason && (
+                  <div className="mt-1 pt-1.5 border-t border-black/[0.06] text-[#424245]">
+                    <span className="font-semibold text-[#1d1d1f]">Justificacion original del agente: </span>
+                    {rejectingCandidate.selection_reason}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#1d1d1f] mb-1">
+                  Motivo del Descarte y Observaciones (Obligatorio)
+                </label>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="Explique al agente por que este documento no es adecuado (ej. resolucion desactualizada, alcance fuera de Montes de Maria, documento incompleto)..."
+                  rows={3}
+                  required
+                  className="w-full text-xs p-3 rounded-xl border border-black/[0.1] bg-[#fafafa] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] resize-none"
+                />
+              </div>
+
+              {((rejectingCandidate.retry_count || 0) < (rejectingCandidate.max_retries || 6)) ? (
+                <div className="flex flex-col gap-3 p-3 rounded-xl border border-blue-100 bg-blue-50/50">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rejectRequestSearch}
+                      onChange={(e) => setRejectRequestSearch(e.target.checked)}
+                      className="mt-0.5 rounded border-black/[0.2] text-[#0066cc] focus:ring-[#0066cc]"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-semibold text-[#1d1d1f]">
+                        Solicitar al agente re-busqueda adaptativa de una alternativa oficial
+                      </span>
+                      <span className="text-[11px] text-[#6e6e73]">
+                        Intento {(rejectingCandidate.retry_count || 0) + 1} de {rejectingCandidate.max_retries || 6}. El agente usara sus fuentes autorizadas y observara filtros anti-redundancia para no duplicar informacion.
+                      </span>
+                    </div>
+                  </label>
+
+                  {rejectRequestSearch && (
+                    <div>
+                      <label className="block text-[11px] font-medium text-[#1d1d1f] mb-1">
+                        Criterio o directriz tecnica de reorientacion (Opcional)
+                      </label>
+                      <input
+                        type="text"
+                        value={rejectInstruction}
+                        onChange={(e) => setRejectInstruction(e.target.value)}
+                        placeholder="Ej: Buscar version consolidada 2024 o PDF normativo de Renovacion del Territorio"
+                        className="w-full text-xs p-2.5 rounded-lg border border-black/[0.1] bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc]"
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs">
+                  <span className="font-semibold">Limite maximo de 6 intentos alcanzado: </span>
+                  No se pueden solicitar mas re-busquedas adaptativas para este instrumento. El descarte sera definitivo.
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-black/[0.06]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRejectingCandidate(null);
+                    setRejectReason('');
+                    setRejectInstruction('');
+                    setRejectRequestSearch(true);
+                  }}
+                  className="px-4 py-2 text-xs font-semibold text-[#424245] hover:text-[#1d1d1f] hover:bg-black/[0.04] rounded-xl transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingReject || rejectReason.trim().length < 5}
+                  className="px-4 py-2 text-xs font-semibold bg-[#dc2626] text-white hover:bg-[#b91c1c] rounded-xl shadow-xs transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                >
+                  {submittingReject && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>
+                    {submittingReject ? 'Procesando...' : 'Confirmar Descarte y Retroalimentar'}
+                  </span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -1215,7 +2127,7 @@ export function QuarantineReviewView() {
                       </div>
                       <span className="text-xs font-semibold">Segmentación Zero-Trust</span>
                       <p className="text-[11px] leading-relaxed opacity-80">
-                        Extracción del texto del PDF y aislamiento de fragmentos agropecuarios.
+                        Extracción del texto del PDF y aislamiento de fragmentos agrarios y territoriales.
                       </p>
                     </div>
 

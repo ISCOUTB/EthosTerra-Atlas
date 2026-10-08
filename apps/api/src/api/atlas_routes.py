@@ -5,6 +5,9 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
+import base64
+import hashlib
+import re
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
@@ -18,8 +21,11 @@ from apps.atlas.schemas.discovery_schemas import (
     DiscoveryResult,
     CandidateReviewDecision,
     CandidateReviewRecord,
+    CandidateReviewResponse,
     AcquisitionRequest,
     AcquisitionResult,
+    AuthorizedSeedCreate,
+    AuthorizedSeedItem,
 )
 from apps.atlas.storage.candidate_review_manager import (
     CandidateReviewManager,
@@ -30,8 +36,10 @@ from apps.atlas.storage.candidate_review_manager import (
 from apps.atlas.schemas.document_schemas import (
     DocumentMetadataRecord,
     ReviewEventRecord,
+    SourceRegistryEntry,
 )
 from apps.atlas.storage.manifest_manager import ManifestManager
+from apps.atlas.storage.seed_manager import SeedManager
 from apps.atlas.collectors.policy_verifier import PolicyVerifier, PolicyVerificationError
 from apps.atlas.collectors.streaming_collector import (
     StreamingDocumentCollector,
@@ -61,6 +69,7 @@ atlas_router = APIRouter(prefix="/v2/atlas", tags=["Atlas de Política Territori
 resolver = TerritoryResolver()
 discovery_agent = DocumentDiscoveryAgent(resolver=resolver)
 review_manager = CandidateReviewManager()
+seed_manager = SeedManager()
 manifest_manager = ManifestManager()
 policy_verifier = PolicyVerifier()
 streaming_collector = StreamingDocumentCollector(verifier=policy_verifier, manifest_manager=manifest_manager)
@@ -145,13 +154,19 @@ def discover_sources(query: DiscoveryQuery) -> DiscoveryResult:
 
 @atlas_router.post(
     "/candidates/review",
-    response_model=CandidateReviewRecord,
-    summary="Registrar decisión humana (aprobación para adquisición o rechazo) de un candidato",
+    response_model=CandidateReviewResponse,
+    summary="Registrar decisión humana (aprobación para adquisición o rechazo con retroalimentación) de un candidato",
 )
-def review_candidate(decision: CandidateReviewDecision) -> CandidateReviewRecord:
-    """Registra y audita la decisión de un investigador sobre un candidato descubierto."""
+def review_candidate(decision: CandidateReviewDecision) -> CandidateReviewResponse:
+    """Registra y audita la decisión de un investigador sobre un candidato descubierto con soporte adaptativo."""
     try:
-        return review_manager.review_candidate(decision)
+        seeds = seed_manager.load_seeds()
+        manifest = manifest_manager.load_manifest()
+        return review_manager.review_candidate(
+            decision,
+            seed_items=seeds,
+            manifest_docs=manifest.documents,
+        )
     except CandidateNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
     except CandidateAlreadyReviewedError as exc:
@@ -246,6 +261,24 @@ def acquire_document(request: AcquisitionRequest) -> AcquisitionResult:
         )
 
     # 5. Adquirir documento mediante StreamingDocumentCollector
+    if candidate.source_id not in policy_verifier.registered_sources:
+        policy_verifier._registry[candidate.source_id] = SourceRegistryEntry(
+            id=candidate.source_id,
+            entity=candidate.entity,
+            name=candidate.title,
+            level="municipal" if candidate.instrument_type in ["PDM", "PDT"] else ("subregional_pdet" if candidate.instrument_type == "PATR" else "departamental"),
+            territory_scope=candidate.territory_scope,
+            pipeline_type=candidate.pipeline_type,
+            document_format=candidate.document_format,
+            adoption_norm="Norma Oficial Registrada",
+            validity_start_year=2024,
+            status="vigente",
+            canonical_url=candidate.url,
+            access_type="descarga_directa",
+            rate_limit="10_req_per_minute",
+            license="Gobierno de Colombia - Acceso Público y Consulta",
+        )
+
     try:
         record, _ = streaming_collector.collect_source(
             source_id=request.source_id,
@@ -292,33 +325,199 @@ def get_quarantine_artifacts():
     manifest = manifest_manager.load_manifest()
     docs = list(manifest.documents.values())
 
-    # Opción A conservada como candidato registrado sin descargar ni promover
-    registered_candidates = [
-        {
-            "source_id": "art_patr_montes_de_maria_2026",
-            "title": "PATR revisado y actualizado 2026 (Montes de María)",
-            "entity": "Agencia de Renovación del Territorio (ART)",
-            "instrument_type": "PATR",
-            "territory_scope": "Montes de María",
-            "status": "revised_2026",
-            "approval_status": "revised_2026",
-            "previous_source_id": None,
-            "approval_notes": "Opción A: Candidato registrado oficial conservado sin descargar ni promover.",
-            "canonical_url": "https://www.renovacionterritorio.gov.co/sites/default/files/2026-08/patr-montes-de-maria.pdf",
-            "sha256": None,
-            "byte_size": None,
-            "allowed_for_training": False,
-            "usage_state": "context_only",
-            "approval_timestamp": None,
-            "reviewer_id": None,
-            "is_downloaded": False,
-        }
-    ]
+    all_cands = review_manager.list_all_candidates(manifest.documents)
+    unacquired_candidates = [c for c in all_cands if not c.get("is_downloaded")]
 
     return {
         "documents": [d.model_dump() for d in docs],
-        "registered_candidates": registered_candidates,
+        "registered_candidates": unacquired_candidates,
         "count": len(docs),
+    }
+
+
+class DirectUploadRequest(BaseModel):
+    """Contrato estricto para carga manual de documentos PDF vía Base64/JSON."""
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    filename: str = Field(..., min_length=3, max_length=120)
+    file_base64: str = Field(..., min_length=10)
+    source_id: str | None = Field(default=None, max_length=100)
+    title: str | None = Field(default=None, max_length=200)
+    entity: str = Field(default="Entidad Territorial / Carga Manual", max_length=120)
+    territory_scope: str = Field(default="Montes de María", max_length=100)
+    instrument_type: str = Field(default="PDM", max_length=50)
+    reviewer_id: str = Field(default="investigador_ebdi_01", max_length=64)
+
+
+@atlas_router.post(
+    "/artifacts/upload",
+    response_model=DocumentMetadataRecord,
+    summary="Cargar manualmente un documento PDF al almacenamiento soberano de cuarentena",
+)
+def upload_artifact(payload: DirectUploadRequest):
+    """Permite al investigador subir directamente un documento PDF en Base64 al almacenamiento de cuarentena."""
+    filename = payload.filename
+    if not filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Solo se admiten archivos en formato PDF (.pdf).")
+
+    # Limpiar prefijo data URI si viene de FileReader.readAsDataURL
+    raw_b64 = payload.file_base64
+    if "," in raw_b64:
+        raw_b64 = raw_b64.split(",", 1)[1]
+
+    try:
+        content = base64.b64decode(raw_b64)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Contenido Base64 inválido: {exc}")
+
+    if len(content) < 4 or not content.startswith(b"%PDF-"):
+        raise HTTPException(
+            status_code=400,
+            detail="El archivo proporcionado no es un PDF válido (falta firma binaria '%PDF-').",
+        )
+
+    if len(content) > 100 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="El archivo excede el límite máximo de 100 MB.")
+
+    sha256 = hashlib.sha256(content).hexdigest()
+
+    if not payload.source_id:
+        clean_name = filename.replace(".pdf", "").replace("-", "_").replace(" ", "_").lower()
+        clean_name = re.sub(r"[^a-z0-9_]", "", clean_name)
+        effective_source_id = f"manual_{clean_name[:32]}"
+    else:
+        effective_source_id = re.sub(r"[^a-zA-Z0-9_-]", "_", payload.source_id.strip()).lower()
+
+    manifest_manager.ensure_directories()
+    dest_path = manifest_manager.sources_dir / f"{sha256}.pdf"
+    dest_path.write_bytes(content)
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    rev_event = ReviewEventRecord(
+        event_id=f"rev_{uuid.uuid4().hex[:12]}",
+        timestamp_utc=now_iso,
+        reviewer_id=payload.reviewer_id,
+        reviewer_auth_mode="declarado_sin_autenticacion",
+        decision="approved_for_context",
+        review_notes="Documento PDF cargado y aprobado manualmente por el investigador.",
+        previous_status=None,
+        event_type="human_decision",
+        is_valid_human_approval=True,
+    )
+
+    doc_record = DocumentMetadataRecord(
+        source_id=effective_source_id,
+        entity=payload.entity,
+        title=payload.title or filename.replace(".pdf", "").replace("_", " ").title(),
+        level="municipal",
+        territory_scope=payload.territory_scope,
+        pipeline_type="documental",
+        document_format="pdf",
+        canonical_url=f"local_upload://{filename}",
+        download_date=now_iso,
+        sha256=sha256,
+        byte_size=len(content),
+        content_path=f"sources/{sha256}.pdf",
+        source_type="document_context",
+        provenance_class="official_government",
+        consent_status="not_applicable",
+        allowed_for_training=False,
+        usage_state="context_only",
+        approval_status="approved_for_context",
+        status="approved_for_context",
+        instrument_type=payload.instrument_type,
+        approval_notes="Cargado directamente por el investigador local desde archivo físico.",
+        approval_timestamp=now_iso,
+        reviewer_id=payload.reviewer_id,
+        reviewer_auth_mode="declarado_sin_autenticacion",
+        review_events=[rev_event],
+    )
+
+    manifest = manifest_manager.load_manifest()
+    manifest.documents[effective_source_id] = doc_record
+    manifest_manager.save_manifest(manifest)
+
+    # Habilitar en validador de políticas para extracción
+    policy_verifier._registry[effective_source_id] = SourceRegistryEntry(
+        id=effective_source_id,
+        entity=payload.entity,
+        name=doc_record.title,
+        level="municipal",
+        territory_scope=payload.territory_scope,
+        pipeline_type="documental",
+        document_format="pdf",
+        adoption_norm="Carga Manual Soberana",
+        validity_start_year=2024,
+        status="vigente",
+        canonical_url=doc_record.canonical_url,
+        access_type="descarga_directa",
+        rate_limit="local_unlimited",
+        license="Gobierno de Colombia - Acceso Público y Consulta",
+    )
+
+    return doc_record
+
+
+@atlas_router.get(
+    "/candidates",
+    summary="Listar todos los candidatos oficiales y descubiertos con estado de revisión humana",
+)
+def list_candidates():
+    """Devuelve la lista unificada de candidatos oficiales e institucionales con enlaces de inspección."""
+    manifest = manifest_manager.load_manifest()
+    cands = review_manager.list_all_candidates(manifest.documents)
+    return {
+        "candidates": cands,
+        "count": len(cands),
+    }
+
+
+@atlas_router.get(
+    "/seeds",
+    summary="Listar enlaces y repositorios semilla autorizados para rastreo",
+)
+def list_seeds():
+    """Devuelve las semillas autorizadas por el usuario."""
+    seeds = seed_manager.load_seeds()
+    return {
+        "seeds": [s.model_dump() for s in seeds],
+        "count": len(seeds),
+    }
+
+
+@atlas_router.post(
+    "/seeds",
+    response_model=AuthorizedSeedItem,
+    summary="Registrar un enlace o repositorio semilla autorizado para rastreo",
+)
+def add_seed(seed_in: AuthorizedSeedCreate):
+    """Registra una nueva semilla autorizada para búsqueda."""
+    return seed_manager.add_seed(seed_in)
+
+
+@atlas_router.delete(
+    "/seeds/{seed_id}",
+    summary="Eliminar una semilla autorizada",
+)
+def delete_seed(seed_id: str):
+    """Elimina una semilla por ID."""
+    deleted = seed_manager.delete_seed(seed_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail=f"Semilla '{seed_id}' no encontrada.")
+    return {"status": "deleted", "seed_id": seed_id}
+
+
+@atlas_router.post(
+    "/seeds/scan",
+    summary="Escanear semillas autorizadas proponiendo candidatos para validación humana",
+)
+def scan_seeds():
+    """Rastrea las semillas activas y registra candidatos en pending_review para validación humana."""
+    discovered = seed_manager.scan_authorized_seeds(review_manager)
+    return {
+        "status": "completed",
+        "discovered_candidates": discovered,
+        "count": len(discovered),
     }
 
 

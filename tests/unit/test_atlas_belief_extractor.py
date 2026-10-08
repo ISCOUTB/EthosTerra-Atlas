@@ -32,7 +32,7 @@ def test_belief_schemas_strict_extra_forbid():
     valid_data = {
         "belief_id": "bel_test_001",
         "source_id": "art_patr_montes_de_maria",
-        "pillar": "reactivacion_economica_agropecuaria",
+        "pillar": "desarrollo_agrario_y_rural",
         "topic": "Distritos de Riego",
         "raw_excerpt": "Cita textual verificada en documento.",
         "ebdi_belief_assertion": "Existe prioridad en distritos de riego para pequeños productores.",

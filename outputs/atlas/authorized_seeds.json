@@ -1,0 +1,41 @@
+[
+  {
+    "url": "https://www.renovacionterritorio.gov.co/descargar.php?idFile=22158",
+    "entity": "Agencia de Renovación del Territorio (ART)",
+    "title": "PATR Subregión Montes de María",
+    "territory_scope": "PDET_01_MONTES_DE_MARIA",
+    "instrument_type": "PATR",
+    "pipeline_type": "documental",
+    "document_format": "pdf",
+    "added_by": "sistema_atlas_soberano",
+    "seed_id": "seed_art_montes_de_maria_patr",
+    "added_at": "2026-10-08T18:43:56.168801+00:00",
+    "is_active": true
+  },
+  {
+    "url": "https://www.renovacionterritorio.gov.co/sites/default/files/2026-08/patr-montes-de-maria.pdf",
+    "entity": "Agencia de Renovación del Territorio (ART)",
+    "title": "PATR Revisado y Actualizado 2026 (Montes de María)",
+    "territory_scope": "PDET_01_MONTES_DE_MARIA",
+    "instrument_type": "PATR",
+    "pipeline_type": "documental",
+    "document_format": "pdf",
+    "added_by": "sistema_atlas_soberano",
+    "seed_id": "seed_art_patr_2026_revision",
+    "added_at": "2026-10-08T18:43:56.168801+00:00",
+    "is_active": true
+  },
+  {
+    "url": "https://www.adr.gov.co/wp-content/uploads/2022/03/PIDARET-DE-BOLIVAR.pdf",
+    "entity": "Agencia de Desarrollo Rural (ADR)",
+    "title": "PIDARET Departamento de Bolívar",
+    "territory_scope": "DEP_13_BOLIVAR",
+    "instrument_type": "PIDARET",
+    "pipeline_type": "documental",
+    "document_format": "pdf",
+    "added_by": "sistema_atlas_soberano",
+    "seed_id": "seed_adr_pidaret_bolivar",
+    "added_at": "2026-10-08T18:43:56.168801+00:00",
+    "is_active": true
+  }
+]

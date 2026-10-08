@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from typing import Literal
+from typing import Literal, Any
 from pydantic import BaseModel, ConfigDict, Field, model_validator, field_validator
 from apps.atlas.schemas.territory_schemas import TerritoryHierarchy
 from apps.atlas.schemas.document_schemas import ISO_DATE_PATTERN
@@ -104,6 +102,8 @@ class DiscoveryResult(BaseModel):
     discovery_timestamp: str
 
 
+MAX_ADAPTIVE_SEARCH_RETRIES = 6
+
 CandidateApprovalStatus = Literal["pending_review", "approved_for_acquisition", "rejected"]
 
 
@@ -116,6 +116,15 @@ class CandidateReviewDecision(BaseModel):
     decision: Literal["approve", "reject"] = Field(..., description="Decisión explícita: approve o reject")
     review_notes: str = Field(
         ..., min_length=5, max_length=2000, description="Justificación obligatoria de la decisión"
+    )
+    request_alternative_search: bool = Field(
+        default=False,
+        description="Indica si el investigador solicita al agente una re-búsqueda adaptativa de un documento equivalente",
+    )
+    instruction_feedback: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Instrucciones o directrices precisas del investigador para reorientar la búsqueda",
     )
     timestamp: str | None = Field(
         default=None, pattern=ISO_DATE_PATTERN, description="Timestamp UTC ISO 8601 opcional de la decisión"
@@ -142,6 +151,21 @@ class CandidateReviewRecord(BaseModel):
     resulting_status: CandidateApprovalStatus
     review_notes: str = Field(..., min_length=5, max_length=2000)
     timestamp: str = Field(..., pattern=ISO_DATE_PATTERN)
+
+    # Trazabilidad de descarte adaptativo e iteraciones HITL
+    request_alternative_search: bool = Field(default=False)
+    instruction_feedback: str | None = Field(default=None)
+    retry_count: int = Field(default=0, ge=0)
+    max_retries: int = Field(default=MAX_ADAPTIVE_SEARCH_RETRIES)
+    alternative_found: bool = Field(default=False)
+    alternative_candidate: dict[str, Any] | None = Field(default=None)
+    search_status: Literal[
+        "reviewed",
+        "found_alternative",
+        "exhausted_no_alternative",
+        "no_search_requested",
+    ] = Field(default="reviewed")
+    adaptive_message: str | None = Field(default=None)
 
     # Invariantes inmutables de gobernanza y preservación de pipeline
     pipeline_type: PipelineType
@@ -180,6 +204,9 @@ class CandidateReviewRecord(BaseModel):
                 f"Solo se admite 'approved_for_acquisition' o 'rejected'."
             )
         return self
+
+
+CandidateReviewResponse = CandidateReviewRecord
 
 
 class CandidateReviewAuditState(BaseModel):
@@ -222,3 +249,26 @@ class AcquisitionResult(BaseModel):
     allowed_for_training: Literal[False] = False
     usage_state: Literal["context_only"] = "context_only"
     approval_status: Literal["pending_review"] = "pending_review"
+
+
+class AuthorizedSeedCreate(BaseModel):
+    """Contrato para registrar una URL o repositorio institucional semilla para rastreo."""
+    model_config = _STRICT
+
+    url: str = Field(..., min_length=5, description="URL oficial o repositorio institucional autorizado")
+    entity: str = Field(default="Entidad Oficial Territorial", min_length=2, description="Entidad titular de la fuente")
+    title: str = Field(default="Repositorio Oficial de Política Territorial", min_length=2, description="Título o descripción del instrumento")
+    territory_scope: str = Field(default="Montes de María", min_length=2, description="Ámbito territorial de cobertura")
+    instrument_type: InstrumentType = Field(default="PDM", description="Tipo de instrumento esperado")
+    pipeline_type: PipelineType = Field(default="documental", description="Tipo de pipeline")
+    document_format: DocumentFormat = Field(default="pdf", description="Formato del documento")
+    added_by: str = Field(default="investigador_local", min_length=2, description="Identificador del investigador que autoriza la semilla")
+
+
+class AuthorizedSeedItem(AuthorizedSeedCreate):
+    """Registro inmutable de semilla de rastreo autorizada por el usuario."""
+    model_config = _STRICT
+
+    seed_id: str = Field(..., min_length=3, description="Identificador único de la semilla")
+    added_at: str = Field(..., pattern=ISO_DATE_PATTERN, description="Fecha UTC de autorización")
+    is_active: bool = Field(default=True, description="Indica si la semilla está activa para rastreo")

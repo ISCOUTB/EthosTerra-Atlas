@@ -145,7 +145,7 @@ class TerritorialBeliefExtractor:
         max_chars: int = 1800,
         max_chunks: int | None = None,
     ) -> list[str]:
-        """Extrae fragmentos relevantes para el dominio agropecuario y territorial exhaustivamente, sin descartar secciones."""
+        """Extrae fragmentos relevantes para el dominio agrario y territorial exhaustivamente, sin descartar secciones."""
         keywords = [
             "reactivación económica",
             "reactivacion economica",
@@ -175,6 +175,12 @@ class TerritorialBeliefExtractor:
             "restitución de tierras",
             "restitucion de tierras",
             "reforma agraria",
+            "desarrollo agrario",
+            "política agraria",
+            "economía campesina",
+            "reserva campesina",
+            "zrc",
+            "tenencia de la tierra",
             "víctimas",
             "victimas",
             "el carmen de bolívar",
@@ -228,7 +234,7 @@ class TerritorialBeliefExtractor:
                 if acronym_lines / len(lines) > 0.4:
                     continue
 
-            # Si la unidad contiene palabras clave agropecuarias o mandatos territoriales
+            # Si la unidad contiene palabras clave agrarias o mandatos territoriales
             if any(kw in unit_lower for kw in keywords):
                 if has_normative_sections:
                     # Garantizar que ninguna unidad normativa exceda la ventana máxima de contexto
@@ -371,7 +377,7 @@ class TerritorialBeliefExtractor:
             '  "beliefs": [\n'
             "    {\n"
             '      "belief_key": "nombre_clave_snake_case",\n'
-            '      "pillar": "reactivacion_economica_agropecuaria",\n'
+            '      "pillar": "desarrollo_agrario_y_rural",\n'
             '      "topic": "Tema específico",\n'
             '      "trigger_condition": "Condición fáctica directa...",\n'
             '      "executable_action": "agro_ecosystem_operation",\n'
@@ -584,7 +590,7 @@ class TerritorialBeliefExtractor:
             for b_idx, b in enumerate(raw_beliefs):
                 if not isinstance(b, dict):
                     continue
-                pillar = str(b.get("pillar", "reactivacion_economica_agropecuaria"))
+                pillar = str(b.get("pillar", "desarrollo_agrario_y_rural"))
                 topic = str(b.get("topic", "Desarrollo territorial rural"))
                 raw_excerpt = str(b.get("raw_excerpt", "")).strip()
                 ebdi_assertion = str(b.get("ebdi_belief_assertion", "")).strip()
@@ -651,7 +657,7 @@ class TerritorialBeliefExtractor:
                 backup_belief = TerritorialBeliefItem(
                     belief_id=f"bel_{doc.sha256[:8]}_det_{uuid.uuid4().hex[:4]}",
                     source_id=doc.source_id,
-                    pillar="reactivacion_economica_agropecuaria",
+                    pillar="desarrollo_agrario_y_rural",
                     topic="Pactos y Diagnóstico Territorial",
                     belief_key="pacto_diagnostico_territorial",
                     trigger_condition="El productor requiere planificar su ciclo agrícola conforme a los pactos territoriales vigentes.",

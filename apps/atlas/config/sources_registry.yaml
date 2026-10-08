@@ -19,6 +19,22 @@ sources:
     rate_limit: "10_req_per_minute"
     license: "Gobierno de Colombia - Acceso Público y Libre Consulta"
 
+  - id: "art_patr_montes_de_maria_2026"
+    entity: "Agencia de Renovación del Territorio (ART)"
+    name: "PATR revisado y actualizado 2026 (Montes de María)"
+    level: "subregional_pdet"
+    territory_scope: "PDET_01_MONTES_DE_MARIA"
+    pipeline_type: "documental"
+    document_format: "pdf"
+    adoption_norm: "Resolución 000841 de 2026"
+    validity_start_year: 2026
+    validity_end_year: 2036
+    status: "vigente"
+    canonical_url: "https://www.renovacionterritorio.gov.co/sites/default/files/2026-08/patr-montes-de-maria.pdf"
+    access_type: "descarga_directa"
+    rate_limit: "10_req_per_minute"
+    license: "Gobierno de Colombia - Acceso Público y Libre Consulta"
+
   - id: "adr_pidaret_bolivar_ordenanza_323_2021"
     entity: "Agencia de Desarrollo Rural (ADR)"
     name: "Plan Integral de Desarrollo Agropecuario y Rural con Enfoque Territorial (PIDARET Bolívar)"

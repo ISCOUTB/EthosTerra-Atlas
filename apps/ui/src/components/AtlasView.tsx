@@ -934,8 +934,8 @@ export default function AtlasView() {
       {/* 3. Panel Inferior: Instrumentos en Cascada y Cola de Revisión Humana */}
       <section className="bg-[#f5f5f7] p-2.5 sm:p-3 rounded-[2rem] border border-black/[0.06] shadow-sm flex flex-col gap-6">
         <div className="bg-white rounded-[calc(2rem-0.625rem)] p-6 sm:p-8 shadow-xs flex flex-col gap-6">
-          {/* Navegación por Pestañas */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-black/[0.06] pb-4">
+          {/* Navegación por Pestañas (Sticky debajo del Navbar) */}
+          <div className="sticky top-[100px] z-30 bg-white/95 backdrop-blur-md -mx-6 sm:-mx-8 px-6 sm:px-8 py-3.5 border-b border-black/[0.06] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-t-[calc(2rem-0.625rem)] transition-all">
             <div className="bg-[#f5f5f7] p-1 rounded-full border border-black/[0.04] inline-flex gap-1 self-start">
               <button
                 type="button"

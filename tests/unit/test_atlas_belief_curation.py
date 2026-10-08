@@ -48,7 +48,7 @@ def test_curate_belief_unit(tmp_path: Path):
     dummy_item = TerritorialBeliefItem(
         belief_id="bel_test_001",
         source_id="art_patr_test",
-        pillar="reactivacion_economica_agropecuaria",
+        pillar="desarrollo_agrario_y_rural",
         topic="Cadenas productivas",
         raw_excerpt="Cita textual de prueba",
         ebdi_belief_assertion="Creencia eBDI de prueba",

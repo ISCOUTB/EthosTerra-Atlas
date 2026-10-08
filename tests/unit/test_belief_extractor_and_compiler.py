@@ -22,7 +22,7 @@ def test_ebdi_yaml_compiler_goal_and_plan(tmp_path: Path):
     belief = TerritorialBeliefItem(
         belief_id="bel_test_001",
         source_id="pdm_carmen_test",
-        pillar="reactivacion_economica_agropecuaria",
+        pillar="desarrollo_agrario_y_rural",
         topic="Mecanización y adecuación de suelos comunitaria",
         belief_key="adecuacion_suelos_comunitaria",
         trigger_condition="El productor requiere acondicionar su lote antes de la siembra de maíz.",
@@ -70,7 +70,7 @@ def test_deduplicate_identical_beliefs():
     b1 = TerritorialBeliefItem(
         belief_id="bel_1",
         source_id="doc_a",
-        pillar="reactivacion_economica_agropecuaria",
+        pillar="desarrollo_agrario_y_rural",
         topic="Semillas nativas",
         belief_key="fondo_semillas_nativas",
         trigger_condition="Escasez de semillas certificadas.",
@@ -88,7 +88,7 @@ def test_deduplicate_identical_beliefs():
     b2 = TerritorialBeliefItem(
         belief_id="bel_2",
         source_id="doc_a",
-        pillar="reactivacion_economica_agropecuaria",
+        pillar="desarrollo_agrario_y_rural",
         topic="Semillas nativas",
         belief_key="fondo_semillas_nativas",  # Misma clave
         trigger_condition="Escasez de semillas certificadas.",
@@ -116,7 +116,7 @@ def test_collision_detection_deforestation_vs_runap():
     b_forest = TerritorialBeliefItem(
         belief_id="bel_deforest",
         source_id="doc_a",
-        pillar="reactivacion_economica_agropecuaria",
+        pillar="desarrollo_agrario_y_rural",
         topic="Ampliación de frontera agrícola",
         belief_key="desmonte_parcela",
         trigger_condition="El productor requiere habilitar terreno boscoso.",
@@ -161,7 +161,7 @@ def test_collision_detection_water_irrigate_vs_restriction():
     b_irrigate = TerritorialBeliefItem(
         belief_id="bel_irrigate",
         source_id="doc_a",
-        pillar="reactivacion_economica_agropecuaria",
+        pillar="desarrollo_agrario_y_rural",
         topic="Turno de riego libre",
         belief_key="riego_libre_distrito",
         trigger_condition="El productor tiene cultivos con déficit hídrico.",
@@ -211,7 +211,7 @@ def test_api_endpoints_update_and_compile(tmp_path: Path):
     dummy_item = TerritorialBeliefItem(
         belief_id="bel_api_01",
         source_id=test_src,
-        pillar="reactivacion_economica_agropecuaria",
+        pillar="desarrollo_agrario_y_rural",
         topic="Crédito agropecuario campesino",
         belief_key="credito_agropecuario_campesino",
         trigger_condition="Falta de liquidez para insumos.",
@@ -288,7 +288,7 @@ def test_collision_detection_chemical_vs_agroecology():
     b_chem = TerritorialBeliefItem(
         belief_id="bel_chem",
         source_id="doc_a",
-        pillar="reactivacion_economica_agropecuaria",
+        pillar="desarrollo_agrario_y_rural",
         topic="Manejo químico intensivo",
         belief_key="agroquimico_sintetico_plagas",
         trigger_condition="Ataque de insectos plaga en cultivo de ñame.",

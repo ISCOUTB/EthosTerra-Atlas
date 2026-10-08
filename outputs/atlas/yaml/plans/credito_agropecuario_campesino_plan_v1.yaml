@@ -16,6 +16,6 @@ steps:
       text: Solicita línea de microcrédito municipal.
       tags:
         - territorial_policy
-        - reactivacion_economica_agropecuaria
+        - desarrollo_agrario_y_rural
 on_timeout: []
 on_failure: []
