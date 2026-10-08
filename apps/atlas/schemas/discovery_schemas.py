@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Literal, Any
 from pydantic import BaseModel, ConfigDict, Field, model_validator, field_validator
 from apps.atlas.schemas.territory_schemas import TerritoryHierarchy

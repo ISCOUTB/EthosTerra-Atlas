@@ -33,8 +33,10 @@ jobs:
           version: "latest"
 
       - name: Run unit tests
+        env:
+          PYTHONPATH: apps/api:.
         run: |
-          PYTHONPATH=".:apps/api" uv run --project apps/api \
+          uv run --project apps/api \
             --with pytest --with pydantic --with jsonschema --with pyyaml --with fastapi --with httpx \
             pytest tests/unit -v
 
