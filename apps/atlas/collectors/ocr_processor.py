@@ -20,8 +20,29 @@ class LocalOCRProcessor:
     def __init__(self, ocr_cache_dir: Path | None = None) -> None:
         self.ocr_cache_dir = ocr_cache_dir or Path("outputs/atlas/ocr")
         self.ocr_cache_dir.mkdir(parents=True, exist_ok=True)
-        self.tesseract_bin = self._find_bin(["/opt/homebrew/bin/tesseract", "/usr/local/bin/tesseract", "/usr/bin/tesseract", "tesseract"])
-        self.pdftoppm_bin = self._find_bin(["/opt/homebrew/bin/pdftoppm", "/usr/local/bin/pdftoppm", "/usr/bin/pdftoppm", "pdftoppm"])
+        self._tesseract_bin: str | None = None
+        self._pdftoppm_bin: str | None = None
+
+    @property
+    def tesseract_bin(self) -> str:
+        if self._tesseract_bin is None:
+            self._tesseract_bin = self._find_bin(["/opt/homebrew/bin/tesseract", "/usr/local/bin/tesseract", "/usr/bin/tesseract", "tesseract"])
+        return self._tesseract_bin
+
+    @property
+    def pdftoppm_bin(self) -> str:
+        if self._pdftoppm_bin is None:
+            self._pdftoppm_bin = self._find_bin(["/opt/homebrew/bin/pdftoppm", "/usr/local/bin/pdftoppm", "/usr/bin/pdftoppm", "pdftoppm"])
+        return self._pdftoppm_bin
+
+    def is_available(self) -> bool:
+        """Indica si las herramientas OCR requeridas están disponibles en el entorno."""
+        try:
+            _ = self.tesseract_bin
+            _ = self.pdftoppm_bin
+            return True
+        except OCRError:
+            return False
 
     def _find_bin(self, candidates: list[str]) -> str:
         for c in candidates:

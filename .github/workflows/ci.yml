@@ -32,6 +32,11 @@ jobs:
           enable-cache: true
           version: "latest"
 
+      - name: Install system dependencies (Poppler and Tesseract)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils tesseract-ocr tesseract-ocr-spa
+
       - name: Run unit tests
         env:
           PYTHONPATH: apps/api:.
