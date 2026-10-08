@@ -40,9 +40,15 @@ outputs/experiments/*/backups/
 .agents/state/
 .agents/*.local.json
 .agents/
+.agent/
+hooks.json
+skills-lock.json
 DESIGN.md
 README_LATEX.md
-.agent/
+
+# Reports and trash caches
+outputs/reports/
+outputs/intents/.trash/
 
 # Corpus raw sources (raw interviews, diaries, PII audio/text)
 outputs/corpus/*/sources/
