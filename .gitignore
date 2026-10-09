@@ -53,6 +53,8 @@ outputs/intents/.trash/
 # Corpus raw sources (raw interviews, diaries, PII audio/text)
 outputs/corpus/*/sources/
 outputs/corpus/**/sources/
+!outputs/corpus/b6_synthetic_s9_s10/sources/
+!outputs/corpus/b6_synthetic_s9_s10/sources/*.jsonl
 
 # Atlas raw documents and downloads (AT-1)
 outputs/atlas/**/sources/

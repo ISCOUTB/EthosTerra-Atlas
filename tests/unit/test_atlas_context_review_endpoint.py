@@ -235,13 +235,66 @@ def test_review_context_artifact_rejects_invalid_decision():
 
 
 def test_get_artifact_content_success():
-    """Valida que el endpoint sirva el binario PDF local con headers defensivos."""
+    """Valida que el endpoint sirva el binario PDF local con headers defensivos si está presente."""
+    doc = atlas_routes.manifest_manager.load_manifest().documents.get("adr_pidaret_bolivar_ordenanza_323_2021")
+    if not doc or not (atlas_routes.manifest_manager.base_dir / doc.content_path).is_file():
+        pytest.skip("Archivo físico PDF real no presente en el entorno (binario pesado de 17MB omitido en VCS).")
     resp = client.get("/v2/atlas/artifacts/adr_pidaret_bolivar_ordenanza_323_2021/content")
     assert resp.status_code == 200
     assert resp.headers.get("content-type") == "application/pdf"
     assert resp.headers.get("x-artifact-sha256") == "712636c7c7d4b0f6ef251b385bb0629fd903cdd39bf37043d28e808283e1c106"
     assert resp.headers.get("x-artifact-source-id") == "adr_pidaret_bolivar_ordenanza_323_2021"
     assert len(resp.content) > 1000000  # Archivo real de 17+ MB
+
+
+def test_get_artifact_content_with_synthetic_storage():
+    """Valida el ciclo completo de entrega binaria soberana y validación criptográfica SHA-256."""
+    from apps.atlas.schemas.document_schemas import DocumentMetadataRecord
+    from apps.atlas.storage.hashing import compute_file_sha256
+
+    sources_dir = atlas_routes.manifest_manager.sources_dir
+    sources_dir.mkdir(parents=True, exist_ok=True)
+    test_pdf = sources_dir / "test_artifact_unit_temp.pdf"
+    content = b"%PDF-1.4 simulated binary stream with sovereign integrity checks"
+    test_pdf.write_bytes(content)
+    test_hash = compute_file_sha256(test_pdf)
+
+    manifest = atlas_routes.manifest_manager.load_manifest()
+    mock_record = DocumentMetadataRecord(
+        source_id="mock_unit_artifact_001",
+        entity="Entidad Test",
+        title="Documento de Prueba",
+        level="municipal",
+        territory_scope="MUN_13244",
+        pipeline_type="documental",
+        document_format="pdf",
+        canonical_url="https://ejemplo.gov.co/doc.pdf",
+        download_date="2026-10-08T00:00:00+00:00",
+        sha256=test_hash,
+        byte_size=len(content),
+        content_path="sources/test_artifact_unit_temp.pdf",
+        source_type="document_context",
+        provenance_class="official_government",
+        allowed_for_training=False,
+        usage_state="context_only",
+        status="approved_for_context",
+    )
+    manifest.documents["mock_unit_artifact_001"] = mock_record
+    atlas_routes.manifest_manager.save_manifest(manifest)
+
+    try:
+        resp = client.get("/v2/atlas/artifacts/mock_unit_artifact_001/content")
+        assert resp.status_code == 200
+        assert resp.headers.get("content-type") == "application/pdf"
+        assert resp.headers.get("x-artifact-sha256") == test_hash
+        assert resp.headers.get("x-artifact-source-id") == "mock_unit_artifact_001"
+        assert resp.content == content
+    finally:
+        if test_pdf.exists():
+            test_pdf.unlink()
+        manifest = atlas_routes.manifest_manager.load_manifest()
+        manifest.documents.pop("mock_unit_artifact_001", None)
+        atlas_routes.manifest_manager.save_manifest(manifest)
 
 
 def test_get_artifact_content_not_found():
