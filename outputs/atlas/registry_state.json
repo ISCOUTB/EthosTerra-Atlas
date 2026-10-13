@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "last_updated": "2026-10-08T19:32:49.726434+00:00",
+  "last_updated": "2026-10-09T18:54:34.164891+00:00",
   "documents": {
     "adr_pidaret_bolivar_ordenanza_323_2021": {
       "source_id": "adr_pidaret_bolivar_ordenanza_323_2021",
@@ -264,12 +264,12 @@
       "consent_status": "not_applicable",
       "allowed_for_training": false,
       "usage_state": "context_only",
-      "approval_status": "approved_for_context",
-      "status": "approved_for_context",
+      "approval_status": "rejected",
+      "status": "rejected",
       "instrument_type": "PDM",
       "previous_source_id": null,
-      "approval_notes": "Aprobado por el usuario para contexto territorial eBDI con alineación dinámica de catálogo.",
-      "approval_timestamp": "2026-10-07T23:00:00.591850+00:00",
+      "approval_notes": "ya se ve el docuemento",
+      "approval_timestamp": "2026-10-09T18:54:34.164811+00:00",
       "reviewer_id": "jesus_martinez_advisor",
       "reviewer_auth_mode": "declarado_sin_autenticacion",
       "review_events": [
@@ -281,6 +281,17 @@
           "decision": "approved_for_context",
           "review_notes": "Aprobado por el usuario para contexto territorial eBDI con alineación dinámica de catálogo.",
           "previous_status": "pending_context_review",
+          "event_type": "human_decision",
+          "is_valid_human_approval": true
+        },
+        {
+          "event_id": "rev_50a60878f592",
+          "timestamp_utc": "2026-10-09T18:54:34.164811+00:00",
+          "reviewer_id": "jesus_martinez_advisor",
+          "reviewer_auth_mode": "declarado_sin_autenticacion",
+          "decision": "rejected",
+          "review_notes": "ya se ve el docuemento",
+          "previous_status": "approved_for_context",
           "event_type": "human_decision",
           "is_valid_human_approval": true
         }

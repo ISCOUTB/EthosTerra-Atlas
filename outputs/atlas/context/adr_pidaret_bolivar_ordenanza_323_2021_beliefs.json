@@ -2,7 +2,7 @@
   "source_id": "adr_pidaret_bolivar_ordenanza_323_2021",
   "instrument_title": "Plan Integral de Desarrollo Agropecuario y Rural con Enfoque Territorial (PIDARET) Bolívar",
   "document_sha256": "712636c7c7d4b0f6ef251b385bb0629fd903cdd39bf37043d28e808283e1c106",
-  "extraction_timestamp_utc": "2026-10-08T16:41:50.785954+00:00",
+  "extraction_timestamp_utc": "2026-10-09T13:09:18.164942+00:00",
   "model_used": "ai/gemma4:E4B",
   "extraction_method": "poppler_pdftotext_plus_micro_llm",
   "total_beliefs_extracted": 0,

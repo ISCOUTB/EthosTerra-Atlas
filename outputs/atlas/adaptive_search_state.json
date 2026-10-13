@@ -1,15 +1,20 @@
 {
   "cand_alt_adr_pidaret_sucre_or_c9db": {
-    "parent_source_id": "cand_descargar.php",
-    "retry_count": 1,
-    "search_status": "found_alternative",
-    "instruction_feedback": "se solicita que revise si hya una pagina existente y un pdf valido",
+    "retry_count": 2,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": "busca paginas con informacion disponible",
     "feedback_history": [
       {
         "reviewer_id": "investigador_ebdi_01",
         "notes": "la Página no encontrada, No se ha encontrado la página solicitada, no se encuentra un pdf visible, se solicita que revise si hya una pagina existente y un pdf valido",
         "instruction": "se solicita que revise si hya una pagina existente y un pdf valido",
         "timestamp": "2026-10-08T19:31:16.415669+00:00"
+      },
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Parece que esta página no existe.\nParece que el enlace que apuntaba aquí no sirve. ¿Quieres probar con una búsqueda?",
+        "instruction": "busca paginas con informacion disponible",
+        "timestamp": "2026-10-09T18:44:12.763770+00:00"
       }
     ]
   },
@@ -33,16 +38,21 @@
     "feedback_history": []
   },
   "cand_alt_pnd_colombia_2022_20_8144": {
-    "parent_source_id": "cand_pidaret_de_bolivar",
-    "retry_count": 1,
-    "search_status": "found_alternative",
-    "instruction_feedback": null,
+    "retry_count": 2,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": "busaca paginas con pdfs disponibles o datos que se puedan mostrar y extraer",
     "feedback_history": [
       {
         "reviewer_id": "investigador_ebdi_01",
         "notes": "ya existe ese docuemento en los que he aprobado, y hasta se extrageron intenciones del mismo documento",
         "instruction": null,
         "timestamp": "2026-10-08T19:32:53.627749+00:00"
+      },
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Page not found\nRealiza búsquedas\n\n    InicioActualmente seleccionado\n    Recientes\n    Contenido del sitio\n\n \nThe page you're looking for doesn't exist.\n\n \n\nCheck for a typo in the URL, or go to the site home",
+        "instruction": "busaca paginas con pdfs disponibles o datos que se puedan mostrar y extraer",
+        "timestamp": "2026-10-09T18:45:14.727939+00:00"
       }
     ]
   },
@@ -56,6 +66,253 @@
         "notes": "ya existe ese docuemento en los que he aprobado, y hasta se extrageron intenciones del mismo documento",
         "instruction": null,
         "timestamp": "2026-10-08T19:32:53.627749+00:00"
+      }
+    ]
+  },
+  "cand_patr_montes_de_maria_nueva": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "pagina no disponible",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:43:36.314475+00:00"
+      }
+    ]
+  },
+  "art_patr_montes_de_maria_2026": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "ya esta ese documento en los que tenemos",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:45:46.107760+00:00"
+      }
+    ]
+  },
+  "adr_pidaret_sucre_ordenanza": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Parece que esta página no existe.\nParece que el enlace que apuntaba aquí no sirve. ¿Quieres probar con una búsqueda?",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:46:57.225534+00:00"
+      }
+    ]
+  },
+  "pnd_colombia_2022_2026": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "HomeActualmente seleccionado\n        Centro Documental\n            Mapa Inversiones\n        Informes ContratistasProcesos DNP \n\nPage not found\nRealiza búsquedas\n\n    InicioActualmente seleccionado\n    Recientes\n    Contenido del sitio\n\n \nThe page you're looking for doesn't exist.\n\n \n\nCheck for a typo in the URL, or go to the site home",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:47:12.540669+00:00"
+      }
+    ]
+  },
+  "datos_gov_co_eva_agricola": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "{\n  \"code\" : \"dataset.missing\",\n  \"error\" : true,\n  \"message\" : \"Not found\",\n  \"data\" : {\n    \"id\" : \"2pn8-nl7q\"\n  }\n}",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:47:36.855277+00:00"
+      }
+    ]
+  },
+  "dane_mgn_limites_municipales": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "404\n\nNo encontrado: El recurso solicitado no se encuentra disponible. Por favor verifica la URL ingresada en el navegador\n\nSi las dificultades persisten, póngase en contacto con el administrador de este sitio.",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:48:01.056852+00:00"
+      }
+    ]
+  },
+  "pdm_san_juan_nepomuceno_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Oh oh!!!\n\nNo encontramos\nesta página",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:48:29.372438+00:00"
+      }
+    ]
+  },
+  "pdm_maria_la_baja_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "La página que busca no existe.\n\n \n\nCompruebe que la dirección URL esté bien escrita, o vaya a la página principal del sitio",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:48:59.605856+00:00"
+      }
+    ]
+  },
+  "pdm_san_onofre_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Ir al home\n404",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:49:17.673110+00:00"
+      }
+    ]
+  },
+  "pdm_cordoba_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Oh oh!!!\n\nNo encontramos\nesta página",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:49:34.891697+00:00"
+      }
+    ]
+  },
+  "pdm_el_guamo_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Oh oh!!!\n\nNo encontramos\nesta página",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:50:09.958689+00:00"
+      }
+    ]
+  },
+  "pdm_zambrano_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Oh oh!!!\n\nNo encontramos\nesta página\nIr al home\n404",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:50:35.623798+00:00"
+      }
+    ]
+  },
+  "pdm_coloso_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Oh oh!!!\n\nNo encontramos\nesta página\nIr al home\n404",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:50:52.986905+00:00"
+      }
+    ]
+  },
+  "pdm_chalan_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Oh oh!!!\n\nNo encontramos\nesta página\nIr al home\n404",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:51:09.570343+00:00"
+      }
+    ]
+  },
+  "pdm_los_palmitos_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Oh oh!!!\n\nNo encontramos\nesta página\nIr al home\n404",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:51:36.287253+00:00"
+      }
+    ]
+  },
+  "pdm_morroa_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Oh oh!!!\n\nNo encontramos\nesta página\nIr al home\n404",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:51:52.807434+00:00"
+      }
+    ]
+  },
+  "pdm_ovejas_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Oh oh!!!\n\nNo encontramos\nesta página\nIr al home\n404",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:52:08.020986+00:00"
+      }
+    ]
+  },
+  "pdm_palmito_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "pagina 404",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:52:23.887784+00:00"
+      }
+    ]
+  },
+  "pdm_toluviejo_2024_2027": {
+    "retry_count": 1,
+    "search_status": "exhausted_no_alternative",
+    "instruction_feedback": null,
+    "feedback_history": [
+      {
+        "reviewer_id": "investigador_ebdi_01",
+        "notes": "Oh oh!!!\n\nNo encontramos\nesta página\nIr al home\n404",
+        "instruction": null,
+        "timestamp": "2026-10-09T18:52:39.089683+00:00"
       }
     ]
   }

@@ -2,7 +2,7 @@
   "source_id": "pdm_san_jacinto_2024_2027",
   "instrument_title": "Plan de Desarrollo Municipal de San Jacinto 2024-2027: Desarrollo Productivo, Agroforestería y Paz Territorial",
   "document_sha256": "15f04e62f8bb9ae8939494563d3ecc7516e72ad3706fe9acea23f4724e4fa83d",
-  "extraction_timestamp_utc": "2026-10-08T15:31:31.496074+00:00",
+  "extraction_timestamp_utc": "2026-10-13T20:32:41.782374+00:00",
   "model_used": "ai/gemma4:E4B",
   "extraction_method": "poppler_pdftotext_plus_micro_llm",
   "total_beliefs_extracted": 1,
@@ -10,32 +10,36 @@
   "rejected_hallucinations_count": 0,
   "beliefs": [
     {
-      "belief_id": "bel_15f04e62_1_0_b485",
+      "belief_id": "bel_15f04e62_det_0a39",
       "source_id": "pdm_san_jacinto_2024_2027",
-      "pillar": "reactivacion_economica_agropecuaria",
-      "topic": "Café bajo sombra y sistemas agroforestales",
-      "belief_key": "prioridad_agroforesteria_san_jacinto",
-      "trigger_condition": "Cuando el productor ha establecido o renovado parcelas de café bajo sombra asociadas con plátano y árboles maderables nativos en la zona alta o media de San Jacinto.",
+      "pillar": "desarrollo_agrario_y_rural",
+      "topic": "Pactos y Diagnóstico Territorial",
+      "belief_key": "pacto_diagnostico_territorial",
+      "trigger_condition": "El productor requiere planificar su ciclo agrícola conforme a los pactos territoriales vigentes.",
       "executable_action": "agro_ecosystem_operation",
-      "action_operation_type": "PLANT",
-      "behavioral_effect": "El agente puede solicitar prioridad en la entrega de plántulas de viveros comunitarios y asistencia técnica especializada en manejo integrado de plagas y fertilización orgánica.",
-      "activation_rule_template": "land_crop_type == 'cafe' && has_agroforestry_system == true",
-      "raw_excerpt": "Los pequeños productores de la zona alta y media de San Jacinto que establezcan o renueven parcelas de café bajo sombra asociado con plátano y árboles maderables nativos tendrán prelación en la entrega de plántulas de viveros comunitarios y en la asistencia técnica especializada en manejo integrado de plagas y fertilización orgánica.",
-      "ebdi_belief_assertion": "Los productores de San Jacinto que implementan café bajo sombra con plátano y maderables tienen derecho a prioridad en insumos y asistencia técnica.",
+      "action_operation_type": "PREPARE",
+      "behavioral_effect": "Planifica la preparación del suelo integrando las directrices territoriales.",
+      "activation_rule_template": "state.farmReady == 0",
+      "raw_excerpt": "Plan de Desarrollo Municipal de San Jacinto 2024-2027:\n         Desarrollo Productivo, Agroforestería y Paz Territorial\n                Acuerdo Municipal 004 de 2024 · Documento Oficial de Planificación Territorial\n\n\n           REPÚBLICA DE COLOMBIA · DEPARTAMENTO DE BOLÍVAR · CONCEJO MUNICIPAL",
+      "ebdi_belief_assertion": "En Montes de María: Plan de Desarrollo Municipal de San Jacinto 2024-2027: Desarrollo Productivo, Agroforestería y Paz Territorial Acuerdo Municipal 004 de 2024 · Documento Oficial de Planificación Territorial REPÚBLICA DE COLOMBIA · DEPARTAMENTO DE BOLÍVAR · CONCEJO MUNICIPAL.",
       "target_municipalities": [
-        "San Jacinto"
+        "Montes de María"
       ],
       "applicable_divipolas": [
-        "13654"
+        "13244",
+        "13654",
+        "13657",
+        "13442",
+        "70717"
       ],
-      "confidence": 0.95,
+      "confidence": 1.0,
       "verification_status": "verified_verbatim",
       "collision_detected": false,
       "collision_reason": null,
-      "curation_status": "admitted_ebdi",
-      "curation_notes": "Curación manual del investigador: admitted_ebdi",
-      "curator_id": "investigador_ebdi_01",
-      "curation_timestamp_utc": "2026-10-08T16:22:58.537618+00:00"
+      "curation_status": "pending",
+      "curation_notes": null,
+      "curator_id": null,
+      "curation_timestamp_utc": null
     }
   ]
 }

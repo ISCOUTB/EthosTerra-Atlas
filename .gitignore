@@ -57,7 +57,7 @@ outputs/corpus/**/sources/
 !outputs/corpus/b6_synthetic_s9_s10/sources/*.jsonl
 
 # Atlas raw documents and downloads (AT-1)
-outputs/atlas/**/sources/
+#outputs/atlas/**/sources/
 outputs/atlas/raw/
 outputs/atlas/ocr/
 
