@@ -54,7 +54,7 @@ class ReviewEventRecord(BaseModel):
     event_id: str = Field(..., min_length=3, max_length=64, description="Identificador único del evento de revisión")
     timestamp_utc: str = Field(..., pattern=ISO_DATE_PATTERN, description="Marca temporal ISO 8601 UTC")
     reviewer_id: str = Field(..., min_length=3, max_length=64, description="Identificador del revisor humano declarado")
-    reviewer_auth_mode: Literal["declarado_sin_autenticacion"] = "declarado_sin_autenticacion"
+    reviewer_auth_mode: Literal["declarado_sin_autenticacion", "bearer_jwt_authenticated"] = "declarado_sin_autenticacion"
     decision: Literal["approved_for_context", "rejected", "pending_context_review"] = Field(..., description="Decisión emitida")
     review_notes: str = Field(..., min_length=1, max_length=2000, description="Justificación o notas de la decisión")
     previous_status: str | None = Field(default=None, description="Estado previo del documento antes de este evento")
@@ -103,7 +103,7 @@ class DocumentMetadataRecord(BaseModel):
     approval_notes: str = Field(default="", max_length=10000)
     approval_timestamp: str | None = Field(default=None, pattern=ISO_DATE_PATTERN)
     reviewer_id: str | None = Field(default=None, min_length=3, max_length=64)
-    reviewer_auth_mode: Literal["declarado_sin_autenticacion"] | None = None
+    reviewer_auth_mode: Literal["declarado_sin_autenticacion", "bearer_jwt_authenticated"] | None = None
     review_events: list[ReviewEventRecord] = Field(default_factory=list, description="Historial append-only de decisiones humanas")
     review_history_recovery: Literal["recovered_from_logs", "unavailable", "pristine"] | None = Field(
         default=None,

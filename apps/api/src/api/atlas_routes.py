@@ -8,10 +8,17 @@ from typing import Literal
 import base64
 import hashlib
 import re
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 import yaml
+
+try:
+    from src.api.auth_routes import get_optional_user
+    from src.domain.auth_schemas import UserProfile
+except ImportError:
+    from apps.api.src.api.auth_routes import get_optional_user
+    from apps.api.src.domain.auth_schemas import UserProfile
 
 from apps.atlas.geo.territory_resolver import TerritoryResolver, MONTES_DE_MARIA_MUNICIPALITIES
 from apps.atlas.schemas.territory_schemas import TerritoryHierarchy
@@ -360,7 +367,10 @@ class DirectUploadRequest(BaseModel):
     response_model=DocumentMetadataRecord,
     summary="Cargar manualmente un documento PDF al almacenamiento soberano de cuarentena",
 )
-def upload_artifact(payload: DirectUploadRequest):
+def upload_artifact(
+    payload: DirectUploadRequest,
+    current_user: UserProfile | None = Depends(get_optional_user),
+):
     """Permite al investigador subir directamente un documento PDF en Base64 al almacenamiento de cuarentena."""
     filename = payload.filename
     if not filename.lower().endswith(".pdf"):
@@ -399,11 +409,14 @@ def upload_artifact(payload: DirectUploadRequest):
     dest_path.write_bytes(content)
 
     now_iso = datetime.now(timezone.utc).isoformat()
+    effective_reviewer = current_user.username if current_user else payload.reviewer_id
+    effective_auth_mode = "bearer_jwt_authenticated" if current_user else "declarado_sin_autenticacion"
+
     rev_event = ReviewEventRecord(
         event_id=f"rev_{uuid.uuid4().hex[:12]}",
         timestamp_utc=now_iso,
-        reviewer_id=payload.reviewer_id,
-        reviewer_auth_mode="declarado_sin_autenticacion",
+        reviewer_id=effective_reviewer,
+        reviewer_auth_mode=effective_auth_mode,
         decision="approved_for_context",
         review_notes="Documento PDF cargado y aprobado manualmente por el investigador.",
         previous_status=None,
@@ -434,8 +447,8 @@ def upload_artifact(payload: DirectUploadRequest):
         instrument_type=payload.instrument_type,
         approval_notes="Cargado directamente por el investigador local desde archivo físico.",
         approval_timestamp=now_iso,
-        reviewer_id=payload.reviewer_id,
-        reviewer_auth_mode="declarado_sin_autenticacion",
+        reviewer_id=effective_reviewer,
+        reviewer_auth_mode=effective_auth_mode,
         review_events=[rev_event],
     )
 
@@ -532,7 +545,10 @@ def scan_seeds():
     response_model=DocumentMetadataRecord,
     summary="Registrar decisión humana contextual sobre artefacto en cuarentena",
 )
-def review_context_artifact(decision: ContextReviewDecision) -> DocumentMetadataRecord:
+def review_context_artifact(
+    decision: ContextReviewDecision,
+    current_user: UserProfile | None = Depends(get_optional_user),
+) -> DocumentMetadataRecord:
     """Registra la decisión humana (approved_for_context, rejected, pending_context_review) sin alterar campos inmutables."""
     if decision.source_id == "art_patr_montes_de_maria_2026":
         raise HTTPException(
@@ -567,11 +583,14 @@ def review_context_artifact(decision: ContextReviewDecision) -> DocumentMetadata
     event_id = f"rev_{uuid.uuid4().hex[:12]}"
     previous_status = doc.status or doc.approval_status
 
+    effective_reviewer = current_user.username if current_user else decision.reviewer_id
+    effective_auth_mode = "bearer_jwt_authenticated" if current_user else "declarado_sin_autenticacion"
+
     review_event = ReviewEventRecord(
         event_id=event_id,
         timestamp_utc=now_iso,
-        reviewer_id=decision.reviewer_id,
-        reviewer_auth_mode="declarado_sin_autenticacion",
+        reviewer_id=effective_reviewer,
+        reviewer_auth_mode=effective_auth_mode,
         decision=decision.decision,
         review_notes=decision.review_notes,
         previous_status=previous_status,
@@ -582,8 +601,8 @@ def review_context_artifact(decision: ContextReviewDecision) -> DocumentMetadata
     doc_dict = doc.model_dump()
     doc_dict["status"] = decision.decision
     doc_dict["approval_status"] = decision.decision
-    doc_dict["reviewer_id"] = decision.reviewer_id
-    doc_dict["reviewer_auth_mode"] = "declarado_sin_autenticacion"
+    doc_dict["reviewer_id"] = effective_reviewer
+    doc_dict["reviewer_auth_mode"] = effective_auth_mode
     doc_dict["approval_timestamp"] = now_iso
 
     # Append-only estricto a la lista de eventos históricos (nunca sobrescribir review_events)

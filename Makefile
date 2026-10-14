@@ -99,10 +99,10 @@ dev-ui:
 	pnpm --dir apps/ui dev
 
 test-unit:
-	PYTHONPATH=apps/api uv run --project apps/api --with pytest --with pydantic --with jsonschema --with pyyaml --with fastapi --with httpx pytest tests/unit -v
+	PYTHONPATH=.:apps/api uv run --project apps/api --with pytest --with pydantic --with jsonschema --with pyyaml --with fastapi --with httpx pytest tests/unit -v
 
 test-b5:
-	PYTHONPATH=apps/api uv run --project apps/api --with pytest --with pydantic --with jsonschema --with pyyaml --with fastapi --with httpx pytest tests/unit/test_manual_intents.py -v
+	PYTHONPATH=.:apps/api uv run --project apps/api --with pytest --with pydantic --with jsonschema --with pyyaml --with fastapi --with httpx pytest tests/unit/test_manual_intents.py -v
 
 purge-trash:
 	curl -s -X POST http://localhost:8000/v2/intents/trash/purge -H "Content-Type: application/json" -d '{"purged_by":"make_cli"}'
