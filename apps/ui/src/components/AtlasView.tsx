@@ -33,6 +33,7 @@ import {
   type MunicipalityProfile,
 } from '../data/territoriesData'
 import { QuarantineReviewView } from './QuarantineReviewView'
+import montesDeMariaGeoJSON from '../data/dane_mgn_montes_de_maria.json'
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000/v2'
 
@@ -180,7 +181,7 @@ export default function AtlasView() {
 
     map.addSource('montes-de-maria', {
       type: 'geojson',
-      data: '/data/dane_mgn_montes_de_maria.json',
+      data: montesDeMariaGeoJSON as any,
     })
 
     const deptFilter: any = currentDept === 'all'
@@ -319,8 +320,7 @@ export default function AtlasView() {
         renderMarkers(map, selectedDivipola)
       }
 
-      map.on('style.load', handleReady)
-      map.on('load', handleReady)
+      map.once('load', handleReady)
 
       map.on('error', (err) => {
         console.warn('MapLibre evento de carga:', err)

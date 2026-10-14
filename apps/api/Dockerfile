@@ -28,6 +28,7 @@ RUN uv pip install --system -r pyproject.toml
 COPY apps/api/src/ ./src/
 COPY apps/atlas/ ./apps/atlas/
 COPY outputs/ ./outputs/
+COPY outputs/ ./outputs_seed/
 
 # Exponer el puerto de FastAPI
 EXPOSE 8000

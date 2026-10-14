@@ -23,7 +23,25 @@ logger.setLevel(logging.DEBUG)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Purga automática de la papelera de 30 días al arrancar el servicio
+    # 1. Sincronización automática de artefactos base y PDFs hacia outputs persistente
+    try:
+        from pathlib import Path
+        import shutil
+        seed_dir = Path("outputs_seed")
+        outputs_dir = Path("outputs")
+        if seed_dir.exists():
+            for src_file in seed_dir.rglob("*"):
+                if src_file.is_file():
+                    rel = src_file.relative_to(seed_dir)
+                    dst = outputs_dir / rel
+                    if not dst.exists() or dst.stat().st_size == 0:
+                        dst.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(src_file, dst)
+                        logger.info(f"Sincronizado artefacto semilla hacia volumen: {dst}")
+    except Exception as exc:
+        logger.warning(f"Aviso al sincronizar seeds de outputs: {exc}")
+
+    # 2. Purga automática de la papelera de 30 días al arrancar el servicio
     try:
         service = get_intent_service()
         purge_res = service.purge_trash(purged_by="system_startup")
