@@ -21,7 +21,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 RUN printf '%s\n' \
     'server {' \
-    '    listen 5173;' \
+    '    listen 80;' \
     '    client_max_body_size 100M;' \
     '    location / {' \
     '        root /usr/share/nginx/html;' \
@@ -42,6 +42,6 @@ RUN printf '%s\n' \
     '    }' \
     '}' > /etc/nginx/conf.d/default.conf
 
-EXPOSE 5173
+EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,83 +1,87 @@
 name: ethosterra-atlas
 
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ethos-ollama
-    restart: unless-stopped
-    volumes:
-      - ollama_models:/root/.ollama
-    ports:
-      - "11434:11434"
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 10s
-
-  ollama-init:
-    image: ollama/ollama:latest
-    container_name: ethos-ollama-init
-    depends_on:
-      ollama:
-        condition: service_healthy
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        export OLLAMA_HOST="http://ollama:11434"
-        MODEL="$${MODEL_NAME:-gemma:2b}"
-        echo "[Dokploy Init] Verificando presencia de modelo: $$MODEL"
-        if ollama list | grep -q "$$MODEL"; then
-          echo "[Dokploy Init] El modelo $$MODEL ya se encuentra disponible."
-        else
-          echo "[Dokploy Init] Descargando modelo $$MODEL desde Ollama library..."
-          ollama pull "$$MODEL"
-          echo "[Dokploy Init] Modelo $$MODEL descargado exitosamente."
-        fi
-    restart: "no"
-    environment:
-      - MODEL_NAME=${MODEL_NAME:-gemma:2b}
-
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    container_name: ethos-api
     restart: unless-stopped
     environment:
-      - MODEL_PROVIDER=ollama
-      - MODEL_BASE_URL=http://ollama:11434/v1/
-      - MODEL_NAME=${MODEL_NAME:-gemma:2b}
-      - PYTHONPATH=/app:/app/src
-    ports:
-      - "8000:8000"
+      MODEL_PROVIDER: dmr
+      MODEL_BASE_URL: http://ollama:11434/v1
+      MODEL_NAME: gemma2:2b
+      PYTHONPATH: /app:/app/src
+    expose:
+      - "8000"
     volumes:
-      - atlas_data:/app/outputs
+      - datos:/app/outputs
     depends_on:
       ollama:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
-      retries: 10
-      start_period: 15s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 512M
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        ollama serve &
+        until ollama list >/dev/null 2>&1; do sleep 1; done
+        ollama pull gemma2:2b
+        wait
+    environment:
+      OLLAMA_KEEP_ALIVE: 5m
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+    expose:
+      - "11434"
+    volumes:
+      - modelos:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list | grep -q gemma2:2b"]
+      interval: 30s
+      timeout: 10s
+      retries: 60
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "3.00"
+          memory: 3G
 
   ui:
     build:
       context: ./apps/ui
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=/v2
-    container_name: ethos-ui
+        VITE_API_URL: https://api-atlas.${DOMINIO:-iscoutb.dev}/v2
     restart: unless-stopped
-    ports:
-      - "5173:5173"
+    expose:
+      - "80"
     depends_on:
-      api:
-        condition: service_healthy
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 128M
 
 volumes:
-  ollama_models:
-  atlas_data:
+  datos:
+  modelos:
