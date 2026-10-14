@@ -2,7 +2,9 @@ name: ethos-intention-classifier
 
 services:
   api:
-    build: ./apps/api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     ports:
       - "8000:8000"
     models:

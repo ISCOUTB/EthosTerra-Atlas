@@ -1,26 +1,34 @@
-# === Construcción de la API BESA-LLM ===
-FROM python:3.11-slim
+# === Construcción de la API BESA-LLM (EthosTerra Atlas) ===
+FROM python:3.12-slim
 
-# Configuraciones de Python para entorno Docker
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH="/app:/app/src"
 
 WORKDIR /app
 
-# Instalar uv para resolución ultrarrápida de dependencias
+# Instalar utilidades del sistema para OCR, extracción de PDFs y healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-spa \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar uv para resolución rápida de dependencias
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Copiar configuración de dependencias
-COPY pyproject.toml ./
+# Copiar manifiesto de dependencias de la API
+COPY apps/api/pyproject.toml ./pyproject.toml
 
 # Instalar dependencias a nivel de sistema dentro del contenedor
 RUN uv pip install --system -r pyproject.toml
 
-# Instalar curl para el healthcheck de Docker Compose
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-# Copiar el código fuente (dominio, puertos, adaptadores, api)
-COPY src/ ./src/
+# Copiar módulos de código fuente del monorepo requeridos por la API y Atlas
+COPY apps/api/src/ ./src/
+COPY apps/atlas/ ./apps/atlas/
+COPY outputs/ ./outputs/
+COPY municipios-colombia/ ./municipios-colombia/
 
 # Exponer el puerto de FastAPI
 EXPOSE 8000

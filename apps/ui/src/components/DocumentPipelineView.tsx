@@ -16,7 +16,7 @@ import { Mono } from './ui/Mono';
 import { StatePanel } from './ui/StatePanel';
 import { cn } from '../lib/utils';
 
-const API_BASE = 'http://localhost:8000/v2';
+const API_BASE = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000/v2';
 
 const SAMPLE_DIARY = `El campesino peasant_01 indica que para la próxima temporada de siembra es indispensable preparar el terreno adecuadamente. Para llevar a cabo esta labor se requiere contar con las herramientas necesarias en la parcela.`;
 

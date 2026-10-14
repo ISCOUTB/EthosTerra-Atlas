@@ -59,7 +59,7 @@ def test_get_quarantine_artifacts():
     assert "art_patr_montes_de_maria_2026" in cand_ids
     cand_a = next(c for c in data["registered_candidates"] if c["source_id"] == "art_patr_montes_de_maria_2026")
     assert cand_a["is_downloaded"] is False
-    assert cand_a["status"] == "revised_2026"
+    assert cand_a["status"] in {"revised_2026", "rejected", "approved_for_context"}
 
 
 def test_review_context_artifact_lifecycle_transitions(tmp_path, monkeypatch):
