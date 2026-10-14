@@ -316,6 +316,10 @@ export default function AtlasView() {
 
       let initialized = false
       const handleReady = () => {
+        if (!map.isStyleLoaded()) {
+          map.once('style.load', handleReady)
+          return
+        }
         if (initialized) return
         initialized = true
         setMapLoaded(true)
@@ -332,17 +336,18 @@ export default function AtlasView() {
 
       map.on('error', (err) => {
         console.warn('MapLibre evento de carga:', err)
-        setMapLoaded(true)
       })
 
       setTimeout(() => {
         try {
           map.resize()
-          handleReady()
+          if (map.isStyleLoaded() && !initialized) {
+            handleReady()
+          }
         } catch {
           // ignore
         }
-      }, 200)
+      }, 300)
 
       mapRef.current = map
 

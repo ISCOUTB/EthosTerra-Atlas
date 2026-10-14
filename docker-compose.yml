@@ -9,15 +9,14 @@ services:
     environment:
       MODEL_PROVIDER: dmr
       MODEL_BASE_URL: http://ollama:11434/v1
-      MODEL_NAME: gemma4:e4b
+      MODEL_NAME: gemma4:e2b
       PYTHONPATH: /app:/app/src
     expose:
       - "8000"
     volumes:
       - datos:/app/outputs
     depends_on:
-      ollama:
-        condition: service_healthy
+      - ollama
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -38,7 +37,7 @@ services:
       - |
         ollama serve &
         until ollama list >/dev/null 2>&1; do sleep 1; done
-        ollama pull gemma4:e4b
+        ollama pull gemma4:e2b
         wait
     environment:
       OLLAMA_KEEP_ALIVE: 5m
@@ -49,7 +48,7 @@ services:
     volumes:
       - modelos:/root/.ollama
     healthcheck:
-      test: ["CMD-SHELL", "ollama list | grep -q gemma4:e4b"]
+      test: ["CMD-SHELL", "ollama list | grep -q gemma4:e2b"]
       interval: 30s
       timeout: 10s
       retries: 60
@@ -65,7 +64,7 @@ services:
       context: ./apps/ui
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: https://api-atlas.${DOMINIO:-iscoutb.dev}/v2
+        VITE_API_URL: /v2
     restart: unless-stopped
     expose:
       - "80"
