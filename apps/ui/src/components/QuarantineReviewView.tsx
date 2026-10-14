@@ -242,36 +242,17 @@ export function QuarantineReviewView() {
 
   const handleRunExtraction = async (sourceId: string) => {
     setExtractingBeliefs(true)
-    setExtractionProgress(4)
+    setExtractionProgress(5)
     setExtractionElapsed(0)
     setExtractionPhase(1)
-    setExtractionStageText('Segmentación textual y preparación de bloques Zero-Trust...')
+    setExtractionStageText('Iniciando tarea de extracción soberana en segundo plano...')
     setBeliefsError(null)
 
     const startTime = Date.now()
     const timer = setInterval(() => {
       const elapsedSec = Math.floor((Date.now() - startTime) / 1000)
       setExtractionElapsed(elapsedSec)
-
-      setExtractionProgress((prev) => {
-        if (prev < 24) {
-          setExtractionPhase(1)
-          setExtractionStageText('Extrayendo texto del PDF local y aislando fragmentos normativos...')
-          return Math.min(prev + 2.5, 24)
-        }
-        if (prev < 74) {
-          setExtractionPhase(2)
-          setExtractionStageText('Inferencia local soberana en ai/gemma4:E4B (Docker Model Runner)...')
-          return Math.min(prev + 1.1, 74)
-        }
-        if (prev < 94) {
-          setExtractionPhase(3)
-          setExtractionStageText('Validando citas textuales (Verbatim Gate) y evaluando colisiones normativas...')
-          return Math.min(prev + 0.35, 94)
-        }
-        return prev
-      })
-    }, 250)
+    }, 500)
 
     try {
       const res = await fetch(`${API_BASE}/atlas/artifacts/${sourceId}/extract-beliefs?force_reextract=true`, {
@@ -281,17 +262,60 @@ export function QuarantineReviewView() {
         const errJson = await res.json().catch(() => ({}))
         throw new Error(errJson.detail || `HTTP ${res.status}`)
       }
-      const data: TerritorialBeliefExtractionResult = await res.json()
 
-      // Conclusión suave: llevar al 100% y dar un breve instante para apreciar el estado
-      setExtractionPhase(4)
-      setExtractionStageText('Extracción completada con éxito. Consolidando artefacto territorial...')
-      setExtractionProgress(100)
-      await new Promise((r) => setTimeout(r, 600))
+      if (res.status === 202) {
+        // Modo asíncrono desacoplado: sondeo de telemetría en tiempo real
+        let completed = false
+        let attempts = 0
+        const maxAttempts = 180 // Máximo 6 minutos de sondeo cada 2 segundos
 
-      setBeliefsData(data)
+        while (!completed && attempts < maxAttempts) {
+          await new Promise((r) => setTimeout(r, 2000))
+          attempts++
+
+          const statusRes = await fetch(`${API_BASE}/atlas/artifacts/${sourceId}/extraction-status`)
+          if (!statusRes.ok) continue
+          const jobData = await statusRes.json()
+
+          if (jobData.progress_percent > 0) {
+            setExtractionProgress(jobData.progress_percent)
+          }
+
+          if (jobData.current_chunk > 0 && jobData.total_chunks > 0) {
+            setExtractionPhase(2)
+            setExtractionStageText(`Inferencia soberana en gemma4:e4b: Fragmento ${jobData.current_chunk} de ${jobData.total_chunks}...`)
+          } else if (jobData.message) {
+            setExtractionStageText(jobData.message)
+          }
+
+          if (jobData.status === 'completed' && jobData.result) {
+            completed = true
+            setExtractionPhase(4)
+            setExtractionStageText('Extracción completada con éxito. Consolidando artefacto territorial...')
+            setExtractionProgress(100)
+            await new Promise((r) => setTimeout(r, 600))
+            setBeliefsData(jobData.result)
+            break
+          }
+
+          if (jobData.status === 'failed') {
+            throw new Error(jobData.error || jobData.message || 'La extracción en segundo plano falló.')
+          }
+        }
+
+        if (!completed && attempts >= maxAttempts) {
+          throw new Error('Tiempo límite de espera superado durante la extracción en segundo plano.')
+        }
+      } else {
+        const data: TerritorialBeliefExtractionResult = await res.json()
+        setExtractionPhase(4)
+        setExtractionStageText('Extracción completada con éxito. Consolidando artefacto territorial...')
+        setExtractionProgress(100)
+        await new Promise((r) => setTimeout(r, 600))
+        setBeliefsData(data)
+      }
     } catch (err: any) {
-      setBeliefsError(`Error extrayendo creencias: ${err.message}`)
+      setBeliefsError(err.name === 'TypeError' ? 'Error de conexión: No se pudo comunicar con el servidor API.' : `Error extrayendo creencias: ${err.message}`)
     } finally {
       clearInterval(timer)
       setExtractingBeliefs(false)

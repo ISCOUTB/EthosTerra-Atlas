@@ -9,7 +9,7 @@ import subprocess
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Optional
 
 import httpx
 
@@ -524,6 +524,7 @@ class TerritorialBeliefExtractor:
         self,
         source_id: str,
         force_reextract: bool = False,
+        progress_callback: Optional[Callable[[int, int, str], None]] = None,
     ) -> TerritorialBeliefExtractionResult:
         """Ejecuta el pipeline completo de extracción soberana sobre un artefacto verificado y aprobado."""
         manifest = self.manifest_manager.load_manifest()
@@ -572,9 +573,20 @@ class TerritorialBeliefExtractor:
         all_belief_items: list[TerritorialBeliefItem] = []
         verified_count = 0
         rejected_count = 0
+        total_chunks = len(chunks)
 
         # 4. Inferencia con micro-LLM local sobre los fragmentos seleccionados
         for idx, chunk in enumerate(chunks):
+            if progress_callback:
+                try:
+                    progress_callback(
+                        idx + 1,
+                        total_chunks,
+                        f"Analizando fragmento {idx + 1} de {total_chunks} con micro-LLM local...",
+                    )
+                except Exception as cb_err:
+                    logger.debug(f"Error en progress_callback: {cb_err}")
+
             try:
                 prompt = self._build_zero_trust_prompt(chunk, doc.title)
                 llm_result = await self.call_micro_llm(prompt)

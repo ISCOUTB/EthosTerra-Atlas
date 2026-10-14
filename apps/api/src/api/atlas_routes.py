@@ -8,8 +8,8 @@ from typing import Literal
 import base64
 import hashlib
 import re
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, HTTPException, status
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 import yaml
 
@@ -78,6 +78,9 @@ belief_extractor = TerritorialBeliefExtractor(
     manifest_manager=manifest_manager,
     resolver=resolver,
 )
+from apps.api.src.application.extraction_job_manager import ExtractionJobManager, ExtractionJobStatus
+
+extraction_job_manager = ExtractionJobManager(extractor=belief_extractor)
 yaml_compiler = EBDIYamlCompiler()
 
 GEOJSON_PATH = Path("apps/atlas/geo/dane_mgn_montes_de_maria.geojson")
@@ -711,22 +714,98 @@ def get_pilots_cascades():
 
 @atlas_router.post(
     "/artifacts/{source_id}/extract-beliefs",
-    response_model=TerritorialBeliefExtractionResult,
-    summary="Extraer creencias territoriales eBDI con micro-LLM soberano local",
+    summary="Extraer creencias territoriales eBDI con micro-LLM soberano local (asíncrono)",
 )
-async def extract_beliefs(source_id: str, force_reextract: bool = False):
-    """Ejecuta la extracción de creencias territoriales sobre un documento aprobado en cuarentena."""
+async def extract_beliefs(source_id: str, force_reextract: bool = False, wait: bool = False):
+    """Ejecuta la extracción de creencias territoriales sobre un documento aprobado en cuarentena.
+
+    Por defecto, encola la tarea de forma asíncrona y responde HTTP 202 Accepted de inmediato
+    para prevenir cortes por timeout en proxies inversos y Cloudflare.
+    """
     if ".." in source_id or "/" in source_id or "\\" in source_id:
         raise HTTPException(status_code=400, detail="Identificador de fuente no válido.")
 
-    try:
-        return await belief_extractor.extract_beliefs_from_artifact(source_id, force_reextract=force_reextract)
-    except ArtifactNotApprovedError as exc:
-        raise HTTPException(status_code=403, detail=str(exc))
-    except BeliefExtractionError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Error durante extracción de creencias: {exc}")
+    manifest = manifest_manager.load_manifest()
+    if source_id not in manifest.documents:
+        raise HTTPException(status_code=400, detail=f"Artefacto '{source_id}' no encontrado en el manifiesto.")
+
+    doc = manifest.documents[source_id]
+    if doc.status != "approved_for_context" and doc.approval_status != "approved_for_context":
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Bloqueo de Gobernanza: El artefacto '{source_id}' se encuentra en estado '{doc.status}'. "
+                "Solo los documentos explícitamente aprobados por revisión humana ('approved_for_context') "
+                "pueden ser procesados para extracción de conocimiento."
+            ),
+        )
+
+    # Si se solicita explícitamente ejecución síncrona
+    if wait:
+        try:
+            return await belief_extractor.extract_beliefs_from_artifact(source_id, force_reextract=force_reextract)
+        except ArtifactNotApprovedError as exc:
+            raise HTTPException(status_code=403, detail=str(exc))
+        except BeliefExtractionError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Error durante extracción de creencias: {exc}")
+
+    # Modo Asíncrono en Background (Estándar de Producción)
+    job, _ = await extraction_job_manager.enqueue_extraction(
+        source_id=source_id,
+        force_reextract=force_reextract,
+    )
+    return JSONResponse(
+        status_code=status.HTTP_202_ACCEPTED,
+        content=job.model_dump(),
+    )
+
+
+@atlas_router.get(
+    "/artifacts/{source_id}/extraction-status",
+    response_model=ExtractionJobStatus,
+    summary="Consultar estado y telemetría de la extracción de creencias en segundo plano",
+)
+def get_extraction_status(source_id: str):
+    """Retorna el estado de la tarea de extracción en memoria o consulta la persistencia en disco."""
+    if ".." in source_id or "/" in source_id or "\\" in source_id:
+        raise HTTPException(status_code=400, detail="Identificador de fuente no válido.")
+
+    job = extraction_job_manager.get_job(source_id)
+    if job:
+        return job
+
+    # Si no hay job activo, verificar si ya existen creencias generadas en disco
+    belief_file = belief_extractor.context_output_dir / f"{source_id}_beliefs.json"
+    if belief_file.exists():
+        try:
+            data = json.loads(belief_file.read_text(encoding="utf-8"))
+            parsed = TerritorialBeliefExtractionResult.model_validate(data)
+            return ExtractionJobStatus(
+                job_id=f"job_disk_{source_id}",
+                source_id=source_id,
+                status="completed",
+                total_chunks=len(parsed.beliefs),
+                current_chunk=len(parsed.beliefs),
+                message=f"Creencias consolidadas cargadas ({len(parsed.beliefs)} proposiciones)",
+                progress_percent=100.0,
+                result=parsed,
+                created_at=parsed.extraction_timestamp,
+                updated_at=parsed.extraction_timestamp,
+            )
+        except Exception as e:
+            logger.warning(f"Error parseando archivo de creencias en disco para {source_id}: {e}")
+
+    return ExtractionJobStatus(
+        job_id="none",
+        source_id=source_id,
+        status="idle",
+        total_chunks=0,
+        current_chunk=0,
+        message="Sin tareas de extracción activas ni resultados previos.",
+        progress_percent=0.0,
+    )
 
 
 @atlas_router.get(

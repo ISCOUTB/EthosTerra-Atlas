@@ -128,8 +128,8 @@ export default function AtlasView() {
   const markersRef = useRef<Record<string, maplibregl.Marker>>({})
   const popupRef = useRef<maplibregl.Popup | null>(null)
 
-  // Estado de navegación territorial
-  const [selectedDept, setSelectedDept] = useState<'13' | '70' | 'all'>('13')
+  // Estado de navegación territorial (por defecto: 'all' para abarcar los 15 municipios de Montes de María)
+  const [selectedDept, setSelectedDept] = useState<'13' | '70' | 'all'>('all')
   const [selectedDivipola, setSelectedDivipola] = useState<string>('13244')
   const [activeTab, setActiveTab] = useState<TabMode>('instruments')
 
@@ -170,7 +170,7 @@ export default function AtlasView() {
   }, [activeProfile?.divipola])
 
   // Función para agregar capas GeoJSON sobre el mapa base MapLibre
-  const addMapLayers = (map: maplibregl.Map, currentDivipola: string, currentDept: '13' | '70' | 'all' = '13') => {
+  const addMapLayers = (map: maplibregl.Map, currentDivipola: string, currentDept: '13' | '70' | 'all' = 'all') => {
     if (map.getSource('montes-de-maria')) {
       if (map.getLayer('montes-de-maria-selected-line')) map.removeLayer('montes-de-maria-selected-line')
       if (map.getLayer('montes-de-maria-line')) map.removeLayer('montes-de-maria-line')
@@ -186,7 +186,7 @@ export default function AtlasView() {
 
     const deptFilter: any = currentDept === 'all'
       ? ['has', 'divipola']
-      : ['==', ['get', 'department_code'], currentDept]
+      : ['==', ['to-string', ['get', 'department_code']], String(currentDept)]
 
     // 1. Relleno semi-transparente para los municipios del departamento seleccionado
     map.addLayer({
@@ -210,7 +210,7 @@ export default function AtlasView() {
       id: 'montes-de-maria-selected-fill',
       type: 'fill',
       source: 'montes-de-maria',
-      filter: ['==', ['get', 'divipola'], currentDivipola],
+      filter: ['==', ['to-string', ['get', 'divipola']], String(currentDivipola)],
       paint: {
         'fill-color': '#0066cc',
         'fill-opacity': 0.78,
@@ -234,7 +234,7 @@ export default function AtlasView() {
       id: 'montes-de-maria-selected-line',
       type: 'line',
       source: 'montes-de-maria',
-      filter: ['==', ['get', 'divipola'], currentDivipola],
+      filter: ['==', ['to-string', ['get', 'divipola']], String(currentDivipola)],
       paint: {
         'line-color': '#002244',
         'line-width': 4.5,
@@ -314,12 +314,20 @@ export default function AtlasView() {
 
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
 
+      let initialized = false
       const handleReady = () => {
+        if (initialized) return
+        initialized = true
         setMapLoaded(true)
         addMapLayers(map, selectedDivipola, selectedDept)
         renderMarkers(map, selectedDivipola)
       }
 
+      if (map.isStyleLoaded()) {
+        handleReady()
+      } else {
+        map.once('style.load', handleReady)
+      }
       map.once('load', handleReady)
 
       map.on('error', (err) => {
@@ -330,7 +338,7 @@ export default function AtlasView() {
       setTimeout(() => {
         try {
           map.resize()
-          setMapLoaded(true)
+          handleReady()
         } catch {
           // ignore
         }
@@ -376,10 +384,14 @@ export default function AtlasView() {
     const map = mapRef.current
     if (!map || !mapLoaded) return
 
+    if (!map.getSource('montes-de-maria')) {
+      addMapLayers(map, selectedDivipola, selectedDept)
+    }
+
     // Filtro departamental para polígonos: Si se selecciona Bolívar, solo muestra Bolívar; si Sucre, solo Sucre; si Todos, muestra todos.
     const deptFilter: any = selectedDept === 'all'
       ? ['has', 'divipola']
-      : ['==', ['get', 'department_code'], selectedDept]
+      : ['==', ['to-string', ['get', 'department_code']], String(selectedDept)]
 
     if (map.getLayer('montes-de-maria-fill')) {
       map.setFilter('montes-de-maria-fill', deptFilter)
@@ -391,11 +403,11 @@ export default function AtlasView() {
 
     // Actualizar filtros rápidos de selección
     if (map.getLayer('montes-de-maria-selected-fill')) {
-      map.setFilter('montes-de-maria-selected-fill', ['==', ['get', 'divipola'], selectedDivipola])
+      map.setFilter('montes-de-maria-selected-fill', ['==', ['to-string', ['get', 'divipola']], String(selectedDivipola)])
     }
 
     if (map.getLayer('montes-de-maria-selected-line')) {
-      map.setFilter('montes-de-maria-selected-line', ['==', ['get', 'divipola'], selectedDivipola])
+      map.setFilter('montes-de-maria-selected-line', ['==', ['to-string', ['get', 'divipola']], String(selectedDivipola)])
     }
 
     // Actualizar color base si cambia el tema coroplético

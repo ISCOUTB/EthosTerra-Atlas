@@ -158,3 +158,13 @@ def test_endpoint_pilot_aggregated_beliefs():
     assert data["department_name"] == "Bolívar"
     assert data["is_pdet"] is True
     assert "beliefs" in data
+
+
+def test_endpoint_extraction_status_returns_idle_or_disk():
+    """El endpoint /extraction-status debe responder un esquema válido de estado."""
+    res = client.get("/v2/atlas/artifacts/any_doc/extraction-status")
+    assert res.status_code == 200
+    data = res.json()
+    assert "status" in data
+    assert data["status"] in ("idle", "processing", "completed", "failed")
+    assert "progress_percent" in data

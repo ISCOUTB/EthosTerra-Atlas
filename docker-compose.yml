@@ -9,7 +9,7 @@ services:
     environment:
       MODEL_PROVIDER: dmr
       MODEL_BASE_URL: http://ollama:11434/v1
-      MODEL_NAME: gemma2:2b
+      MODEL_NAME: gemma4:e4b
       PYTHONPATH: /app:/app/src
     expose:
       - "8000"
@@ -38,7 +38,7 @@ services:
       - |
         ollama serve &
         until ollama list >/dev/null 2>&1; do sleep 1; done
-        ollama pull gemma2:2b
+        ollama pull gemma4:e4b
         wait
     environment:
       OLLAMA_KEEP_ALIVE: 5m
@@ -49,7 +49,7 @@ services:
     volumes:
       - modelos:/root/.ollama
     healthcheck:
-      test: ["CMD-SHELL", "ollama list | grep -q gemma2:2b"]
+      test: ["CMD-SHELL", "ollama list | grep -q gemma4:e4b"]
       interval: 30s
       timeout: 10s
       retries: 60
@@ -58,7 +58,7 @@ services:
       resources:
         limits:
           cpus: "3.00"
-          memory: 3G
+          memory: 4G
 
   ui:
     build:
