@@ -78,7 +78,10 @@ belief_extractor = TerritorialBeliefExtractor(
     manifest_manager=manifest_manager,
     resolver=resolver,
 )
-from apps.api.src.application.extraction_job_manager import ExtractionJobManager, ExtractionJobStatus
+try:
+    from src.application.extraction_job_manager import ExtractionJobManager, ExtractionJobStatus
+except ImportError:
+    from apps.api.src.application.extraction_job_manager import ExtractionJobManager, ExtractionJobStatus
 
 extraction_job_manager = ExtractionJobManager(extractor=belief_extractor)
 yaml_compiler = EBDIYamlCompiler()
