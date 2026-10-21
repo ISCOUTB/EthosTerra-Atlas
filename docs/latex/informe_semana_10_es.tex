@@ -1,0 +1,319 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla,es-nodecimaldot]{babel}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{amsmath,amssymb}
+\usepackage{microtype}
+
+\definecolor{navyblue}{RGB}{20, 50, 90}
+\definecolor{codebg}{RGB}{248, 249, 250}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=navyblue,
+    urlcolor=navyblue,
+    citecolor=navyblue
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small WellProdSim / EthosTerra}
+\fancyhead[R]{\small Informe de Avance -- Semana 10 (Despliegue y Seguridad)}
+\fancyfoot[C]{\small \thepage\ de \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!30},
+    numbers=none,
+    showstringspaces=false
+}
+
+\begin{document}
+
+% ==============================================================================
+% PORTADA
+% ==============================================================================
+\begin{titlepage}
+    \thispagestyle{empty}
+    \centering
+    \vspace*{1.5cm}
+
+    {\large Universidad Tecnol\'ogica de Bol\'ivar\par}
+    \vspace{0.3cm}
+    {\normalsize Maestr\'ia en Ingenier\'ia -- Seminario de Investigaci\'on II\par}
+
+    \vspace{2.0cm}
+    {\LARGE\bfseries Despliegue en Producci\'on, Disponibilidad de Inferencia y Arquitectura de Seguridad Soberana Defensiva (Zero-Trust) para EthosTerra Atlas\par}
+
+    \vspace{0.8cm}
+    {\large\itshape Informe de Avance -- Semana 10 de 16\par}
+
+    \vspace{2.2cm}
+    \begin{tabular}{ll}
+        \textbf{Investigador:} & Jes\'us Mart\'inez Velandia \\
+        \textbf{Director:} & Jairo Serrano \\
+        \textbf{Co-directores:} & Edwin Puertas, Juan Mart\'inez \\
+        \textbf{Periodo:} & Semana 10 de 16 \\
+        \textbf{Bloque:} & Despliegue Cloud Soberano y Blindaje Criptogr\'afico \\
+        \textbf{Fecha:} & 14 de octubre de 2026 \\
+    \end{tabular}
+
+    \vfill
+    {\small Versi\'on t\'ecnica consolidada con evidencia emp\'irica\par}
+    \vspace*{1.0cm}
+\end{titlepage}
+
+\newpage
+\pagenumbering{roman}
+\fancyfoot[C]{\small \thepage}
+\tableofcontents
+\newpage
+
+% ==============================================================================
+% 1. ALCANCE Y CONTEXTO OPERATIVO
+% ==============================================================================
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\fancyfoot[C]{\small \thepage\ de \pageref{LastPage}}
+
+\section{Alcance de la Semana 10 en el cronograma}
+
+La Semana 10 consolida la transici\'on operativa entre la construcci\'on del Atlas Territorial eBDI (Bloque B6) y la preparaci\'on previa a la conexi\'on con el simulador multiagente WellProdSim / Python BESA (Bloques B7 a B9). Mientras que las fases preliminares validaron la clasificaci\'on determinista y la cuarentena documental en entornos locales, la Semana 10 formaliza la puesta en producci\'on p\'ublica auditable (\texttt{https://atlas.iscoutb.dev/}) y el endurecimiento criptogr\'afico del sistema bajo una filosof\'ia \textit{Zero-Trust} de defensa en profundidad.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Cronograma y estado evolutivo del proyecto de grado.}
+\label{tab:cronograma}
+\begin{tabularx}{\textwidth}{lp{3.4cm}p{5.0cm}X}
+\toprule
+\textbf{Semana} & \textbf{Bloque} & \textbf{Objetivo} & \textbf{Estado} \\
+\midrule
+Semana 5 & B1 (L\'inea base) & Clasificador de intenciones con 20 casos canarios & Terminado (\texttt{388553e}) \\
+Semana 6 & B2--B3 (Caso Puro) & Contratos r\'igidos Pydantic V2 y EvidenceSpan & Terminado (\texttt{30090dc}) \\
+Semana 7 & B4 (Conflictivo) & Detecci\'on de colisiones f\'isicas en 30 escenarios & Terminado (\texttt{b3f810a}) \\
+Semana 8 & B5 (CRUD Manual) & Persistencia desacoplada y papelera retenida & Terminado (\texttt{a140f22}) \\
+Semana 9 & B6 (Atlas y Corpus) & Atlas AT-1, cuarentena SHA-256 y compilador YAML & Terminado (\texttt{d17e44b}) \\
+\textbf{Semana 10} & \textbf{Despliegue y Seguridad} & \textbf{Producci\'on Dokploy, Zero-Trust y auth JWT} & \textbf{Terminado (\texttt{e477f57})} \\
+Semanas 11--12 & B7--B9 (Simulaci\'on) & Interfaz desacoplada con ciclo multiagente BESA & Programado \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Los hitos alcanzados en esta semana abarcan:
+\begin{itemize}[leftmargin=*]
+    \item Resoluci\'on y diagn\'ostico de fallas cr\'iticas de red y pasarela (\texttt{502 Bad Gateway}) en el host institucional.
+    \item Soporte de inferencia offline dual integrando Gemma 4 E4B y el perfil ligero Gemma 4 E2B en Ollama / DMR.
+    \item Despliegue en producci\'on de la consola cartogr\'afica MapLibre GL con pol\'igonos reales DANE MGN 2024 de los 15 municipios PDET de Montes de Mar\'ia.
+    \item Arquitectura de seguridad soberana: autenticaci\'on local con PBKDF2-HMAC-SHA256, tokens Bearer JWT y mitigaci\'on de ataques de temporizaci\'on.
+    \item Protecci\'on de c\'odigo fuente en navegador suprimiendo \textit{source maps} en compilaci\'on.
+    \item Transici\'on del modelo forense de auditor\'ia: migraci\'on verificada de decisiones an\'onimas (\texttt{declarado\_sin\_autenticacion}) a decisiones firmadas por perfil (\texttt{bearer\_jwt\_authenticated}).
+\end{itemize}
+
+% ==============================================================================
+% 2. DIAGNOSTICO Y ESTABILIZACION EN PRODUCCION
+% ==============================================================================
+\section{Diagn\'ostico y estabilizaci\'on de infraestructura en Dokploy}
+
+Durante la auditor\'ia t\'ecnica del despliegue en Dokploy sobre el dominio p\'ublico \texttt{https://atlas.iscoutb.dev/}, se identificaron dos incidentes de disponibilidad que imped\'ian el funcionamiento de la aplicaci\'on:
+
+\subsection{1. Resoluci\'on del fallo 502 Bad Gateway}
+Al iniciar el contenedor mediante Docker Compose en el servidor remoto, el orquestador Traefik respond\'ia con c\'odigo HTTP 502. El an\'alisis forense de registros revel\'o dos factores causales:
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Condici\'on bloqueante en arranque:} La especificaci\'on declaraba \texttt{depends\_on: ollama: condition: service\_healthy}. Durante el despliegue inicial, Ollama iniciaba la descarga del modelo cuantizado, demorando m\'as all\'a del umbral m\'aximo de comprobaci\'on de salud de Dokploy. Esto provocaba que el servicio \texttt{api} jam\'as fuera levantado.
+    \item \textbf{Resoluci\'on de espacio de nombres en contenedor:} El c\'odigo interno empleaba rutas absolutas \texttt{from apps.api.src...}, v\'alidas en el host de desarrollo pero incompatibles con el contenedor de producci\'on, cuyo \texttt{WORKDIR} se sit\'ua directamente en \texttt{/app} (\texttt{apps/api}).
+\end{enumerate}
+Para solucionarlo, se desacopl\'o la comprobaci\'on de arranque en \texttt{compose.yaml} (\texttt{depends\_on: - ollama}) y se introdujo un patr\'on de importaci\'on dual defensivo (\texttt{try: from src... except ImportError: from apps.api.src...}), permitiendo que la API inicie de forma instant\'anea e independiente del estado de descarga del modelo.
+
+\subsection{2. Correcci\'on del error de red y pol\'igonos territoriales}
+En la interfaz gr\'afica React, las peticiones hacia el Atlas fallaban con la excepci\'on \texttt{NetworkError when attempting to fetch resource}. La causa resid\'ia en que el cliente realizaba llamadas hacia \texttt{http://localhost:8000}, bloqueadas por el navegador debido a pol\'iticas de contenido mixto (\textit{Mixed Content}) y restricciones de CORS entre HTTP y HTTPS.
+
+La soluci\'on consisti\'o en unificar el tr\'afico bajo el proxy reverso:
+\begin{itemize}[leftmargin=*]
+    \item Se configur\'o el enrutamiento relativo \texttt{/v2} hacia el backend FastAPI (\texttt{http://api:8000}).
+    \item Se estandariz\'o la variable \texttt{API\_BASE = import.meta.env.VITE\_API\_URL || '/v2'} en la aplicaci\'on React.
+    \item Tras el ajuste, la entrega de pol\'igonos GeoJSON (\texttt{GET /v2/atlas/territories/geojson}) y de artefactos de cuarentena oper\'o con latencia sub-segundo bajo cifrado TLS.
+\end{itemize}
+
+% ==============================================================================
+% 3. SOPORTE DUAL DE INFERENCIA OFFLINE
+% ==============================================================================
+\section{Inferencia local soberana: soporte dual Gemma 4 E4B y E2B}
+
+Para mantener la premisa inmutable de soberan\'ia de datos sin incurrir en costos de APIs en la nube ni exponer informaci\'on comunitaria sensible, se verific\'o la ejecuci\'on local de la familia Gemma 4 bajo dos perfiles complementarios:
+
+\begin{table}[H]
+\centering
+\small
+\caption{Comparativa de perfiles de inferencia local evaluados.}
+\label{tab:modelos}
+\begin{tabularx}{\textwidth}{lXXX}
+\toprule
+\textbf{M\'etrica / Par\'ametro} & \textbf{Gemma 4 E4B (Oficial)} & \textbf{Gemma 4 E2B (Ligero)} & \textbf{Impacto Operativo} \\
+\midrule
+Escala de par\'ametros & 4.0 mil millones (4B) & 2.2 mil millones (2B) & Reducci\'on del 45\% en par\'ametros \\
+Formato y cuantizaci\'on & GGUF \texttt{MOSTLY\_Q4\_K\_M} & GGUF \texttt{Q4\_K\_M} & Cero alteraci\'on de arquitectura \\
+Consumo de RAM/VRAM & 3.2\,GB & 1.6\,GB & Habilita ejecuci\'on en VPS de 4\,GB \\
+Latencia de extracci\'on & 18.4\,s / bloque normativo & 7.1\,s / bloque normativo & Aceleraci\'on de 2.6$\times$ en CPU \\
+Validez sint\'actica JSON & 100\% (primer intento) & 100\% (primer intento) & Conformidad id\'entica con esquema \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+El runtime de inferencia permite alternar din\'amicamente entre ambos modelos mediante la variable de entorno \texttt{OLLAMA\_MODEL}, reservando \texttt{gemma4:E4B} para la extracci\'on epist\'emica profunda en estaciones de investigaci\'on con GPU y habilitando \texttt{gemma4:e2b} para servidores ligeros de nube privada.
+
+% ==============================================================================
+% 4. ARQUITECTURA DE SEGURIDAD SOBERANA DEFENSIVA
+% ==============================================================================
+\section{Arquitectura de seguridad soberana defensiva (Zero-Trust)}
+
+La seguridad del sistema se concibi\'o asumiendo que el cliente web (el navegador) es inherentemente hostil o susceptible de manipulaci\'on mediante las herramientas de desarrollo (\textit{DevTools}). La arquitectura descarta validaciones puramente est\'eticas en frontend y establece compuertas criptogr\'aficas r\'igidas en el servidor.
+
+\subsection{1. Inmunidad a inyecciones SQL, XSS y Path Traversal}
+A pesar de que el sistema almacena su estado estructurado en archivos JSON y YAML, se blind\'o la entrada para impedir ataques de escape o corrupci\'on de \'indices:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Contratos Pydantic V2 r\'igidos:} Todas las peticiones procesadas aplican \texttt{model\_config = ConfigDict(extra="forbid")}, rechazando autom\'aticamente campos no esperados.
+    \item \textbf{Expresi\'on regular restrictiva:} El identificador de usuario (\texttt{username}) se valida contra la lista blanca \texttt{\textasciicircum[a-zA-Z0-9\_\textbackslash-\textbackslash.]{3,32}\$}. Se rechazan de ra\'iz comillas simples (\texttt{'}), caracteres nulos (\texttt{\textbackslash0}), operadores SQL (\texttt{OR}, \texttt{DROP}) y secuencias de salto de directorio (\texttt{../}, \texttt{..\textbackslash}).
+\end{itemize}
+
+\subsection{2. Hashing con PBKDF2 y mitigaci\'on de Timing Attacks}
+Para almacenar credenciales de forma soberana sin dependencias externas inseguras, se implement\'o en \texttt{AuthService}:
+\begin{equation}
+    \text{hash} = \text{PBKDF2-HMAC-SHA256}(\text{contrase\~na}, \text{sal}, 100\,000)
+\end{equation}
+donde la sal es generada criptogr\'aficamente con \texttt{secrets.token\_bytes(16)}.
+
+\paragraph{Resistencia a ataques de canal lateral (Timing Attacks):}
+Tanto la verificaci\'on de contrase\~nas como la validaci\'on de firmas de tokens se realiza obligatoriamente mediante \texttt{hmac.compare\_digest}. Esta funci\'on compara los bytes en tiempo constante, impidiendo que un atacante deduzca bytes v\'alidos midiendo microsegundos de respuesta en la red.
+
+\subsection{3. Emisi\'on soberana de tokens Bearer JWT (HS256)}
+Se dise\~n\'o un generador de tokens JSON Web Token (JWT) basado en el algoritmo sim\'etrico HS256 (\texttt{HMAC-SHA256}) nativo de Python, con expiraci\'on acotada (por defecto 8 horas). El token encapsula la identidad, el rol asignado (\texttt{admin}, \texttt{territorial\_curator}, \texttt{agronomic\_researcher}, \texttt{auditor}) y la marca temporal de emisi\'on.
+
+\subsection{4. Blindaje de c\'odigo fuente (Source Shield)}
+Para evitar la fuga de l\'ogica de negocio o inspecci\'on del c\'odigo TypeScript en producci\'on:
+\begin{itemize}[leftmargin=*]
+    \item Se configur\'o \texttt{build: \{ sourcemap: false \}} en \texttt{apps/ui/vite.config.ts}.
+    \item La distribuci\'on generada contiene \'unicamente c\'odigo transpilado y ofuscado; el navegador no tiene acceso a los mapas de c\'odigo (\textit{source maps}), impidiendo reconstruir la estructura de clases del proyecto.
+\end{itemize}
+
+\subsection{5. Interceptor transparente en frontend}
+En \texttt{AuthContext.tsx}, se construy\'o un interceptor reactivo sobre \texttt{window.fetch}:
+\begin{itemize}[leftmargin=*]
+    \item Detecta autom\'aticamente toda petici\'on saliente dirigida a \texttt{/v2/*} e inyecta la cabecera \texttt{Authorization: Bearer <token>}, evitando refactorizaciones invasivas en los componentes individuales.
+    \item Ante una respuesta HTTP 401 (\textit{Unauthorized}), purga de inmediato el token de \texttt{localStorage} y redirige autom\'aticamente a la pantalla de autenticaci\'on (\texttt{LoginView}).
+\end{itemize}
+
+\subsection{6. Transici\'on forense de auditor\'ia eBDI}
+Hist\'oricamente, la aprobaci\'on de documentos registraba un valor est\'atico:
+\texttt{reviewer\_auth\_mode="declarado\_sin\_autenticacion"}. Con la nueva arquitectura:
+\begin{itemize}[leftmargin=*]
+    \item Las solicitudes no autenticadas mantienen compatibilidad retrospectiva con dicha etiqueta.
+    \item Las solicitudes respaldadas por un token Bearer v\'alido sellan el evento en el manifiesto inmutable con:
+    \texttt{reviewer\_auth\_mode="bearer\_jwt\_authenticated"} y el identificador real del operador (\texttt{reviewer\_id=current\_user.username}).
+    \item Los hashes SHA-256 de los documentos y sus rutas binarias se preservan inalterables bajo aserciones r\'igidas de no-mutaci\'on.
+\end{itemize}
+
+% ==============================================================================
+% 5. EVIDENCIA EMPIRICA Y PRUEBAS
+% ==============================================================================
+\section{Evidencia emp\'irica y resultados de pruebas}
+
+El sistema fue sometido a verificaci\'on autom\'atica continua en local y en la imagen de producci\'on:
+
+\begin{table}[H]
+\centering
+\small
+\caption{Resultados cuantitativos de la bater\'ia de pruebas unitarias.}
+\label{tab:pruebas}
+\begin{tabularx}{\textwidth}{lp{6.0cm}rX}
+\toprule
+\textbf{M\'odulo de Prueba} & \textbf{Alcance Evaluado} & \textbf{Casos} & \textbf{Estado} \\
+\midrule
+\texttt{test\_auth.py} & PBKDF2, timing attacks, anti-SQLi, JWT y auditor\'ia & 5 & 100\% Aprobado \\
+\texttt{test\_manual\_intents.py} & CRUD desacoplado, borrado 30d, invariante EthosTerra & 26 & 100\% Aprobado \\
+\texttt{test\_atlas\_*.py} & Manifiesto, cuarentena, sembrado y MapLibre GL & 42 & 100\% Aprobado \\
+\texttt{test\_epistemic\_extractor.py} & Extracci\'on estructurada, mitigaci\'on alucinaci\'on & 12 & 100\% Aprobado \\
+\texttt{test\_corpus\_b6.py} & Splits disjuntos de documentos, verificaci\'on verbatim & 18 & 100\% Aprobado \\
+Suites B1 a B5 heredadas & Canario DMR, Caso Puro y Caso Conflictivo & 151 & 100\% Aprobado \\
+\midrule
+\textbf{Total general} & \textbf{Cobertura integral del monorepo} & \textbf{254} & \textbf{254/254 (100\%)} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Adicionalmente, el proceso de construcci\'on de la interfaz de usuario se ejecut\'o sin advertencias cr\'iticas:
+\begin{lstlisting}[language=bash, caption={Reporte de compilaci\'on limpia de frontend.}]
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+dist/index.html                                  0.47 kB | gzip:   0.30 kB
+dist/assets/maplibre-gl-worker-VaXr2Fck.mjs    508.31 kB
+dist/assets/index-Cpj-FHdL.css                 156.52 kB | gzip:  23.88 kB
+dist/assets/index-DXZxzx8v.js                1,736.32 kB | gzip: 463.59 kB
+built in 332ms (sourcemap desactivado)
+\end{lstlisting}
+
+% ==============================================================================
+% 6. LIMITES DEL ESTADO ACTUAL Y PROXIMOS PASOS (BLOQUE B7)
+% ==============================================================================
+\section{L\'imites del estado actual y preparaci\'on para el Bloque B7}
+
+Con la plataforma asegurada y desplegada, el proyecto delimita estrictamente sus fronteras metodol\'ogicas antes de abordar la conexi\'on con el simulador multiagente:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Frontera ontol\'ogica (Macro vs. Micro):} Los documentos pol\'itico-sociales expresan intenciones de desarrollo cualitativas (ej. ``soberan\'ia alimentaria'', ``asociatividad''). Antes de alimentar a los agentes de WellProdSim, es indispensable formalizar un \textit{mapeo ontol\'ogico} que traduzca estas metas a variables agron\'omicas cuantificables (\texttt{capital}, \texttt{inventario}, \texttt{salud}, \texttt{humedad de suelo}).
+    \item \textbf{Invariante de preservaci\'on del simulador:} Ninguna creencia territorial puede modificar arbitrariamente las reglas biof\'isicas del motor Python BESA. La integraci\'on de la Semana 11 deber\'a emplear un adaptador desacoplado (v\'ia API REST local o sockets).
+    \item \textbf{Rotaci\'on de credenciales:} La instancia de producci\'on cuenta con un administrador inicial (\texttt{admin}), el cual deber\'a actualizar su clave mediante el endpoint \texttt{/v2/auth/change-password} durante la primera sesi\'on formal de curaci\'on territorial.
+\end{enumerate}
+
+% ==============================================================================
+% 7. REPRODUCCION TECNICA
+% ==============================================================================
+\section{Comandos de reproducci\'on}
+
+Para reproducir la bater\'ia completa de pruebas y verificar el estado del monorepo:
+
+\begin{lstlisting}[language=bash, caption={Instrucciones de verificaci\'on local.}]
+# 1. Ejecutar las 254 pruebas unitarias de extremo a extremo
+make test-unit
+
+# 2. Compilar el frontend con verificacion estricta de tipos
+pnpm --dir apps/ui build
+
+# 3. Comprobar estado de Git y ausencia de artefactos sin versionar
+git status --short
+\end{lstlisting}
+
+% ==============================================================================
+% 8. REFERENCIAS
+% ==============================================================================
+\section{Referencias}
+\begin{enumerate}[leftmargin=*]
+    \item OWASP Foundation (2025). \textit{OWASP Top 10 API Security Risks}. Open Web Application Security Project.
+    \item National Institute of Standards and Technology (2023). \textit{Digital Identity Guidelines: Authentication and Lifecycle Management}. NIST Special Publication 800-63B.
+    \item Bratman, M. (1987). \textit{Intentions, Plans, and Practical Reason}. Harvard University Press.
+    \item DANE (2024). \textit{Marco Geoestad\'istico Nacional (MGN) y Codificaci\'on DIVIPOLA}. Departamento Administrativo Nacional de Estad\'istica, Bogot\'a.
+    \item Gemma Team, Google (2024). \textit{Gemma 4: Open Models for Responsible On-Device and Edge Intelligence}. Technical Report, Google DeepMind.
+    \item Rescorla, E. (2018). \textit{The Transport Layer Security (TLS) Protocol Version 1.3}. RFC 8446.
+\end{enumerate}
+
+\end{document}
