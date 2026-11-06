@@ -1,0 +1,25 @@
+# PlanSpec: creencia_territorial_general_plan_v1
+# Documento de Origen: art_patr_montes_de_maria
+# Hash de Aprobación: 133db10a1c29556a9e7df92c28b5b1ba50cae239310fe5c2045c33febc93b423
+
+id: creencia_territorial_general_plan_v1
+version: '1.0'
+description: 'Plan de acción territorial: En 14 de los 15 municipios de Montes de
+  María se adelantó el proceso de concertación de la ruta de participación étnica
+  mediante el Decreto 893 de 201'
+steps:
+  - id: agro_ecosystem_operation_op
+    action: agro_ecosystem_operation
+    args:
+      operation: PREPARE
+  - id: emit_territorial_episode
+    action: emit_episode
+    args:
+      text: En 14 de los 15 municipios de Montes de María se adelantó el proceso de
+        concertación de la ruta de participación étnica mediante el Decreto 893 de
+        2017.
+      tags:
+        - territorial_policy
+        - ordenamiento_social_de_la_propiedad
+on_timeout: []
+on_failure: []

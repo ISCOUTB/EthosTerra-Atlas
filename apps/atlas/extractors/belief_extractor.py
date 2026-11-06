@@ -638,6 +638,16 @@ class TerritorialBeliefExtractor:
                 behavioral_effect = str(b.get("behavioral_effect", "")).strip() or ebdi_assertion
                 activation_rule_template = str(b.get("activation_rule_template", "state.cropHealth < 1.0")).strip()
 
+                doc_title_lower = f"{doc.title or ''} {doc.source_id}".lower()
+                if any(k in doc_title_lower for k in ["diario", "etnograf", "entrevista", "narrativa", "testimonio"]):
+                    k_tier = "peasant_narrative"
+                elif any(k in doc_title_lower for k in ["pot", "pbot", "eot", "ordenamiento", "zonific", "topolog"]):
+                    k_tier = "spatial_restriction"
+                else:
+                    k_tier = "institutional_policy"
+
+                parametric_eqs = b.get("parametric_equations") or []
+
                 belief_item = TerritorialBeliefItem(
                     belief_id=f"bel_{doc.sha256[:8]}_{idx}_{b_idx}_{uuid.uuid4().hex[:4]}",
                     source_id=doc.source_id,
@@ -655,6 +665,8 @@ class TerritorialBeliefExtractor:
                     applicable_divipolas=divipolas,
                     confidence=confidence,
                     verification_status=status,
+                    knowledge_tier=k_tier,
+                    parametric_equations=parametric_eqs,
                 )
                 belief_item = TextHumanizer.sanitize_belief_presentation(belief_item)
                 all_belief_items.append(belief_item)
@@ -683,6 +695,7 @@ class TerritorialBeliefExtractor:
                     applicable_divipolas=["13244", "13654", "13657", "13442", "70717"],
                     confidence=1.0,
                     verification_status="verified_verbatim",
+                    knowledge_tier="institutional_policy",
                 )
                 backup_belief = TextHumanizer.sanitize_belief_presentation(backup_belief)
                 all_belief_items.append(backup_belief)

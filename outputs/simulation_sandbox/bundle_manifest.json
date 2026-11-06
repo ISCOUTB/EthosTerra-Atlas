@@ -1,0 +1,40 @@
+{
+  "bundle_id": "bundle_20261106_010330",
+  "generated_at": "2026-11-06T01:03:30.528114+00:00",
+  "version": "1.0",
+  "source_documents": [
+    {
+      "document_id": "art_patr_montes_de_maria",
+      "document_hash": "133db10a1c29556a9e7df92c28b5b1ba50cae239310fe5c2045c33febc93b423"
+    }
+  ],
+  "counts": {
+    "goals": 1,
+    "plans": 1,
+    "institutional_policies": 1,
+    "total_files": 4
+  },
+  "files": [
+    {
+      "path": "goals/creencia_territorial_general_goal_v1.yaml",
+      "artifact_type": "goal_spec",
+      "sha256": "d8c1fe31aa97fb2b1f28231a645e5a816df62d598adc6ff98210f7d90d1acfdb"
+    },
+    {
+      "path": "plans/creencia_territorial_general_plan_v1.yaml",
+      "artifact_type": "plan_spec",
+      "sha256": "3cfb9300afcfb5730a347bdf8c76d5dc5e853859e0efff99ae95442e6679459d"
+    },
+    {
+      "path": "institutional/creencia_territorial_general_policy_v1.yaml",
+      "artifact_type": "institutional_policy",
+      "sha256": "23cfc31374004b0e5b426809e8dfa881c90eb7b2f7d0003443799e060499a847"
+    },
+    {
+      "path": "world_modifiers.json",
+      "artifact_type": "world_modifiers",
+      "sha256": "3bb86afacc901c80c8c6ff446c520e7aa58d1bd27c490987428237ef43ac6c41"
+    }
+  ],
+  "status": "admitted_for_simulation"
+}

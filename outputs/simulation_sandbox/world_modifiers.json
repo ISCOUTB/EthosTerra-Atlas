@@ -1,0 +1,17 @@
+{
+  "credit_bank": {},
+  "market_pricing": {},
+  "civic_subsidies": {},
+  "water_quota": {},
+  "agro_extension": {
+    "creencia_territorial_general_policy_v1": {
+      "target_institution": "CivicAuthority",
+      "activation_condition": null,
+      "static_parameters": {
+        "confidence": 0.98,
+        "action_operation_type": null
+      },
+      "equations": []
+    }
+  }
+}

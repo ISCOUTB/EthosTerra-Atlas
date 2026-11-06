@@ -10,6 +10,12 @@ import jsonschema
 
 from apps.atlas.schemas.context_schemas import TerritorialBeliefItem
 from src.domain.v2.action_catalog_service import ActionCatalogService
+from src.domain.v2.institutional_schemas import (
+    InstitutionalPolicySpec,
+    ParametricEquationSpec,
+    PolicyDomain,
+    TargetInstitution,
+)
 from src.domain.v2.operational_schemas import (
     ContributionRulesSchema,
     GoalSpecArtifact,
@@ -109,15 +115,31 @@ def _build_action_args(belief: TerritorialBeliefItem) -> dict[str, Any]:
     return args
 
 
+def _map_pillar_to_institutional_domain(pillar: str, topic: str, assertion: str) -> tuple[PolicyDomain, TargetInstitution]:
+    """Mapea el texto normativo a un dominio de política y a la institución destinataria en EthosTerra."""
+    text = f"{pillar} {topic} {assertion}".lower()
+    if any(k in text for k in ["maquinaria", "tractor", "herramienta", "subsidio", "alivio", "ayuda", "titulación", "titulacion"]):
+        return "civic_subsidies", "CivicAuthority"
+    if any(k in text for k in ["crédito", "credito", "bancari", "banco agrario", "financ", "finagro", "deuda", "préstamo", "prestamo"]):
+        return "credit_bank", "BankOffice"
+    if any(k in text for k in ["precio", "mercado", "comercial", "venta", "sustentación", "sustentacion"]):
+        return "market_pricing", "MarketPlace"
+    if any(k in text for k in ["agua", "riego", "cuota", "acueducto", "hídric", "hidric"]):
+        return "water_quota", "AgroEcosystem"
+    return "agro_extension", "CivicAuthority"
+
+
 class EBDIYamlCompiler:
-    """Compilador determinista de Creencias Territoriales a especificaciones GoalSpec y PlanSpec en YAML."""
+    """Compilador determinista de Creencias Territoriales a especificaciones GoalSpec, PlanSpec e InstitutionalPolicySpec."""
 
     def __init__(self, schemas_dir: Path | None = None, output_base_dir: Path | None = None):
         self.output_base_dir = (output_base_dir or Path("outputs/atlas/yaml")).resolve()
         self.goals_dir = self.output_base_dir / "goals"
         self.plans_dir = self.output_base_dir / "plans"
+        self.institutional_dir = self.output_base_dir / "institutional"
         self.goals_dir.mkdir(parents=True, exist_ok=True)
         self.plans_dir.mkdir(parents=True, exist_ok=True)
+        self.institutional_dir.mkdir(parents=True, exist_ok=True)
 
         # Esquemas oficiales para validación
         self.schemas_dir = (
@@ -210,6 +232,52 @@ class EBDIYamlCompiler:
 
         return goal, plan
 
+    def compile_belief_to_institutional_policy(
+        self,
+        belief: TerritorialBeliefItem,
+        document_id: str,
+        document_hash: str,
+    ) -> InstitutionalPolicySpec:
+        """Compila una creencia territorial a especificación InstitutionalPolicySpec (Semana 11)."""
+        clean_key = _sanitize_snake_id(belief.belief_key or belief.topic, "policy")
+        policy_id = f"{clean_key}_policy_v1"
+        domain, target = _map_pillar_to_institutional_domain(belief.pillar, belief.topic, belief.ebdi_belief_assertion)
+
+        equations: list[ParametricEquationSpec] = []
+        if belief.parametric_equations:
+            for eq_data in belief.parametric_equations:
+                try:
+                    equations.append(ParametricEquationSpec.model_validate(eq_data))
+                except Exception as e:
+                    logger.warning(f"Error parseando ParametricEquationSpec en {belief.belief_id}: {e}")
+
+        normative_tags = [
+            f"source_{_sanitize_snake_id(belief.source_id)}",
+            f"pillar_{_sanitize_snake_id(belief.pillar)}",
+            f"domain_{domain}",
+        ]
+        for muni in belief.target_municipalities:
+            normative_tags.append(f"muni_{_sanitize_snake_id(muni)}")
+
+        return InstitutionalPolicySpec(
+            id=policy_id,
+            version="1.0",
+            display_name=belief.topic[:140],
+            description=belief.ebdi_belief_assertion[:400],
+            knowledge_tier=belief.knowledge_tier,
+            policy_domain=domain,
+            target_institution=target,
+            activation_condition=belief.activation_rule_template or None,
+            equations=equations,
+            static_parameters={
+                "confidence": belief.confidence,
+                "action_operation_type": belief.action_operation_type,
+            },
+            normative_tags=normative_tags,
+            document_source_id=document_id,
+            document_source_hash=document_hash,
+        )
+
     def compile_and_save(
         self,
         beliefs: list[TerritorialBeliefItem],
@@ -220,6 +288,7 @@ class EBDIYamlCompiler:
         """Compila una lista de creencias curadas y guarda los archivos YAML validados."""
         compiled_goals: list[dict[str, Any]] = []
         compiled_plans: list[dict[str, Any]] = []
+        compiled_institutional: list[dict[str, Any]] = []
         errors: list[str] = []
 
         for b in beliefs:
@@ -229,6 +298,7 @@ class EBDIYamlCompiler:
                 continue
 
             try:
+                # 1. Compilación de Metas y Planes (GoalSpec / PlanSpec)
                 goal_artifact, plan_artifact = self.compile_belief_to_artifacts(
                     belief=b,
                     document_id=document_id,
@@ -276,6 +346,28 @@ class EBDIYamlCompiler:
                     "yaml_content": plan_yaml_str,
                 })
 
+                # 2. Compilación de Política Institucional si corresponde al nivel macro (Semana 11)
+                if b.knowledge_tier == "institutional_policy":
+                    pol_artifact = self.compile_belief_to_institutional_policy(
+                        belief=b,
+                        document_id=document_id,
+                        document_hash=document_hash,
+                    )
+                    from src.application.ethosterra_decoupled_adapter import EthosTerraDecoupledAdapter
+                    adapter = EthosTerraDecoupledAdapter(sandbox_base_dir=self.output_base_dir)
+                    pol_yaml_str = adapter.render_institutional_yaml(pol_artifact)
+                    pol_file = self.institutional_dir / f"{pol_artifact.id}.yaml"
+                    pol_file.write_text(pol_yaml_str, encoding="utf-8")
+
+                    compiled_institutional.append({
+                        "policy_id": pol_artifact.id,
+                        "file_path": _safe_relpath(pol_file),
+                        "display_name": pol_artifact.display_name,
+                        "target_institution": pol_artifact.target_institution,
+                        "policy_domain": pol_artifact.policy_domain,
+                        "yaml_content": pol_yaml_str,
+                    })
+
             except Exception as exc:
                 errors.append(f"Error compilando creencia {b.belief_id}: {exc}")
                 logger.error(f"Fallo en compilación de creencia {b.belief_id}: {exc}", exc_info=True)
@@ -285,7 +377,9 @@ class EBDIYamlCompiler:
             "document_hash": document_hash,
             "compiled_goals_count": len(compiled_goals),
             "compiled_plans_count": len(compiled_plans),
+            "compiled_institutional_count": len(compiled_institutional),
             "goals": compiled_goals,
             "plans": compiled_plans,
+            "institutional": compiled_institutional,
             "errors": errors,
         }

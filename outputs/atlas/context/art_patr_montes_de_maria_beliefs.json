@@ -53,7 +53,9 @@
       "curation_status": "admitted_ebdi",
       "curation_notes": "Curación vía test unitario FastAPI",
       "curator_id": "investigador_test_api",
-      "curation_timestamp_utc": "2026-10-08T22:05:37.610833+00:00"
+      "curation_timestamp_utc": "2026-11-06T01:03:19.247023+00:00",
+      "knowledge_tier": "institutional_policy",
+      "parametric_equations": []
     },
     {
       "belief_id": "bel_133db10a_0_1_cc01",
@@ -82,7 +84,9 @@
       "curation_status": "pending",
       "curation_notes": null,
       "curator_id": null,
-      "curation_timestamp_utc": null
+      "curation_timestamp_utc": null,
+      "knowledge_tier": "institutional_policy",
+      "parametric_equations": []
     },
     {
       "belief_id": "bel_133db10a_0_2_c2fc",
@@ -106,7 +110,9 @@
       "curation_status": "pending",
       "curation_notes": null,
       "curator_id": null,
-      "curation_timestamp_utc": null
+      "curation_timestamp_utc": null,
+      "knowledge_tier": "institutional_policy",
+      "parametric_equations": []
     },
     {
       "belief_id": "bel_133db10a_1_0_91e8",
@@ -139,7 +145,9 @@
       "curation_status": "pending",
       "curation_notes": null,
       "curator_id": null,
-      "curation_timestamp_utc": null
+      "curation_timestamp_utc": null,
+      "knowledge_tier": "institutional_policy",
+      "parametric_equations": []
     },
     {
       "belief_id": "bel_133db10a_1_1_f6f7",
@@ -183,7 +191,9 @@
       "curation_status": "pending",
       "curation_notes": null,
       "curator_id": null,
-      "curation_timestamp_utc": null
+      "curation_timestamp_utc": null,
+      "knowledge_tier": "institutional_policy",
+      "parametric_equations": []
     },
     {
       "belief_id": "bel_133db10a_1_2_b82f",
@@ -217,7 +227,9 @@
       "curation_status": "pending",
       "curation_notes": null,
       "curator_id": null,
-      "curation_timestamp_utc": null
+      "curation_timestamp_utc": null,
+      "knowledge_tier": "institutional_policy",
+      "parametric_equations": []
     },
     {
       "belief_id": "bel_133db10a_2_0_367b",
@@ -248,7 +260,9 @@
       "curation_status": "pending",
       "curation_notes": null,
       "curator_id": null,
-      "curation_timestamp_utc": null
+      "curation_timestamp_utc": null,
+      "knowledge_tier": "institutional_policy",
+      "parametric_equations": []
     },
     {
       "belief_id": "bel_133db10a_2_1_b955",
@@ -282,7 +296,9 @@
       "curation_status": "pending",
       "curation_notes": null,
       "curator_id": null,
-      "curation_timestamp_utc": null
+      "curation_timestamp_utc": null,
+      "knowledge_tier": "institutional_policy",
+      "parametric_equations": []
     },
     {
       "belief_id": "bel_133db10a_2_2_1d35",
@@ -306,7 +322,9 @@
       "curation_status": "pending",
       "curation_notes": null,
       "curator_id": null,
-      "curation_timestamp_utc": null
+      "curation_timestamp_utc": null,
+      "knowledge_tier": "institutional_policy",
+      "parametric_equations": []
     }
   ]
 }

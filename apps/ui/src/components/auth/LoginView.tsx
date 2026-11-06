@@ -22,7 +22,7 @@ export const LoginView: React.FC = () => {
     setError(null)
 
     try {
-      await login(username.trim(), password)
+      await login(username.trim(), password.trim())
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.')
     } finally {

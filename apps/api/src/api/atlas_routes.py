@@ -72,6 +72,29 @@ from apps.atlas.extractors.belief_extractor import (
 )
 from apps.atlas.compilers.ebdi_yaml_compiler import EBDIYamlCompiler, CompilationError
 
+try:
+    from src.domain.v2.institutional_schemas import (
+        ParametricEquationSpec,
+        VerificationReport,
+        InstitutionalPolicySpec,
+    )
+    from src.application.symbolic_equation_verifier import (
+        SymbolicEquationVerifier,
+        SecurityViolationError,
+    )
+    from src.application.ethosterra_decoupled_adapter import EthosTerraDecoupledAdapter
+except ImportError:
+    from apps.api.src.domain.v2.institutional_schemas import (
+        ParametricEquationSpec,
+        VerificationReport,
+        InstitutionalPolicySpec,
+    )
+    from apps.api.src.application.symbolic_equation_verifier import (
+        SymbolicEquationVerifier,
+        SecurityViolationError,
+    )
+    from apps.api.src.application.ethosterra_decoupled_adapter import EthosTerraDecoupledAdapter
+
 atlas_router = APIRouter(prefix="/v2/atlas", tags=["Atlas de Política Territorial (AT-1)"])
 resolver = TerritoryResolver()
 discovery_agent = DocumentDiscoveryAgent(resolver=resolver)
@@ -1025,9 +1048,114 @@ def get_compiled_yamls(source_id: str):
         except Exception:
             continue
 
+    institutional = []
+    for pol_path in yaml_compiler.institutional_dir.glob("*.yaml"):
+        try:
+            content = pol_path.read_text(encoding="utf-8")
+            if f"Documento de Origen: {source_id}" in content:
+                institutional.append({
+                    "filename": pol_path.name,
+                    "type": "institutional",
+                    "rel_path": str(pol_path.relative_to(Path.cwd())),
+                    "content": content,
+                })
+        except Exception:
+            continue
+
     return {
         "source_id": source_id,
-        "total_yamls": len(goals) + len(plans),
+        "total_yamls": len(goals) + len(plans) + len(institutional),
         "goals": goals,
         "plans": plans,
+        "institutional": institutional,
     }
+
+
+equation_verifier = SymbolicEquationVerifier()
+decoupled_adapter = EthosTerraDecoupledAdapter()
+
+
+@atlas_router.post(
+    "/equations/verify",
+    response_model=VerificationReport,
+    summary="Verificar y validar propiedades de una ecuación paramétrica institucional",
+)
+def verify_equation(spec: ParametricEquationSpec):
+    """Ejecuta la batería formal de pruebas de seguridad y propiedades numéricas sobre una ecuación."""
+    try:
+        report = equation_verifier.verify(spec)
+        return report
+    except SecurityViolationError as sve:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Violación de seguridad en la expresión matemática: {sve}",
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Fallo en la verificación matemática: {exc}",
+        )
+
+
+@atlas_router.post(
+    "/export/sandbox-bundle",
+    summary="Exportar bundle desacoplado para simulación en EthosTerra (Semana 11)",
+)
+def export_sandbox_bundle(
+    source_ids: list[str] | None = None,
+    only_admitted: bool = True,
+):
+    """Compila y empaqueta artefactos eBDI admitidos hacia outputs/simulation_sandbox/ con manifiesto."""
+    goals_data: list[dict[str, str]] = []
+    plans_data: list[dict[str, str]] = []
+    institutional_data: list[InstitutionalPolicySpec] = []
+
+    context_dir = Path("outputs/atlas/context")
+    if not context_dir.is_dir():
+        raise HTTPException(status_code=404, detail="No existe directorio de contexto territorial.")
+
+    for f in context_dir.glob("*_beliefs.json"):
+        sid = f.stem.replace("_beliefs", "")
+        if source_ids and sid not in source_ids:
+            continue
+        try:
+            with open(f, "r", encoding="utf-8") as bf:
+                data = json.load(bf)
+                res = TerritorialBeliefExtractionResult.model_validate(data)
+
+                compilation = yaml_compiler.compile_and_save(
+                    beliefs=res.beliefs,
+                    document_id=res.source_id,
+                    document_hash=res.document_sha256,
+                    only_admitted=only_admitted,
+                )
+                for g in compilation.get("goals", []):
+                    goals_data.append({
+                        "id": g["goal_id"],
+                        "yaml_content": g["yaml_content"],
+                        "document_id": res.source_id,
+                        "document_hash": res.document_sha256,
+                    })
+                for p in compilation.get("plans", []):
+                    plans_data.append({
+                        "id": p["plan_id"],
+                        "yaml_content": p["yaml_content"],
+                        "document_id": res.source_id,
+                        "document_hash": res.document_sha256,
+                    })
+                for pol_dict in compilation.get("institutional", []):
+                    pol_path = yaml_compiler.institutional_dir / f"{pol_dict['policy_id']}.yaml"
+                    if pol_path.is_file():
+                        with open(pol_path, "r", encoding="utf-8") as yf:
+                            pol_yaml = yaml.safe_load(yf)
+                            if pol_yaml:
+                                institutional_data.append(InstitutionalPolicySpec.model_validate(pol_yaml))
+        except Exception:
+            continue
+
+    bundle_manifest = decoupled_adapter.export_bundle(
+        goals_yaml=goals_data,
+        plans_yaml=plans_data,
+        institutional_policies=institutional_data,
+    )
+    return bundle_manifest

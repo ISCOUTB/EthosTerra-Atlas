@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 _STRICT = ConfigDict(extra="forbid", strict=True)
@@ -68,6 +68,16 @@ class TerritorialBeliefItem(BaseModel):
     curation_notes: str | None = Field(default=None, max_length=2000, description="Justificación del curador humano")
     curator_id: str | None = Field(default=None, max_length=64, description="Identificador del curador humano")
     curation_timestamp_utc: str | None = Field(default=None, pattern=ISO_DATE_PATTERN, description="Marca de tiempo UTC de la curación")
+
+    # Tipología de Conocimiento Territorial y Ecuaciones Simbólicas (Semana 11 - B7)
+    knowledge_tier: Literal["peasant_narrative", "spatial_restriction", "institutional_policy"] = Field(
+        default="institutional_policy",
+        description="Tipología epistémica de conocimiento: narrativa campesina, restricción espacial POT o política pública",
+    )
+    parametric_equations: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Especificaciones de relaciones funcionales paramétricas asociadas a la política",
+    )
 
 
 class BeliefCurationRequest(BaseModel):

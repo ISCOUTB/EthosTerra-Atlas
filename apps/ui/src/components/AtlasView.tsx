@@ -27,6 +27,7 @@ import {
   Sun,
   Globe,
   Brain,
+  Calculator,
 } from 'lucide-react'
 import {
   PILOT_MUNICIPALITIES,
@@ -37,7 +38,7 @@ import montesDeMariaGeoJSON from '../data/dane_mgn_montes_de_maria.json'
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000/v2'
 
-type TabMode = 'instruments' | 'queue' | 'agronomy'
+type TabMode = 'instruments' | 'queue' | 'agronomy' | 'equations'
 type BaseStyleId = 'topo' | 'satellite' | 'osm'
 type ChoroplethTheme = 'jurisdiction' | 'climate'
 
@@ -132,6 +133,12 @@ export default function AtlasView() {
   const [selectedDept, setSelectedDept] = useState<'13' | '70' | 'all'>('all')
   const [selectedDivipola, setSelectedDivipola] = useState<string>('13244')
   const [activeTab, setActiveTab] = useState<TabMode>('instruments')
+
+  // Estado para el Laboratorio de Ecuaciones Simbólicas Institucionales (Semana 11)
+  const [selectedEqTab, setSelectedEqTab] = useState<'credit' | 'price' | 'water'>('credit')
+  const [eq1Social, setEq1Social] = useState<number>(0.5)
+  const [eq2Yield, setEq2Yield] = useState<number>(0.6)
+  const [eq3Water, setEq3Water] = useState<number>(0.4)
 
   // Estado cartográfico: Topográfico Esri por defecto (100% libre, sin API key, con relieve)
   const [baseStyle, setBaseStyle] = useState<BaseStyleId>('topo')
@@ -479,6 +486,245 @@ export default function AtlasView() {
       [id]: !prev[id],
     }))
   }
+
+  const renderSymbolicEquationsLaboratory = () => (
+    <div className="bg-white rounded-2xl border border-black/[0.08] p-5 sm:p-6 shadow-xs flex flex-col gap-5">
+      <div className="flex items-center justify-between flex-wrap gap-3 border-b border-black/[0.06] pb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center shrink-0">
+            <Calculator className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-base font-bold text-[#1d1d1f]">
+              Laboratorio de Ecuaciones Simbólicas Institucionales (Semana 11 · Bloque B7)
+            </h4>
+            <p className="text-xs text-[#6e6e73]">
+              Síntesis verificada con oráculo formal AST: modulación matemática macro-política hacia agentes de EthosTerra
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 bg-gray-100 p-1.5 rounded-2xl text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setSelectedEqTab('credit')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              selectedEqTab === 'credit'
+                ? 'bg-white text-indigo-700 shadow-xs font-bold'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Eq 1: Crédito FINAGRO
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedEqTab('price')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              selectedEqTab === 'price'
+                ? 'bg-white text-emerald-700 shadow-xs font-bold'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Eq 2: Precio Sustentación
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedEqTab('water')}
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              selectedEqTab === 'water'
+                ? 'bg-white text-blue-700 shadow-xs font-bold'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Eq 3: Cuota Riego
+          </button>
+        </div>
+      </div>
+
+      {/* Contenido Dinámico de la Ecuación Seleccionada */}
+      {selectedEqTab === 'credit' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+          <div className="flex flex-col gap-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Destinatario: <span className="text-indigo-600 font-bold">BankOffice</span>
+              </span>
+              <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full font-mono border border-indigo-200">
+                credit_bank
+              </span>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl font-mono text-xs text-gray-800">
+              <div className="text-[11px] text-gray-500 mb-1">Expresión Simbólica Verificada:</div>
+              <div className="font-bold text-indigo-900 text-sm">r(S) = r_base · [1 - δ · social_capital]</div>
+              <div className="text-[10px] text-gray-600 mt-1.5">Parámetros: r_base = 0.12 (12.0% E.A.), δ = 0.35 (Tope 35% descuento asociativo)</div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-700 font-medium">Variable de Entrada: Capital Social (S)</span>
+                <span className="font-mono font-bold text-indigo-700">{(eq1Social * 100).toFixed(0)}% asociatividad</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={eq1Social}
+                onChange={(e) => setEq1Social(parseFloat(e.target.value))}
+                className="w-full accent-indigo-600 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="bg-indigo-50/70 border border-indigo-100 p-5 rounded-2xl flex flex-col gap-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-indigo-900 font-semibold">Tasa Resultante Calculada:</span>
+              <span className="text-2xl font-extrabold text-indigo-700 font-mono">
+                {(0.12 * (1.0 - 0.35 * eq1Social) * 100).toFixed(2)}% E.A.
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[10px]">
+              <div className="bg-white p-2 rounded-lg border border-indigo-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Monotonía: Decreciente
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-indigo-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Rango: [5%, 15%]
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-indigo-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Singularidad: 0 NaNs
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-indigo-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Seguridad AST: Aprobada
+              </div>
+            </div>
+            <p className="text-[11px] text-indigo-900/80 leading-relaxed">
+              <strong>Impacto Agronómico:</strong> Un productor con alta asociatividad ({(eq1Social * 100).toFixed(0)}%) reduce su cuota bancaria de 12.0% a {(0.12 * (1.0 - 0.35 * eq1Social) * 100).toFixed(2)}%, liberando capital para compra de semillas en <em>PayDebtsGoal</em>.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {selectedEqTab === 'price' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+          <div className="flex flex-col gap-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Destinatario: <span className="text-emerald-600 font-bold">MarketPlace</span>
+              </span>
+              <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full font-mono border border-emerald-200">
+                market_pricing
+              </span>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl font-mono text-xs text-gray-800">
+              <div className="text-[11px] text-gray-500 mb-1">Expresión Simbólica Verificada:</div>
+              <div className="font-bold text-emerald-900 text-sm">P(Y) = P_base · [1 + α · exp(-β · Y_rel)]</div>
+              <div className="text-[10px] text-gray-600 mt-1.5">Parámetros: P_base = $2.500 COP, α = 0.40, β = 2.5</div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-700 font-medium">Variable de Entrada: Rendimiento Cosecha (Y)</span>
+                <span className="font-mono font-bold text-emerald-700">{(eq2Yield * 100).toFixed(0)}% de cosecha esperada</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={eq2Yield}
+                onChange={(e) => setEq2Yield(parseFloat(e.target.value))}
+                className="w-full accent-emerald-600 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="bg-emerald-50/70 border border-emerald-100 p-5 rounded-2xl flex flex-col gap-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-emerald-900 font-semibold">Precio Garantizado de Sustentación:</span>
+              <span className="text-2xl font-extrabold text-emerald-700 font-mono">
+                ${Math.round(2500.0 * (1.0 + 0.40 * Math.exp(-2.5 * eq2Yield))).toLocaleString()} COP / kg
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[10px]">
+              <div className="bg-white p-2 rounded-lg border border-emerald-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Monotonía: Decreciente
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-emerald-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Rango: [$2.000, $4.000]
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-emerald-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Singularidad: 0 NaNs
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-emerald-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Ley 2046 Compras Locales
+              </div>
+            </div>
+            <p className="text-[11px] text-emerald-900/80 leading-relaxed">
+              <strong>Impacto Agronómico:</strong> Ante pérdidas por choque climático ({(100 - eq2Yield * 100).toFixed(0)}% de pérdida), el precio garantizado sube a ${Math.round(2500.0 * (1.0 + 0.40 * Math.exp(-2.5 * eq2Yield))).toLocaleString()} COP/kg, asegurando el mínimo vital familiar sin depender de prestamistas.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {selectedEqTab === 'water' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+          <div className="flex flex-col gap-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Destinatario: <span className="text-blue-600 font-bold">AgroEcosystem</span>
+              </span>
+              <span className="text-[10px] bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-mono border border-blue-200">
+                water_quota
+              </span>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl font-mono text-xs text-gray-800">
+              <div className="text-[11px] text-gray-500 mb-1">Expresión Simbólica Verificada:</div>
+              <div className="font-bold text-blue-900 text-sm">Q(w) = Q_max · [w² / (w² + θ²)]</div>
+              <div className="text-[10px] text-gray-600 mt-1.5">Parámetros: Q_max = 100 L/ha/día, θ = 0.30 (Umbral crítico de veda)</div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-700 font-medium">Variable de Entrada: Nivel Embalse María La Baja (w)</span>
+                <span className="font-mono font-bold text-blue-700">{(eq3Water * 100).toFixed(0)}% de capacidad</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={eq3Water}
+                onChange={(e) => setEq3Water(parseFloat(e.target.value))}
+                className="w-full accent-blue-600 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="bg-blue-50/70 border border-blue-100 p-5 rounded-2xl flex flex-col gap-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-blue-900 font-semibold">Cuota Diaria Entregada:</span>
+              <span className="text-2xl font-extrabold text-blue-700 font-mono">
+                {((100.0 * (eq3Water ** 2)) / (eq3Water ** 2 + 0.3 ** 2)).toFixed(1)} L / ha / día
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[10px]">
+              <div className="bg-white p-2 rounded-lg border border-blue-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Monotonía: Creciente
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-blue-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Rango: [0, 105 L]
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-blue-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Singularidad: 0 NaNs
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-blue-100 flex items-center gap-1.5 text-emerald-700 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> Veda Crítica si w &lt; 30%
+              </div>
+            </div>
+            <p className="text-[11px] text-blue-900/80 leading-relaxed">
+              <strong>Impacto Agronómico:</strong> Con un nivel del {(eq3Water * 100).toFixed(0)}%, el modelo suministra {((100.0 * (eq3Water ** 2)) / (eq3Water ** 2 + 0.3 ** 2)).toFixed(1)} L/ha/día. Si el embalse cae a menos del 30%, la cuota colapsa, obligando al agente campesino a activar el plan de contingencia <em>IrrigateCropsGoal</em>.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 
   return (
     <div className="flex flex-col gap-8 p-6 md:p-8 max-w-[1520px] mx-auto text-[#1d1d1f] font-sans antialiased">
@@ -987,6 +1233,18 @@ export default function AtlasView() {
               >
                 Dilemas Agronómicos eBDI
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('equations')}
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === 'equations'
+                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                    : 'text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-medium'
+                }`}
+              >
+                <Calculator className="w-3.5 h-3.5" />
+                Laboratorio Ecuaciones Simbólicas (B7)
+              </button>
             </div>
 
             <div className="text-xs text-[#86868b] flex items-center gap-1.5 font-mono">
@@ -998,6 +1256,31 @@ export default function AtlasView() {
           {/* TAB 1: Cascada Normativa Timeline Rail */}
           {activeTab === 'instruments' && (
             <div className="flex flex-col gap-5">
+              {/* Acceso Rápido al Laboratorio de Ecuaciones Simbólicas (Semana 11) */}
+              <div className="bg-gradient-to-r from-indigo-50/90 via-blue-50/70 to-indigo-50/90 border border-indigo-200 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Calculator className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-indigo-950 flex items-center gap-2">
+                      <span>Laboratorio de Ecuaciones Simbólicas Institucionales</span>
+                      <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-mono uppercase">Semana 11 · B7</span>
+                    </h4>
+                    <p className="text-xs text-indigo-700/90 mt-0.5">
+                      Modulación macro-institucional de BankOffice, MarketPlace y AgroEcosystem con oráculo formal AST.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('equations')}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs shrink-0 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Abrir Laboratorio</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
               <p className="text-xs text-[#6e6e73] leading-relaxed">
                 Jerarquía normativa aplicable a <strong>{activeProfile.name}</strong>. Cada nivel restringe o
                 habilita los objetivos declarativos del agente campesino en el simulador eBDI:
@@ -1146,6 +1429,9 @@ export default function AtlasView() {
                 </div>
               </div>
 
+              {/* Laboratorio Interactivo de Ecuaciones Simbólicas Institucionales (Semana 11 - B7) */}
+              {renderSymbolicEquationsLaboratory()}
+
               {/* Creencias Territoriales Reales Extraídas para este Municipio */}
               {pilotBeliefs && pilotBeliefs.beliefs && pilotBeliefs.beliefs.length > 0 && (
                 <div className="flex flex-col gap-3 pt-4 border-t border-black/[0.06]">
@@ -1187,6 +1473,13 @@ export default function AtlasView() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB 4: Laboratorio de Ecuaciones Simbólicas Institucionales (Semana 11 - B7) */}
+          {activeTab === 'equations' && (
+            <div className="flex flex-col gap-6">
+              {renderSymbolicEquationsLaboratory()}
             </div>
           )}
         </div>

@@ -1,0 +1,39 @@
+# InstitutionalPolicySpec: creencia_territorial_general_policy_v1
+# Documento de Origen: art_patr_montes_de_maria
+# Hash de Aprobación: 133db10a1c29556a9e7df92c28b5b1ba50cae239310fe5c2045c33febc93b423
+# Fecha de Generación: 2026-11-06T01:03:30.526794+00:00
+
+id: creencia_territorial_general_policy_v1
+version: '1.0'
+display_name: Proceso de concertación de ruta de participación étnica
+description: En 14 de los 15 municipios de Montes de María se adelantó el proceso
+  de concertación de la ruta de participación étnica mediante el Decreto 893 de 2017.
+knowledge_tier: institutional_policy
+policy_domain: agro_extension
+target_institution: CivicAuthority
+activation_condition: null
+equations: []
+static_parameters:
+  confidence: 0.98
+  action_operation_type: null
+normative_tags:
+- source_art_patr_montes_de_maria
+- pillar_ordenamiento_social_de_la_propiedad
+- domain_agro_extension
+- muni_chaij
+- muni_coloso
+- muni_cordoba
+- muni_el_carmen_de_bolivar
+- muni_el_guamo
+- muni_los_palmitos
+- muni_maria_la_baja
+- muni_morroa
+- muni_ovejas
+- muni_san_antonio_de_palmito
+- muni_san_jacinto
+- muni_san_juan_nepomuceno
+- muni_san_onofre
+- muni_tow_viejo
+- muni_zambrano
+document_source_id: art_patr_montes_de_maria
+document_source_hash: 133db10a1c29556a9e7df92c28b5b1ba50cae239310fe5c2045c33febc93b423

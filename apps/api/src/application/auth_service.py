@@ -122,12 +122,16 @@ class AuthService:
         """Valida credenciales contra el almacén local. Retorna el perfil o None si falla."""
         with self._lock:
             users = self._load_users()
-            user = users.get(login_req.username)
+            normalized_username = login_req.username.strip().lower()
+            user = users.get(normalized_username) or users.get(login_req.username)
             if not user or not user.is_active:
                 logger.warning(f"Intento de autenticación fallido: usuario '{login_req.username}' no existe o está inactivo.")
                 return None
 
-            if not self.verify_password(login_req.password, user.salt, user.password_hash):
+            raw_pwd = login_req.password
+            clean_pwd = login_req.password.strip()
+            is_valid = self.verify_password(raw_pwd, user.salt, user.password_hash) or self.verify_password(clean_pwd, user.salt, user.password_hash)
+            if not is_valid:
                 logger.warning(f"Intento de autenticación fallido: contraseña inválida para '{login_req.username}'.")
                 return None
 
